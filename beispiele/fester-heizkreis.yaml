@@ -1,0 +1,15 @@
+type: custom:keba-keenergy-heizkurve-card
+title: Heizkurve Erdgeschoss
+
+# EIGENE Seriennummer eintragen; der visuelle Editor kann stattdessen
+# den Integrationseintrag auswählen. Keine fremden Beispielwerte übernehmen.
+serial: 'EIGENE_SERIENNUMMER'
+circuit: '1'
+
+# Optional: Begrenzungen NUR für das Diagramm, keine Reglerparameter.
+# Ohne diese Zeilen wird die gespeicherte Tabelle unverändert angezeigt.
+flow_min: 25
+flow_max: 50
+
+# Eigenes Kennwort im visuellen Karteneditor einrichten.
+auto_lock_minutes: 5

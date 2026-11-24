@@ -1,0 +1,21 @@
+{
+  "name": "keba-keenergy-heizkurve-card",
+  "version": "1.0.2",
+  "private": true,
+  "type": "module",
+  "description": "Reusable Home Assistant heating curve card for superbox-dev/keba_keenergy",
+  "license": "MIT",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node tests/run.mjs"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

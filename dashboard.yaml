@@ -1,0 +1,10 @@
+# Vollständige Dashboard-Konfiguration für den Rohkonfigurationseditor.
+# Die JavaScript-Ressource zuerst registrieren, siehe README.md.
+title: KeEnergy
+views:
+  - title: KeEnergy
+    path: heizkurven
+    icon: mdi:chart-bell-curve-cumulative
+    type: panel
+    cards:
+      - type: custom:keba-keenergy-heizkurve-card
