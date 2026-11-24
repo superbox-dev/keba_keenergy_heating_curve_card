@@ -1,4 +1,4 @@
-# KEBA KeEnergy Heizkurven-Dashboard
+# KEBA KeEnergy Heating Curve Card
 
 Allgemeine, eigenständige Home-Assistant-Custom-Card für die Integration
 [superbox-dev/keba_keenergy](https://github.com/superbox-dev/keba_keenergy).
