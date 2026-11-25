@@ -4,187 +4,187 @@
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // src/i18n.js
-  var EN = {
-    "Heizkurve KeEnergy": "KeEnergy heating curve",
-    "Heizkreis": "Heating circuit",
-    "Regler": "Controller",
-    "Regler und Heizkreis": "Controller and heating circuit",
-    "Gew\xE4hlter Regler fehlt": "Selected controller is missing",
-    "Kein Regler gefunden": "No controller found",
-    "Gew\xE4hlter Heizkreis fehlt": "Selected heating circuit is missing",
-    "Kein Heizkreis gefunden": "No heating circuit found",
-    "Neu erkennen": "Rediscover",
-    "Verzeichnis: ": "Registry: ",
-    "Kennwortschutz": "Password protection",
-    "Kennwort": "Password",
-    "Einstellungen freigegeben": "Editing unlocked",
-    "Einstellungen gesperrt": "Editing locked",
-    "Automatische Sperre nach {minutes} Minuten ohne Bearbeitung.": "Locks automatically after {minutes} minutes without editing.",
-    "Zum \xC4ndern von Kurventabelle, Punkten und Heizgrenzen entsperren.": "Unlock to change the curve table, points and heating limits.",
-    "Sperren": "Lock",
-    "Entsperren": "Unlock",
-    "Wird gepr\xFCft \u2026": "Verifying \u2026",
-    "Bearbeitung freigeben": "Unlock editing",
-    "Abbrechen": "Cancel",
-    "Bearbeitung gesperrt.": "Editing locked.",
-    "Einstellungen gesperrt. Bitte mit Kennwort entsperren.": "Editing is locked. Please enter the password to unlock.",
-    "Nach Inaktivit\xE4t automatisch gesperrt. Ungespeicherte \xC4nderungen verworfen.": "Locked automatically after inactivity. Unsaved changes discarded.",
-    "Bearbeitung gesperrt. Ungespeicherte \xC4nderungen verworfen.": "Editing locked. Unsaved changes discarded.",
-    "Bitte Kennwort eingeben.": "Please enter the password.",
-    "Kennwort ist nicht korrekt.": "Incorrect password.",
-    "Bearbeitung freigegeben.": "Editing unlocked.",
-    "Kennwortpr\xFCfung fehlgeschlagen. Bitte erneut versuchen.": "Password verification failed. Please try again.",
-    "entities muss eine Zuordnung sein.": "entities must be a mapping.",
-    "circuit muss eine Heizkreisnummer ab 1 sein.": "circuit must be a heating circuit number starting at 1.",
-    "Ung\xFCltige Entit\xE4tszuordnung: ": "Invalid entity mapping: ",
-    "edit_password_hash muss ein g\xFCltiger PBKDF2-SHA256-Pr\xFCfwert sein. Im visuellen Editor kann er erstellt werden.": "edit_password_hash must be a valid PBKDF2-SHA256 verifier. Create one in the visual editor.",
-    "auto_lock_minutes muss zwischen 1 und 60 Minuten liegen.": "auto_lock_minutes must be between 1 and 60 minutes.",
-    "{key} muss zwischen 10 und 90 \xB0C liegen oder leer sein.": "{key} must be between 10 and 90 \xB0C or empty.",
-    "flow_min muss kleiner als flow_max sein.": "flow_min must be less than flow_max.",
-    "{key} muss zwischen {min} und {max} \xB0C liegen und darf h\xF6chstens zwei Nachkommastellen haben.": "{key} must be between {min} and {max} \xB0C and have at most two decimal places.",
-    "{minKey} muss kleiner als {maxKey} sein.": "{minKey} must be less than {maxKey}.",
-    "language muss auto, de oder en sein.": "language must be auto, de or en.",
-    "Die Steuerungs-Entit\xE4ten stammen aus verschiedenen Reglern. Zuordnung in der Karte pr\xFCfen.": "Control entities belong to different controllers. Check the card mapping.",
-    "Der konfigurierte KeEnergy-Regler wurde nicht gefunden. Kartenkonfiguration pr\xFCfen.": "The configured KeEnergy controller was not found. Check the card configuration.",
-    "KeEnergy-Zuordnung nicht lesbar. Als Administrator \xF6ffnen oder Entit\xE4ten und config_entry manuell zuordnen.": "Cannot read the KeEnergy mapping. Open as an administrator or set entities and config_entry manually.",
-    "Kein KeEnergy-Heizkreis mit Heizkurventabelle gefunden.": "No KeEnergy heating circuit with a heating curve table found.",
-    "config_entry und Entit\xE4tszuordnung geh\xF6ren zu verschiedenen Reglern.": "config_entry and the entity mapping belong to different controllers.",
-    "Die Steuerungs-Entit\xE4ten geh\xF6ren zu verschiedenen Heizkreisen.": "Control entities belong to different heating circuits.",
-    "circuit und Entit\xE4tszuordnung geh\xF6ren zu verschiedenen Heizkreisen.": "circuit and the entity mapping belong to different heating circuits.",
-    "Der gew\xE4hlte Heizkreis wurde an diesem Regler nicht gefunden.": "The selected heating circuit was not found on this controller.",
-    "Mehrdeutige Entit\xE4ten: {keys}. Bitte entities ausdr\xFCcklich zuordnen.": "Ambiguous entities: {keys}. Please set entities explicitly.",
-    "Steuerungs-Entit\xE4ten m\xFCssen aus keba_keenergy stammen.": "Control entities must come from keba_keenergy.",
-    "Vor dem Regler- oder Heizkreiswechsel \xC4nderungen speichern oder den Entwurf verwerfen.": "Save changes or discard the draft before switching controller or heating circuit.",
-    "Ansicht gewechselt. Es wurden keine Werte \xFCbertragen.": "View changed. No values were sent.",
-    "Ansicht gewechselt. Bearbeitung bitte erneut entsperren.": "View changed. Please unlock editing again.",
-    "Zum Aktivieren deaktivierter Entit\xE4ten als Administrator anmelden.": "Sign in as an administrator to enable disabled entities.",
-    "Entit\xE4ten neu eingelesen. Nicht vorhandene Werte m\xFCssen vom Regler unterst\xFCtzt werden.": "Entities reloaded. Missing values must be supported by the controller.",
-    "Bearbeitungs-Entit\xE4ten werden aktiviert \u2026": "Enabling required entities \u2026",
-    "Bearbeitung gesperrt. Erneut entsperren.": "Editing locked. Please unlock again.",
-    "{count} Entit\xE4ten aktiviert. Home Assistant l\xE4dt die Werte; sie erscheinen nach dem n\xE4chsten Update.": "{count} entities enabled. Home Assistant is loading their values; they will appear after the next update.",
-    "Aktivierung nach {count} Entit\xE4ten gestoppt: {error}. Als Administrator anmelden oder Entit\xE4ten in den KeEnergy-Einstellungen aktivieren.": "Enabling stopped after {count} entities: {error}. Sign in as an administrator or enable entities in the KeEnergy settings.",
-    "Heizgrenze Tag": "Day heating limit",
-    "Heizgrenze Nacht": "Night heating limit",
-    "Tag": "Day",
-    "Nacht": "Night",
-    "HG": "HL",
+  var DE = {
+    "KeEnergy heating curve": "Heizkurve KeEnergy",
+    "Heating circuit": "Heizkreis",
+    "Controller": "Regler",
+    "Controller and heating circuit": "Regler und Heizkreis",
+    "Selected controller is missing": "Gew\xE4hlter Regler fehlt",
+    "No controller found": "Kein Regler gefunden",
+    "Selected heating circuit is missing": "Gew\xE4hlter Heizkreis fehlt",
+    "No heating circuit found": "Kein Heizkreis gefunden",
+    "Rediscover": "Neu erkennen",
+    "Registry: ": "Verzeichnis: ",
+    "Password protection": "Kennwortschutz",
+    "Password": "Kennwort",
+    "Editing unlocked": "Einstellungen freigegeben",
+    "Editing locked": "Einstellungen gesperrt",
+    "Locks automatically after {minutes} minutes without editing.": "Automatische Sperre nach {minutes} Minuten ohne Bearbeitung.",
+    "Unlock to change the curve table, points and heating limits.": "Zum \xC4ndern von Kurventabelle, Punkten und Heizgrenzen entsperren.",
+    "Lock": "Sperren",
+    "Unlock": "Entsperren",
+    "Verifying \u2026": "Wird gepr\xFCft \u2026",
+    "Unlock editing": "Bearbeitung freigeben",
+    "Cancel": "Abbrechen",
+    "Editing locked.": "Bearbeitung gesperrt.",
+    "Editing is locked. Please enter the password to unlock.": "Einstellungen gesperrt. Bitte mit Kennwort entsperren.",
+    "Locked automatically after inactivity. Unsaved changes discarded.": "Nach Inaktivit\xE4t automatisch gesperrt. Ungespeicherte \xC4nderungen verworfen.",
+    "Editing locked. Unsaved changes discarded.": "Bearbeitung gesperrt. Ungespeicherte \xC4nderungen verworfen.",
+    "Please enter the password.": "Bitte Kennwort eingeben.",
+    "Incorrect password.": "Kennwort ist nicht korrekt.",
+    "Editing unlocked.": "Bearbeitung freigegeben.",
+    "Password verification failed. Please try again.": "Kennwortpr\xFCfung fehlgeschlagen. Bitte erneut versuchen.",
+    "entities must be a mapping.": "entities muss eine Zuordnung sein.",
+    "circuit must be a heating circuit number starting at 1.": "circuit muss eine Heizkreisnummer ab 1 sein.",
+    "Invalid entity mapping: ": "Ung\xFCltige Entit\xE4tszuordnung: ",
+    "edit_password_hash must be a valid PBKDF2-SHA256 verifier. Create one in the visual editor.": "edit_password_hash muss ein g\xFCltiger PBKDF2-SHA256-Pr\xFCfwert sein. Im visuellen Editor kann er erstellt werden.",
+    "auto_lock_minutes must be between 1 and 60 minutes.": "auto_lock_minutes muss zwischen 1 und 60 Minuten liegen.",
+    "{key} must be between 10 and 90 \xB0C or empty.": "{key} muss zwischen 10 und 90 \xB0C liegen oder leer sein.",
+    "flow_min must be less than flow_max.": "flow_min muss kleiner als flow_max sein.",
+    "{key} must be between {min} and {max} \xB0C and have at most two decimal places.": "{key} muss zwischen {min} und {max} \xB0C liegen und darf h\xF6chstens zwei Nachkommastellen haben.",
+    "{minKey} must be less than {maxKey}.": "{minKey} muss kleiner als {maxKey} sein.",
+    "language must be auto, de or en.": "language muss auto, de oder en sein.",
+    "Control entities belong to different controllers. Check the card mapping.": "Die Steuerungs-Entit\xE4ten stammen aus verschiedenen Reglern. Zuordnung in der Karte pr\xFCfen.",
+    "The configured KeEnergy controller was not found. Check the card configuration.": "Der konfigurierte KeEnergy-Regler wurde nicht gefunden. Kartenkonfiguration pr\xFCfen.",
+    "Cannot read the KeEnergy mapping. Open as an administrator or set entities and config_entry manually.": "KeEnergy-Zuordnung nicht lesbar. Als Administrator \xF6ffnen oder Entit\xE4ten und config_entry manuell zuordnen.",
+    "No KeEnergy heating circuit with a heating curve table found.": "Kein KeEnergy-Heizkreis mit Heizkurventabelle gefunden.",
+    "config_entry and the entity mapping belong to different controllers.": "config_entry und Entit\xE4tszuordnung geh\xF6ren zu verschiedenen Reglern.",
+    "Control entities belong to different heating circuits.": "Die Steuerungs-Entit\xE4ten geh\xF6ren zu verschiedenen Heizkreisen.",
+    "circuit and the entity mapping belong to different heating circuits.": "circuit und Entit\xE4tszuordnung geh\xF6ren zu verschiedenen Heizkreisen.",
+    "The selected heating circuit was not found on this controller.": "Der gew\xE4hlte Heizkreis wurde an diesem Regler nicht gefunden.",
+    "Ambiguous entities: {keys}. Please set entities explicitly.": "Mehrdeutige Entit\xE4ten: {keys}. Bitte entities ausdr\xFCcklich zuordnen.",
+    "Control entities must come from keba_keenergy.": "Steuerungs-Entit\xE4ten m\xFCssen aus keba_keenergy stammen.",
+    "Save changes or discard the draft before switching controller or heating circuit.": "Vor dem Regler- oder Heizkreiswechsel \xC4nderungen speichern oder den Entwurf verwerfen.",
+    "View changed. No values were sent.": "Ansicht gewechselt. Es wurden keine Werte \xFCbertragen.",
+    "View changed. Please unlock editing again.": "Ansicht gewechselt. Bearbeitung bitte erneut entsperren.",
+    "Sign in as an administrator to enable disabled entities.": "Zum Aktivieren deaktivierter Entit\xE4ten als Administrator anmelden.",
+    "Entities reloaded. Missing values must be supported by the controller.": "Entit\xE4ten neu eingelesen. Nicht vorhandene Werte m\xFCssen vom Regler unterst\xFCtzt werden.",
+    "Enabling required entities \u2026": "Bearbeitungs-Entit\xE4ten werden aktiviert \u2026",
+    "Editing locked. Please unlock again.": "Bearbeitung gesperrt. Erneut entsperren.",
+    "{count} entities enabled. Home Assistant is loading their values; they will appear after the next update.": "{count} Entit\xE4ten aktiviert. Home Assistant l\xE4dt die Werte; sie erscheinen nach dem n\xE4chsten Update.",
+    "Enabling stopped after {count} entities: {error}. Sign in as an administrator or enable entities in the KeEnergy settings.": "Aktivierung nach {count} Entit\xE4ten gestoppt: {error}. Als Administrator anmelden oder Entit\xE4ten in den KeEnergy-Einstellungen aktivieren.",
+    "Day heating limit": "Heizgrenze Tag",
+    "Night heating limit": "Heizgrenze Nacht",
+    "Day": "Tag",
+    "Night": "Nacht",
+    "HL": "HG",
     "Min": "Min",
     "Max": "Max",
-    "Au\xDFentemperatur": "Outdoor temperature",
-    "Vorlauf": "Flow",
-    "P{index}: Au\xDFen {outdoor} \xB0C \xB7 Tabelle {flow} \xB0C \xB7 begrenzte Anzeige {shown} \xB0C": "P{index}: outdoor {outdoor} \xB0C \xB7 table {flow} \xB0C \xB7 limited display {shown} \xB0C",
-    "Zwischenwert bei {outdoor} \xB0C au\xDFen: {flow} \xB0C Vorlauf": "Interpolated value at {outdoor} \xB0C outdoors: {flow} \xB0C flow",
-    "Gespeicherte Heizkurvenpunkte, berechnete Zwischenwerte und aktuelle Vorlauftemperaturen": "Saved heating curve points, interpolated values and current flow temperatures",
-    "Punkt {index} Au\xDFentemperatur": "Point {index} outdoor temperature",
-    "Punkt {index} Vorlauf": "Point {index} flow temperature",
-    "Punkt {index} entfernen": "Remove point {index}",
-    "Punkttabelle": "Point table",
-    " \xB7 Entwurf": " \xB7 Draft",
-    "Kurve {name} wird geladen \u2026": "Loading curve {name} \u2026",
-    " (nicht zugeordnet)": " (not mapped)",
-    "Punkttabelle wird verwendet": "Point table is in use",
-    "Hybrid aktiv \xB7 gespeicherte Punkttabelle": "Hybrid active \xB7 saved point table",
-    "Kurvenart nicht verf\xFCgbar": "Curve mode unavailable",
-    "Bearbeitung aktivieren": "Enable editing",
-    "{count} ben\xF6tigte KeEnergy-Entit\xE4ten sind deaktiviert. Als Administrator kannst du die ben\xF6tigten Entit\xE4ten dieses Heizkreises aktivieren.": "{count} required KeEnergy entities are disabled. An administrator can enable the required entities for this heating circuit.",
-    "Bearbeitungs-Entit\xE4ten aktivieren": "Enable required entities",
-    "Regler-Soll": "Controller target",
-    "Vorlauf Ist": "Actual flow",
-    "Vorlauf Min / Max": "Flow min / max",
-    "Zwischenwerte": "Interpolated values",
-    "Darstellung begrenzt: ": "Display limits: ",
-    "ohne Minimum": "no minimum",
-    "ohne Maximum": "no maximum",
-    " bis ": " to ",
-    ". Die Begrenzung gilt nur f\xFCr das Diagramm. ": ". Limits apply to the chart only. ",
-    "Gespeicherte Tabelle mit linear berechneten Zwischenwerten. ": "Saved table with linearly interpolated values. ",
-    "Der Regler-Sollwert wird separat aus KeEnergy gelesen.": "The controller target is read separately from KeEnergy.",
-    "Kurventabelle ausw\xE4hlen": "Select curve table",
-    "Kurventabelle f\xFCr diesen Heizkreis": "Curve table for this heating circuit",
-    "Aktuell: {name}": "Current: {name}",
-    "Keine Kurven verf\xFCgbar": "No curves available",
-    "Die vom Regler angebotenen Heiztabellen (HC\u2026) stehen hier zur Auswahl. Die Auswahl weist sie dem Heizkreis zu. Eine Tabelle kann von mehreren Heizkreisen desselben Reglers gemeinsam verwendet werden.": "Choose one of the heating tables (HC\u2026) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller.",
-    "Aktuelle Werte": "Current readings",
-    "Vorlauf Soll": "Target flow",
-    "Punkte": "Points",
-    "Heizgrenzen Tag / Nacht": "Day / night heating limits",
-    "Heizgrenzen speichern": "Save heating limits",
-    "Kurvenpunkte bearbeiten": "Edit curve points",
-    "1 bis 16 Punkte. Die Vorschau aktualisiert sich beim Eingeben. Erst \u201EPunkte speichern\u201C \xFCbertr\xE4gt die Tabelle.": "1 to 16 points. The preview updates as you type. The table is sent only when you select \u201CSave points\u201D.",
-    "Entwurf verwerfen": "Discard draft",
-    "Punkt hinzuf\xFCgen": "Add point",
-    "Punkte speichern": "Save points",
-    "Au\xDFen \xB0C": "Outdoor \xB0C",
-    "Vorlauf \xB0C": "Flow \xB0C",
-    "Entit\xE4ten / Einrichtung pr\xFCfen": "Check entities / setup",
-    "Diese Entit\xE4ten fehlen oder liefern noch keine Werte:": "These entities are missing or do not yet provide values:",
-    "Konfigurationseintrag noch nicht gefunden. Optional config_entry in der Karte angeben.": "Integration entry not found yet. Optionally set config_entry in the card.",
-    "Die Aktion keba_keenergy.set_heating_curve_points ist nicht verf\xFCgbar. Die Integration muss das Bearbeiten von Kurvenpunkten unterst\xFCtzen.": "The keba_keenergy.set_heating_curve_points action is unavailable. The integration must support editing curve points.",
-    "Zuordnung erneut laden": "Reload mapping",
-    "KeEnergy Heizkurve \xB7 Allgemeine Version 1.1.0": "KeEnergy heating curve \xB7 General version 1.1.0",
-    "Punkte ge\xE4ndert \xB7 noch nicht gespeichert": "Points changed \xB7 not saved yet",
-    "Parameter ge\xE4ndert \xB7 noch nicht gespeichert": "Settings changed \xB7 not saved yet",
-    "Entwurf verworfen.": "Draft discarded.",
-    "Punkt hinzugef\xFCgt \xB7 noch nicht gespeichert": "Point added \xB7 not saved yet",
-    "Vor dem Tabellenwechsel Punkte / Parameter speichern oder den Entwurf verwerfen.": "Save points / settings or discard the draft before switching tables.",
-    "Kurve wird zugewiesen \u2026": "Assigning curve \u2026",
-    "Kurve {name} zugewiesen. Messwerte werden aktualisiert.": "Curve {name} assigned. Readings are updating.",
-    "Auswahl fehlgeschlagen: ": "Selection failed: ",
-    "Integrationseintrag nicht ermittelbar. config_entry in der Kartenkonfiguration angeben.": "Cannot determine the integration entry. Set config_entry in the card configuration.",
-    "Ung\xFCltige Punkte: Au\xDFen \u221240 bis 40 \xB0C, Vorlauf 10 bis 90 \xB0C; Au\xDFentemperaturen m\xFCssen eindeutig sein.": "Invalid points: outdoor \u221240 to 40 \xB0C, flow 10 to 90 \xB0C; outdoor temperatures must be unique.",
-    "Keine \xC4nderungen an den Punkten.": "No changes to the points.",
-    "Punkte werden gespeichert \u2026": "Saving points \u2026",
-    "Punkte f\xFCr {name} \xFCbertragen. Reglerwerte werden aktualisiert.": "Points for {name} sent. Controller readings are updating.",
-    "Speichern fehlgeschlagen: ": "Save failed: ",
-    "Ung\xFCltiger Wert f\xFCr {field}. Zul\xE4ssigen Bereich und Schrittweite der Entit\xE4t beachten.": "Invalid value for {field}. Observe the entity\u2019s range and step size.",
-    "Keine Parameter ge\xE4ndert.": "No settings changed.",
-    "Parameter werden gespeichert \u2026": "Saving settings \u2026",
-    "{count} Parameter \xFCbertragen. Der n\xE4chste Abgleich zeigt die Reglerwerte.": "{count} settings sent. The next update will show the controller values.",
-    "Teilweise gespeichert ({count}). Weitere \xC4nderungen nicht \xFCbertragen: {error}": "Partially saved ({count}). Remaining changes were not sent: {error}",
-    "Titel": "Title",
-    "Regler fest zuordnen": "Pin controller",
-    "Heizkreis fest zuordnen": "Pin heating circuit",
-    "Automatisch \xB7 im Dashboard ausw\xE4hlbar": "Automatic \xB7 selectable in the dashboard",
-    "Ohne feste Zuordnung werden Regler und Heizkreis direkt in der Karte gew\xE4hlt. Das Umschalten der Ansicht sendet keine Befehle.": "Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands.",
-    "Diagrammachsen": "Chart axes",
-    "Automatisch": "Automatic",
-    "X-Achse \xB7 Au\xDFentemperatur": "X-axis \xB7 Outdoor temperature",
-    "Y-Achse \xB7 Vorlauftemperatur": "Y-axis \xB7 Flow temperature",
+    "Outdoor temperature": "Au\xDFentemperatur",
+    "Flow": "Vorlauf",
+    "P{index}: outdoor {outdoor} \xB0C \xB7 table {flow} \xB0C \xB7 limited display {shown} \xB0C": "P{index}: Au\xDFen {outdoor} \xB0C \xB7 Tabelle {flow} \xB0C \xB7 begrenzte Anzeige {shown} \xB0C",
+    "Interpolated value at {outdoor} \xB0C outdoors: {flow} \xB0C flow": "Zwischenwert bei {outdoor} \xB0C au\xDFen: {flow} \xB0C Vorlauf",
+    "Saved heating curve points, interpolated values and current flow temperatures": "Gespeicherte Heizkurvenpunkte, berechnete Zwischenwerte und aktuelle Vorlauftemperaturen",
+    "Point {index} outdoor temperature": "Punkt {index} Au\xDFentemperatur",
+    "Point {index} flow temperature": "Punkt {index} Vorlauf",
+    "Remove point {index}": "Punkt {index} entfernen",
+    "Point table": "Punkttabelle",
+    " \xB7 Draft": " \xB7 Entwurf",
+    "Loading curve {name} \u2026": "Kurve {name} wird geladen \u2026",
+    " (not mapped)": " (nicht zugeordnet)",
+    "Point table is in use": "Punkttabelle wird verwendet",
+    "Hybrid active \xB7 saved point table": "Hybrid aktiv \xB7 gespeicherte Punkttabelle",
+    "Curve mode unavailable": "Kurvenart nicht verf\xFCgbar",
+    "Enable editing": "Bearbeitung aktivieren",
+    "{count} required KeEnergy entities are disabled. An administrator can enable the required entities for this heating circuit.": "{count} ben\xF6tigte KeEnergy-Entit\xE4ten sind deaktiviert. Als Administrator kannst du die ben\xF6tigten Entit\xE4ten dieses Heizkreises aktivieren.",
+    "Enable required entities": "Bearbeitungs-Entit\xE4ten aktivieren",
+    "Controller target": "Regler-Soll",
+    "Actual flow": "Vorlauf Ist",
+    "Flow min / max": "Vorlauf Min / Max",
+    "Interpolated values": "Zwischenwerte",
+    "Display limits: ": "Darstellung begrenzt: ",
+    "no minimum": "ohne Minimum",
+    "no maximum": "ohne Maximum",
+    " to ": " bis ",
+    ". Limits apply to the chart only. ": ". Die Begrenzung gilt nur f\xFCr das Diagramm. ",
+    "Saved table with linearly interpolated values. ": "Gespeicherte Tabelle mit linear berechneten Zwischenwerten. ",
+    "The controller target is read separately from KeEnergy.": "Der Regler-Sollwert wird separat aus KeEnergy gelesen.",
+    "Select curve table": "Kurventabelle ausw\xE4hlen",
+    "Curve table for this heating circuit": "Kurventabelle f\xFCr diesen Heizkreis",
+    "Current: {name}": "Aktuell: {name}",
+    "No curves available": "Keine Kurven verf\xFCgbar",
+    "Choose one of the heating tables (HC\u2026) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller.": "Die vom Regler angebotenen Heiztabellen (HC\u2026) stehen hier zur Auswahl. Die Auswahl weist sie dem Heizkreis zu. Eine Tabelle kann von mehreren Heizkreisen desselben Reglers gemeinsam verwendet werden.",
+    "Current readings": "Aktuelle Werte",
+    "Target flow": "Vorlauf Soll",
+    "Points": "Punkte",
+    "Day / night heating limits": "Heizgrenzen Tag / Nacht",
+    "Save heating limits": "Heizgrenzen speichern",
+    "Edit curve points": "Kurvenpunkte bearbeiten",
+    "1 to 16 points. The preview updates as you type. The table is sent only when you select \u201CSave points\u201D.": "1 bis 16 Punkte. Die Vorschau aktualisiert sich beim Eingeben. Erst \u201EPunkte speichern\u201C \xFCbertr\xE4gt die Tabelle.",
+    "Discard draft": "Entwurf verwerfen",
+    "Add point": "Punkt hinzuf\xFCgen",
+    "Save points": "Punkte speichern",
+    "Outdoor \xB0C": "Au\xDFen \xB0C",
+    "Flow \xB0C": "Vorlauf \xB0C",
+    "Check entities / setup": "Entit\xE4ten / Einrichtung pr\xFCfen",
+    "These entities are missing or do not yet provide values:": "Diese Entit\xE4ten fehlen oder liefern noch keine Werte:",
+    "Integration entry not found yet. Optionally set config_entry in the card.": "Konfigurationseintrag noch nicht gefunden. Optional config_entry in der Karte angeben.",
+    "The keba_keenergy.set_heating_curve_points action is unavailable. The integration must support editing curve points.": "Die Aktion keba_keenergy.set_heating_curve_points ist nicht verf\xFCgbar. Die Integration muss das Bearbeiten von Kurvenpunkten unterst\xFCtzen.",
+    "Reload mapping": "Zuordnung erneut laden",
+    "KeEnergy heating curve \xB7 General version 1.1.0": "KeEnergy Heizkurve \xB7 Allgemeine Version 1.1.0",
+    "Points changed \xB7 not saved yet": "Punkte ge\xE4ndert \xB7 noch nicht gespeichert",
+    "Settings changed \xB7 not saved yet": "Parameter ge\xE4ndert \xB7 noch nicht gespeichert",
+    "Draft discarded.": "Entwurf verworfen.",
+    "Point added \xB7 not saved yet": "Punkt hinzugef\xFCgt \xB7 noch nicht gespeichert",
+    "Save points / settings or discard the draft before switching tables.": "Vor dem Tabellenwechsel Punkte / Parameter speichern oder den Entwurf verwerfen.",
+    "Assigning curve \u2026": "Kurve wird zugewiesen \u2026",
+    "Curve {name} assigned. Readings are updating.": "Kurve {name} zugewiesen. Messwerte werden aktualisiert.",
+    "Selection failed: ": "Auswahl fehlgeschlagen: ",
+    "Cannot determine the integration entry. Set config_entry in the card configuration.": "Integrationseintrag nicht ermittelbar. config_entry in der Kartenkonfiguration angeben.",
+    "Invalid points: outdoor \u221240 to 40 \xB0C, flow 10 to 90 \xB0C; outdoor temperatures must be unique.": "Ung\xFCltige Punkte: Au\xDFen \u221240 bis 40 \xB0C, Vorlauf 10 bis 90 \xB0C; Au\xDFentemperaturen m\xFCssen eindeutig sein.",
+    "No changes to the points.": "Keine \xC4nderungen an den Punkten.",
+    "Saving points \u2026": "Punkte werden gespeichert \u2026",
+    "Points for {name} sent. Controller readings are updating.": "Punkte f\xFCr {name} \xFCbertragen. Reglerwerte werden aktualisiert.",
+    "Save failed: ": "Speichern fehlgeschlagen: ",
+    "Invalid value for {field}. Observe the entity\u2019s range and step size.": "Ung\xFCltiger Wert f\xFCr {field}. Zul\xE4ssigen Bereich und Schrittweite der Entit\xE4t beachten.",
+    "No settings changed.": "Keine Parameter ge\xE4ndert.",
+    "Saving settings \u2026": "Parameter werden gespeichert \u2026",
+    "{count} settings sent. The next update will show the controller values.": "{count} Parameter \xFCbertragen. Der n\xE4chste Abgleich zeigt die Reglerwerte.",
+    "Partially saved ({count}). Remaining changes were not sent: {error}": "Teilweise gespeichert ({count}). Weitere \xC4nderungen nicht \xFCbertragen: {error}",
+    "Title": "Titel",
+    "Pin controller": "Regler fest zuordnen",
+    "Pin heating circuit": "Heizkreis fest zuordnen",
+    "Automatic \xB7 selectable in the dashboard": "Automatisch \xB7 im Dashboard ausw\xE4hlbar",
+    "Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands.": "Ohne feste Zuordnung werden Regler und Heizkreis direkt in der Karte gew\xE4hlt. Das Umschalten der Ansicht sendet keine Befehle.",
+    "Chart axes": "Diagrammachsen",
+    "Automatic": "Automatisch",
+    "X-axis \xB7 Outdoor temperature": "X-Achse \xB7 Au\xDFentemperatur",
+    "Y-axis \xB7 Flow temperature": "Y-Achse \xB7 Vorlauftemperatur",
     "Minimum (\xB0C)": "Minimum (\xB0C)",
     "Maximum (\xB0C)": "Maximum (\xB0C)",
-    "Rasterweite (\xB0C)": "Grid interval (\xB0C)",
-    "Abstand der Zwischenwerte auf der X-Achse (\xB0C)": "Interpolated value interval on the X-axis (\xB0C)",
-    "Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite betr\xE4gt 5 \xB0C. Diese Einstellungen \xE4ndern nur den sichtbaren Diagrammausschnitt und das Raster.": "Empty bounds are set automatically. The default grid interval is 5 \xB0C. These settings only change the visible chart range and grid.",
-    "Vorlaufbegrenzungen im Diagramm": "Chart flow limits",
-    "Leer lassen f\xFCr die unver\xE4nderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler \xFCbertragen.": "Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.",
-    "Anzeige Minimum (\xB0C)": "Display minimum (\xB0C)",
-    "Anzeige Maximum (\xB0C)": "Display maximum (\xB0C)",
-    "\xB7 eingerichtet": "\xB7 configured",
+    "Grid interval (\xB0C)": "Rasterweite (\xB0C)",
+    "Interpolated value interval on the X-axis (\xB0C)": "Abstand der Zwischenwerte auf der X-Achse (\xB0C)",
+    "Empty bounds are set automatically. The default grid interval is 5 \xB0C. These settings only change the visible chart range and grid.": "Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite betr\xE4gt 5 \xB0C. Diese Einstellungen \xE4ndern nur den sichtbaren Diagrammausschnitt und das Raster.",
+    "Chart flow limits": "Vorlaufbegrenzungen im Diagramm",
+    "Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.": "Leer lassen f\xFCr die unver\xE4nderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler \xFCbertragen.",
+    "Display minimum (\xB0C)": "Anzeige Minimum (\xB0C)",
+    "Display maximum (\xB0C)": "Anzeige Maximum (\xB0C)",
+    "\xB7 configured": "\xB7 eingerichtet",
     "\xB7 optional": "\xB7 optional",
-    "Jeder richtet sein eigenes Kennwort ein. Nur der Pr\xFCfwert wird in der Kartenkonfiguration gespeichert. Der Schutz gilt f\xFCr diese Kartenoberfl\xE4che; Home-Assistant-Berechtigungen gelten weiterhin.": "Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply.",
-    "Neues Kennwort": "New password",
-    "Kennwort wiederholen": "Repeat password",
-    "Kennwort einrichten": "Set password",
-    "Kennwortschutz entfernen": "Remove password protection",
-    "Automatisch sperren nach Minuten": "Auto-lock after minutes",
-    "Weitere Optionen und manuelle Entit\xE4tszuordnungen sind im YAML-Editor m\xF6glich.": "Additional options and manual entity mappings are available in the YAML editor.",
-    "Beide Kennw\xF6rter m\xFCssen ausgef\xFCllt und gleich sein.": "Both passwords must be filled in and match.",
-    "Der Browser kann keinen sicheren Zufallswert erzeugen.": "The browser cannot generate secure random values.",
-    "Konfiguration ge\xE4ndert. Kennwort bitte erneut setzen.": "Configuration changed. Please set the password again.",
-    "Kennwort konnte nicht eingerichtet werden: ": "Could not set the password: ",
-    "Automatische Auswahl nicht verf\xFCgbar: ": "Automatic selection unavailable: ",
-    "Entit\xE4tenverzeichnis nicht verf\xFCgbar.": "Entity registry unavailable.",
-    "Sprache": "Language",
-    "Automatisch (Home Assistant)": "Automatic (Home Assistant)",
-    "Deutsch": "German",
-    "Englisch": "English"
+    "Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply.": "Jeder richtet sein eigenes Kennwort ein. Nur der Pr\xFCfwert wird in der Kartenkonfiguration gespeichert. Der Schutz gilt f\xFCr diese Kartenoberfl\xE4che; Home-Assistant-Berechtigungen gelten weiterhin.",
+    "New password": "Neues Kennwort",
+    "Repeat password": "Kennwort wiederholen",
+    "Set password": "Kennwort einrichten",
+    "Remove password protection": "Kennwortschutz entfernen",
+    "Auto-lock after minutes": "Automatisch sperren nach Minuten",
+    "Additional options and manual entity mappings are available in the YAML editor.": "Weitere Optionen und manuelle Entit\xE4tszuordnungen sind im YAML-Editor m\xF6glich.",
+    "Both passwords must be filled in and match.": "Beide Kennw\xF6rter m\xFCssen ausgef\xFCllt und gleich sein.",
+    "The browser cannot generate secure random values.": "Der Browser kann keinen sicheren Zufallswert erzeugen.",
+    "Configuration changed. Please set the password again.": "Konfiguration ge\xE4ndert. Kennwort bitte erneut setzen.",
+    "Could not set the password: ": "Kennwort konnte nicht eingerichtet werden: ",
+    "Automatic selection unavailable: ": "Automatische Auswahl nicht verf\xFCgbar: ",
+    "Entity registry unavailable.": "Entit\xE4tenverzeichnis nicht verf\xFCgbar.",
+    "Language": "Sprache",
+    "Automatic (Home Assistant)": "Automatisch (Home Assistant)",
+    "German": "Deutsch",
+    "English": "Englisch"
   };
   function languageCode(config, hass) {
     const raw = config?.language && config.language !== "auto" ? config.language : hass?.locale?.language || hass?.language || "en";
     return String(raw).toLowerCase().replaceAll("_", "-").split("-")[0] === "de" ? "de" : "en";
   }
   function translate(language, text, params = {}) {
-    const message = language === "de" ? text : EN[text] ?? text;
+    const message = language === "de" ? DE[text] ?? text : text;
     return message.replace(/\{(\w+)\}/g, (match, key) => Object.hasOwn(params, key) ? String(params[key]) : match);
   }
   function formatNumber(value, config, hass, options = {}) {
@@ -836,7 +836,7 @@
       controller.outdoor = outdoor.length === 1 ? outdoor[0].entity_id : "";
       controller.label = (controller.label || "KeEnergy") + " \xB7 " + controller.serial;
       controller.circuits = controller.circuits.filter((c) => c.candidates.curve || c.candidates.select).map((circuit) => {
-        circuit.label = t("Heizkreis") + " " + circuit.id + (circuit.label ? " \xB7 " + circuit.label : "");
+        circuit.label = t("Heating circuit") + " " + circuit.id + (circuit.label ? " \xB7 " + circuit.label : "");
         for (const [key, entries] of Object.entries(circuit.candidates)) {
           if (entries.length === 1) circuit.map[key] = entries[0].entity_id;
           else circuit.ambiguous.push(key);
@@ -853,7 +853,7 @@
       hass.callWS({ type: "config/device_registry/list" })
     ]);
     if (entities.status === "rejected") throw entities.reason;
-    if (!Array.isArray(entities.value)) throw Error(t("Entit\xE4tenverzeichnis nicht verf\xFCgbar."));
+    if (!Array.isArray(entities.value)) throw Error(t("Entity registry unavailable."));
     return { registry: entities.value, devices: devices.status === "fulfilled" && Array.isArray(devices.value) ? devices.value : [] };
   }
 
@@ -929,7 +929,7 @@
         this._devices = devices;
         this._controllers = discoverControllers(registry, devices, (text) => this._t(text));
       } catch (error) {
-        this._error = this._t("Automatische Auswahl nicht verf\xFCgbar: ") + (error.message || error);
+        this._error = this._t("Automatic selection unavailable: ") + (error.message || error);
       } finally {
         this._loaded = true;
         this._loading = false;
@@ -941,7 +941,8 @@
     }
     _change(key, value, redraw = false) {
       if (value === "" || value == null) delete this._config[key];
-      else this._config[key] = value;
+      else
+        this._config[key] = value;
       this._revision++;
       if (redraw) this._render();
       this._emit();
@@ -950,14 +951,15 @@
       const one = this.shadowRoot.querySelector("#new-password"), two = this.shadowRoot.querySelector("#repeat-password");
       const message = this.shadowRoot.querySelector("#password-message");
       if (!one.value || one.value !== two.value) {
-        message.textContent = this._t("Beide Kennw\xF6rter m\xFCssen ausgef\xFCllt und gleich sein.");
+        message.textContent = this._t("Both passwords must be filled in and match.");
         return;
       }
       if (!globalThis.crypto?.getRandomValues) {
-        message.textContent = this._t("Der Browser kann keinen sicheren Zufallswert erzeugen.");
+        message.textContent = this._t("The browser cannot generate secure random values.");
         return;
       }
-      const revision = this._revision, bytes = new TextEncoder().encode(one.value), salt = crypto.getRandomValues(new Uint8Array(16));
+      const revision = this._revision, bytes = new TextEncoder().encode(one.value);
+      const salt = crypto.getRandomValues(new Uint8Array(16));
       const button = this.shadowRoot.querySelector("#create-password");
       button.disabled = true;
       one.value = "";
@@ -966,12 +968,12 @@
       try {
         derived = await pbkdf2Async(sha256, bytes, salt, { c: 12e4, dkLen: 32 });
         if (revision !== this._revision) {
-          message.textContent = this._t("Konfiguration ge\xE4ndert. Kennwort bitte erneut setzen.");
+          message.textContent = this._t("Configuration changed. Please set the password again.");
           return;
         }
         this._change("edit_password_hash", ["pbkdf2-sha256", 12e4, hex(salt), hex(derived)].join("$"), true);
       } catch (error) {
-        message.textContent = this._t("Kennwort konnte nicht eingerichtet werden: ") + (error.message || error);
+        message.textContent = this._t("Could not set the password: ") + (error.message || error);
       } finally {
         bytes.fill(0);
         derived?.fill(0);
@@ -990,11 +992,11 @@
       };
       const axisFields = (axis, title) => {
         const { min, max } = AXIS_LIMITS[axis];
-        const bounds = `min="${min}" max="${max}" step="0.01" placeholder="${esc(this._t("Automatisch"))}"`;
+        const bounds = `min="${min}" max="${max}" step="0.01" placeholder="${esc(this._t("Automatic"))}"`;
         return `<fieldset><legend>${esc(title)}</legend><div class="grid axis-fields">
         ${field(this._t("Minimum (\xB0C)"), `${axis}_min`, "number", bounds)}
         ${field(this._t("Maximum (\xB0C)"), `${axis}_max`, "number", bounds)}
-        ${field(this._t("Rasterweite (\xB0C)"), `${axis}_step`, "number", `min="${MIN_AXIS_STEP}" max="${max - min}" step="0.01" placeholder="${DEFAULT_AXIS_STEP}"`)}
+        ${field(this._t("Grid interval (\xB0C)"), `${axis}_step`, "number", `min="${MIN_AXIS_STEP}" max="${max - min}" step="0.01" placeholder="${DEFAULT_AXIS_STEP}"`)}
       </div></fieldset>`;
       };
       const axesOpen = this.shadowRoot.querySelector("#chart-axes")?.open;
@@ -1005,27 +1007,27 @@
       button{cursor:pointer;margin:6px 6px 6px 0}p{color:var(--secondary-text-color);font-size:12px;line-height:1.5}summary{cursor:pointer}#password-message{color:var(--error-color,#a44)}
       fieldset{min-width:0;border:1px solid var(--divider-color,#ccc);border-radius:8px;margin:10px 0;padding:0 10px}legend{font-size:12px}.axis-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
       @media(max-width:450px){.grid{grid-template-columns:1fr}}
-      </style>${field(this._t("Titel"), "title")}
-      <label>${esc(this._t("Sprache"))}<select id="config-language" aria-label="${esc(this._t("Sprache"))}">${["auto", "de", "en"].map((value) => `<option value="${value}" ${(c.language || "auto") === value ? "selected" : ""}>${esc(this._t(value === "auto" ? "Automatisch (Home Assistant)" : value === "de" ? "Deutsch" : "Englisch"))}</option>`).join("")}</select></label>
-      <label>${esc(this._t("Regler fest zuordnen"))}<select id="config-controller" aria-label="${esc(this._t("Regler fest zuordnen"))}"><option value="">${esc(this._t("Automatisch \xB7 im Dashboard ausw\xE4hlbar"))}</option>${this._controllers.map((controller) => `<option value="${esc(controller.id)}" ${selected?.id === controller.id ? "selected" : ""}>${esc(controller.label)}</option>`).join("")}</select></label>
-      <label>${esc(this._t("Heizkreis fest zuordnen"))}<select id="config-circuit" aria-label="${esc(this._t("Heizkreis fest zuordnen"))}"><option value="">${esc(this._t("Automatisch \xB7 im Dashboard ausw\xE4hlbar"))}</option>${circuits.map((circuit) => `<option value="${esc(circuit.id)}" ${String(c.circuit || "") === circuit.id ? "selected" : ""}>${esc(circuit.label)}</option>`).join("")}${c.circuit && !circuits.some((circuit) => circuit.id === String(c.circuit)) ? `<option value="${esc(c.circuit)}" selected>${esc(this._t("Heizkreis"))} ${esc(c.circuit)}</option>` : ""}</select></label>
-      <p>${esc(this._t("Ohne feste Zuordnung werden Regler und Heizkreis direkt in der Karte gew\xE4hlt. Das Umschalten der Ansicht sendet keine Befehle."))}</p>
+      </style>${field(this._t("Title"), "title")}
+      <label>${esc(this._t("Language"))}<select id="config-language" aria-label="${esc(this._t("Language"))}">${["auto", "de", "en"].map((value) => `<option value="${value}" ${(c.language || "auto") === value ? "selected" : ""}>${esc(this._t(value === "auto" ? "Automatic (Home Assistant)" : value === "de" ? "German" : "English"))}</option>`).join("")}</select></label>
+      <label>${esc(this._t("Pin controller"))}<select id="config-controller" aria-label="${esc(this._t("Pin controller"))}"><option value="">${esc(this._t("Automatic \xB7 selectable in the dashboard"))}</option>${this._controllers.map((controller) => `<option value="${esc(controller.id)}" ${selected?.id === controller.id ? "selected" : ""}>${esc(controller.label)}</option>`).join("")}</select></label>
+      <label>${esc(this._t("Pin heating circuit"))}<select id="config-circuit" aria-label="${esc(this._t("Pin heating circuit"))}"><option value="">${esc(this._t("Automatic \xB7 selectable in the dashboard"))}</option>${circuits.map((circuit) => `<option value="${esc(circuit.id)}" ${String(c.circuit || "") === circuit.id ? "selected" : ""}>${esc(circuit.label)}</option>`).join("")}${c.circuit && !circuits.some((circuit) => circuit.id === String(c.circuit)) ? `<option value="${esc(c.circuit)}" selected>${esc(this._t("Heating circuit"))} ${esc(c.circuit)}</option>` : ""}</select></label>
+      <p>${esc(this._t("Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands."))}</p>
       ${this._error ? `<p>${esc(this._error)}</p>` : ""}
       <details id="chart-axes" ${axesOpen ? "open" : ""}>
-        <summary>${esc(this._t("Diagrammachsen"))}</summary>
-        <p>${esc(this._t("Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite betr\xE4gt 5 \xB0C. Diese Einstellungen \xE4ndern nur den sichtbaren Diagrammausschnitt und das Raster."))}</p>
-        ${axisFields("x", this._t("X-Achse \xB7 Au\xDFentemperatur"))}
-        ${axisFields("y", this._t("Y-Achse \xB7 Vorlauftemperatur"))}
-        <fieldset><legend>${esc(this._t("Zwischenwerte"))}</legend>
-          ${field(this._t("Abstand der Zwischenwerte auf der X-Achse (\xB0C)"), "intermediate_step", "number", `min="${INTERMEDIATE_STEP.min}" max="${INTERMEDIATE_STEP.max}" step="0.01" placeholder="${INTERMEDIATE_STEP.default}"`)}
+        <summary>${esc(this._t("Chart axes"))}</summary>
+        <p>${esc(this._t("Empty bounds are set automatically. The default grid interval is 5 \xB0C. These settings only change the visible chart range and grid."))}</p>
+        ${axisFields("x", this._t("X-axis \xB7 Outdoor temperature"))}
+        ${axisFields("y", this._t("Y-axis \xB7 Flow temperature"))}
+        <fieldset><legend>${esc(this._t("Interpolated values"))}</legend>
+          ${field(this._t("Interpolated value interval on the X-axis (\xB0C)"), "intermediate_step", "number", `min="${INTERMEDIATE_STEP.min}" max="${INTERMEDIATE_STEP.max}" step="0.01" placeholder="${INTERMEDIATE_STEP.default}"`)}
         </fieldset>
       </details>
-      <details><summary>${esc(this._t("Vorlaufbegrenzungen im Diagramm"))}</summary><p>${esc(this._t("Leer lassen f\xFCr die unver\xE4nderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler \xFCbertragen."))}</p><div class="grid">${field(this._t("Anzeige Minimum (\xB0C)"), "flow_min", "number", 'min="10" max="90" step="any"')}${field(this._t("Anzeige Maximum (\xB0C)"), "flow_max", "number", 'min="10" max="90" step="any"')}</div></details>
-      <details><summary>${esc(this._t("Kennwortschutz"))} ${c.edit_password_hash ? this._t("\xB7 eingerichtet") : this._t("\xB7 optional")}</summary><p>${esc(this._t("Jeder richtet sein eigenes Kennwort ein. Nur der Pr\xFCfwert wird in der Kartenkonfiguration gespeichert. Der Schutz gilt f\xFCr diese Kartenoberfl\xE4che; Home-Assistant-Berechtigungen gelten weiterhin."))}</p>
-      <div class="grid"><label>${esc(this._t("Neues Kennwort"))}<input id="new-password" type="password" autocomplete="new-password"></label><label>${esc(this._t("Kennwort wiederholen"))}<input id="repeat-password" type="password" autocomplete="new-password"></label></div>
-      <button type="button" id="create-password">${esc(this._t("Kennwort einrichten"))}</button>${c.edit_password_hash ? `<button type="button" id="remove-password">${esc(this._t("Kennwortschutz entfernen"))}</button>` : ""}
-      <p id="password-message" role="status"></p>${field(this._t("Automatisch sperren nach Minuten"), "auto_lock_minutes", "number", 'min="1" max="60" step="1"')}</details>
-      <p>${esc(this._t("Weitere Optionen und manuelle Entit\xE4tszuordnungen sind im YAML-Editor m\xF6glich."))}</p>`;
+      <details><summary>${esc(this._t("Chart flow limits"))}</summary><p>${esc(this._t("Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller."))}</p><div class="grid">${field(this._t("Display minimum (\xB0C)"), "flow_min", "number", 'min="10" max="90" step="any"')}${field(this._t("Display maximum (\xB0C)"), "flow_max", "number", 'min="10" max="90" step="any"')}</div></details>
+      <details><summary>${esc(this._t("Password protection"))} ${c.edit_password_hash ? this._t("\xB7 configured") : this._t("\xB7 optional")}</summary><p>${esc(this._t("Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply."))}</p>
+      <div class="grid"><label>${esc(this._t("New password"))}<input id="new-password" type="password" autocomplete="new-password"></label><label>${esc(this._t("Repeat password"))}<input id="repeat-password" type="password" autocomplete="new-password"></label></div>
+      <button type="button" id="create-password">${esc(this._t("Set password"))}</button>${c.edit_password_hash ? `<button type="button" id="remove-password">${esc(this._t("Remove password protection"))}</button>` : ""}
+      <p id="password-message" role="status"></p>${field(this._t("Auto-lock after minutes"), "auto_lock_minutes", "number", 'min="1" max="60" step="1"')}</details>
+      <p>${esc(this._t("Additional options and manual entity mappings are available in the YAML editor."))}</p>`;
       this.shadowRoot.querySelectorAll("[data-config]").forEach((input) => input.addEventListener("change", () => {
         if (input.closest("#chart-axes") && !input.reportValidity()) return;
         const value = input.type === "number" && input.value !== "" ? Number(input.value) : input.value;
@@ -1042,7 +1044,7 @@
       this.shadowRoot.querySelector("#remove-password")?.addEventListener("click", () => this._change("edit_password_hash", "", true));
     }
   };
-  if (!customElements.get("keba-keenergy-heizkurve-editor")) customElements.define("keba-keenergy-heizkurve-editor", KeEnergyHeatingCurveEditor);
+  if (!customElements.get("keba-keenergy-heating-curve-card-editor")) customElements.define("keba-keenergy-heating-curve-card-editor", KeEnergyHeatingCurveEditor);
 
   // src/card.js
   (() => {
@@ -1050,7 +1052,7 @@
     const esc2 = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
     const numeric = (v) => v == null || String(v).trim() === "" ? NaN : Number(String(v).replace(",", "."));
     const good = (s) => !!s && !["unknown", "unavailable", ""].includes(s.state);
-    const FIELDS2 = { limitDay: ["heating_limit_day", "Heizgrenze Tag", "\xB0C"], limitNight: ["heating_limit_night", "Heizgrenze Nacht", "\xB0C"] };
+    const FIELDS2 = { limitDay: ["heating_limit_day", "Day heating limit", "\xB0C"], limitNight: ["heating_limit_night", "Night heating limit", "\xB0C"] };
     let cardSequence = 0;
     const interpolate = (outdoor, points) => {
       if (!points.length) return NaN;
@@ -1085,7 +1087,7 @@
         this._controllerId = "";
         this._circuitId = "";
         this._visibilityHandler = () => {
-          if (this._passwordCheck && globalThis.document?.hidden) this._lock(this._t("Bearbeitung gesperrt."));
+          if (this._passwordCheck && globalThis.document?.hidden) this._lock(this._t("Editing locked."));
         };
         const flush = () => queueMicrotask(() => {
           if (this._pendingRender && !this._editing()) this._render();
@@ -1097,20 +1099,20 @@
         this.shadowRoot.addEventListener("click", flush);
       }
       setConfig(config) {
-        if (config.entities && (typeof config.entities !== "object" || Array.isArray(config.entities))) throw Error(this._t("entities muss eine Zuordnung sein."));
+        if (config.entities && (typeof config.entities !== "object" || Array.isArray(config.entities))) throw Error(this._t("entities must be a mapping."));
         this._config = { title: "", language: "auto", serial: "", circuit: "", flow_min: null, flow_max: null, edit_password_hash: "", auto_lock_minutes: 5, ...config };
-        if (!["auto", "de", "en"].includes(this._config.language)) throw Error(this._t("language muss auto, de oder en sein."));
+        if (!["auto", "de", "en"].includes(this._config.language)) throw Error(this._t("language must be auto, de or en."));
         for (const key of ["serial", "circuit", "config_entry"]) this._config[key] = String(this._config[key] ?? "").trim();
-        if (this._config.circuit && !/^[1-9]\d*$/.test(this._config.circuit)) throw Error(this._t("circuit muss eine Heizkreisnummer ab 1 sein."));
+        if (this._config.circuit && !/^[1-9]\d*$/.test(this._config.circuit)) throw Error(this._t("circuit must be a heating circuit number starting at 1."));
         for (const [key, id] of Object.entries(this._config.entities || {})) {
           const field = Object.values(FIELDS).find((f) => f[2] === key);
-          if (!field || typeof id !== "string" || !id.startsWith(field[0] + ".")) throw Error(this._t("Ung\xFCltige Entit\xE4tszuordnung: ") + key);
+          if (!field || typeof id !== "string" || !id.startsWith(field[0] + ".")) throw Error(this._t("Invalid entity mapping: ") + key);
         }
         const token = String(this._config.edit_password_hash || "").match(/^pbkdf2-sha256\$(\d+)\$([0-9a-f]{32})\$([0-9a-f]{64})$/i);
-        if (this._config.edit_password_hash && (!token || Number(token[1]) < 1e5 || Number(token[1]) > 1e6)) throw Error(this._t("edit_password_hash muss ein g\xFCltiger PBKDF2-SHA256-Pr\xFCfwert sein. Im visuellen Editor kann er erstellt werden."));
+        if (this._config.edit_password_hash && (!token || Number(token[1]) < 1e5 || Number(token[1]) > 1e6)) throw Error(this._t("edit_password_hash must be a valid PBKDF2-SHA256 verifier. Create one in the visual editor."));
         this._passwordCheck = token ? { iterations: Number(token[1]), salt: token[2], hash: token[3].toLowerCase() } : null;
         this._config.auto_lock_minutes = numeric(this._config.auto_lock_minutes);
-        if (!Number.isFinite(this._config.auto_lock_minutes) || this._config.auto_lock_minutes < 1 || this._config.auto_lock_minutes > 60) throw Error(this._t("auto_lock_minutes muss zwischen 1 und 60 Minuten liegen."));
+        if (!Number.isFinite(this._config.auto_lock_minutes) || this._config.auto_lock_minutes < 1 || this._config.auto_lock_minutes > 60) throw Error(this._t("auto_lock_minutes must be between 1 and 60 minutes."));
         clearTimeout(this._lockTimer);
         this._lockTimer = null;
         this._unlockedUntil = 0;
@@ -1120,14 +1122,14 @@
         this._unlockError = "";
         for (const key of ["flow_min", "flow_max"]) {
           this._config[key] = this._config[key] === null || this._config[key] === "" ? null : numeric(this._config[key]);
-          if (this._config[key] !== null && (!Number.isFinite(this._config[key]) || this._config[key] < 10 || this._config[key] > 90)) throw Error(this._t("{key} muss zwischen 10 und 90 \xB0C liegen oder leer sein.", { key }));
+          if (this._config[key] !== null && (!Number.isFinite(this._config[key]) || this._config[key] < 10 || this._config[key] > 90)) throw Error(this._t("{key} must be between 10 and 90 \xB0C or empty.", { key }));
         }
-        if (this._config.flow_min !== null && this._config.flow_max !== null && this._config.flow_min >= this._config.flow_max) throw Error(this._t("flow_min muss kleiner als flow_max sein."));
+        if (this._config.flow_min !== null && this._config.flow_max !== null && this._config.flow_min >= this._config.flow_max) throw Error(this._t("flow_min must be less than flow_max."));
         const setChartOption = (key, min, max) => {
           const raw = this._config[key];
           const value = raw == null || typeof raw === "string" && !raw.trim() ? null : numeric(raw);
           if (value !== null && (!["number", "string"].includes(typeof raw) || value < min || value > max || value !== Math.round(value * 100) / 100)) {
-            throw Error(this._t("{key} muss zwischen {min} und {max} \xB0C liegen und darf h\xF6chstens zwei Nachkommastellen haben.", {
+            throw Error(this._t("{key} must be between {min} and {max} \xB0C and have at most two decimal places.", {
               key,
               min: this._number(min, { maximumFractionDigits: 2 }),
               max: this._number(max)
@@ -1142,7 +1144,7 @@
           setChartOption(maxKey, min, max);
           setChartOption(axis + "_step", MIN_AXIS_STEP, max - min);
           if (this._config[minKey] !== null && this._config[maxKey] !== null && this._config[minKey] >= this._config[maxKey]) {
-            throw Error(this._t("{minKey} muss kleiner als {maxKey} sein.", { minKey, maxKey }));
+            throw Error(this._t("{minKey} must be less than {maxKey}.", { minKey, maxKey }));
           }
         }
         setChartOption("intermediate_step", INTERMEDIATE_STEP.min, INTERMEDIATE_STEP.max);
@@ -1180,9 +1182,13 @@
         }
         if (this._loadingCurve && !this._busy) {
           const id = this._ids();
-          if (this._state(id.curve)?.state === this._loadingCurve && this._state(id.select)?.state === this._loadingCurve) this._loadingCurve = null;
+          if (this._state(id.curve)?.state === this._loadingCurve && this._state(id.select)?.state === this._loadingCurve) {
+            this._loadingCurve = null;
+          }
         }
-        if (this._draft?.saved && this._draft.name === this._selected() && JSON.stringify(this._draft.points) === JSON.stringify(this._readPoints().sort((a, b) => a.outdoor - b.outdoor))) this._draft = null;
+        if (this._draft?.saved && this._draft.name === this._selected() && JSON.stringify(this._draft.points) === JSON.stringify(this._readPoints().sort((a, b) => a.outdoor - b.outdoor))) {
+          this._draft = null;
+        }
         this._render();
         this._discover();
       }
@@ -1205,14 +1211,14 @@
         return {};
       }
       static getConfigElement() {
-        return document.createElement("keba-keenergy-heizkurve-editor");
+        return document.createElement("keba-keenergy-heating-curve-card-editor");
       }
       connectedCallback() {
         globalThis.document?.addEventListener("visibilitychange", this._visibilityHandler);
       }
       disconnectedCallback() {
         globalThis.document?.removeEventListener("visibilitychange", this._visibilityHandler);
-        if (this._passwordCheck) this._lock(this._t("Bearbeitung gesperrt."));
+        if (this._passwordCheck) this._lock(this._t("Editing locked."));
       }
       _canEdit() {
         return !this._passwordCheck || this._unlockedUntil > Date.now();
@@ -1223,16 +1229,16 @@
           return false;
         }
         if (this._canEdit()) return true;
-        this._notice(this._t("Einstellungen gesperrt. Bitte mit Kennwort entsperren."));
+        this._notice(this._t("Editing is locked. Please enter the password to unlock."));
         return false;
       }
       _touchEdit() {
         if (!this._passwordCheck || !this._canEdit()) return;
         this._unlockedUntil = Date.now() + this._config.auto_lock_minutes * 6e4;
         clearTimeout(this._lockTimer);
-        this._lockTimer = setTimeout(() => this._lock(this._t("Nach Inaktivit\xE4t automatisch gesperrt. Ungespeicherte \xC4nderungen verworfen.")), this._config.auto_lock_minutes * 6e4);
+        this._lockTimer = setTimeout(() => this._lock(this._t("Locked automatically after inactivity. Unsaved changes discarded.")), this._config.auto_lock_minutes * 6e4);
       }
-      _lock(message = this._t("Bearbeitung gesperrt. Ungespeicherte \xC4nderungen verworfen.")) {
+      _lock(message = this._t("Editing locked. Unsaved changes discarded.")) {
         clearTimeout(this._lockTimer);
         this._lockTimer = null;
         this._unlockedUntil = 0;
@@ -1258,7 +1264,7 @@
         if (this._verifying) return;
         const input = this.shadowRoot.querySelector("#edit-password"), password = input?.value || "";
         if (!password) {
-          this._unlockError = this._t("Bitte Kennwort eingeben.");
+          this._unlockError = this._t("Please enter the password.");
           this._render(true);
           queueMicrotask(() => this.shadowRoot.querySelector("#edit-password")?.focus());
           return;
@@ -1268,7 +1274,8 @@
       }
       async _unlock(password) {
         if (this._verifying || !this._passwordCheck) return false;
-        const revision = this._lockRevision, check = this._passwordCheck, bytes = new TextEncoder().encode(String(password));
+        const revision = this._lockRevision, check = this._passwordCheck;
+        const bytes = new TextEncoder().encode(String(password));
         this._verifying = true;
         this._unlockError = "";
         this._render(true);
@@ -1281,16 +1288,16 @@
           let difference = 0;
           for (let i = 0; i < expected.length; i++) difference |= derived[i] ^ expected[i];
           if (difference) {
-            this._unlockError = this._t("Kennwort ist nicht korrekt.");
+            this._unlockError = this._t("Incorrect password.");
             return false;
           }
           this._unlockedUntil = Date.now() + this._config.auto_lock_minutes * 6e4;
           this._unlockOpen = false;
-          this._message = this._t("Bearbeitung freigegeben.");
+          this._message = this._t("Editing unlocked.");
           this._touchEdit();
           return true;
-        } catch (error) {
-          if (revision === this._lockRevision) this._unlockError = this._t("Kennwortpr\xFCfung fehlgeschlagen. Bitte erneut versuchen.");
+        } catch {
+          if (revision === this._lockRevision) this._unlockError = this._t("Password verification failed. Please try again.");
           return false;
         } finally {
           bytes.fill(0);
@@ -1305,7 +1312,7 @@
       _lockPanel() {
         if (!this._passwordCheck) return "";
         const unlocked = this._canEdit();
-        return `<section class="edit-lock" aria-label="${esc2(this._t("Kennwortschutz"))}"><div class="edit-lock-info"><ha-icon icon="mdi:${unlocked ? "lock-open-outline" : "lock-outline"}" aria-hidden="true"></ha-icon><div><b>${unlocked ? this._t("Einstellungen freigegeben") : this._t("Einstellungen gesperrt")}</b><span>${unlocked ? this._t("Automatische Sperre nach {minutes} Minuten ohne Bearbeitung.", { minutes: this._config.auto_lock_minutes }) : this._t("Zum \xC4ndern von Kurventabelle, Punkten und Heizgrenzen entsperren.")}</span></div></div><button type="button" id="${unlocked ? "lock-editor" : "unlock-editor"}">${unlocked ? this._t("Sperren") : this._t("Entsperren")}</button>${this._unlockOpen && !unlocked ? `<form id="unlock-form" class="unlock-form"><label class="field">${esc2(this._t("Kennwort"))}<input id="edit-password" type="password" autocomplete="current-password" required ${this._verifying ? "disabled" : ""}></label><div class="buttons"><button type="button" id="confirm-unlock" class="primary" ${this._verifying ? "disabled" : ""}>${this._verifying ? this._t("Wird gepr\xFCft \u2026") : this._t("Bearbeitung freigeben")}</button><button type="button" id="cancel-unlock">${esc2(this._t("Abbrechen"))}</button></div><span class="unlock-error" role="alert">${esc2(this._unlockError)}</span></form>` : ""}</section>`;
+        return `<section class="edit-lock" aria-label="${esc2(this._t("Password protection"))}"><div class="edit-lock-info"><ha-icon icon="mdi:${unlocked ? "lock-open-outline" : "lock-outline"}" aria-hidden="true"></ha-icon><div><b>${unlocked ? this._t("Editing unlocked") : this._t("Editing locked")}</b><span>${unlocked ? this._t("Locks automatically after {minutes} minutes without editing.", { minutes: this._config.auto_lock_minutes }) : this._t("Unlock to change the curve table, points and heating limits.")}</span></div></div><button type="button" id="${unlocked ? "lock-editor" : "unlock-editor"}">${unlocked ? this._t("Lock") : this._t("Unlock")}</button>${this._unlockOpen && !unlocked ? `<form id="unlock-form" class="unlock-form"><label class="field">${esc2(this._t("Password"))}<input id="edit-password" type="password" autocomplete="current-password" required ${this._verifying ? "disabled" : ""}></label><div class="buttons"><button type="button" id="confirm-unlock" class="primary" ${this._verifying ? "disabled" : ""}>${this._verifying ? this._t("Verifying \u2026") : this._t("Unlock editing")}</button><button type="button" id="cancel-unlock">${esc2(this._t("Cancel"))}</button></div><span class="unlock-error" role="alert">${esc2(this._unlockError)}</span></form>` : ""}</section>`;
       }
       _ids() {
         return Object.fromEntries(Object.keys(FIELDS).map((key) => [key, this._config.entities?.[FIELDS[key][2]] || this._map[key] || ""]));
@@ -1326,7 +1333,11 @@
       }
       _numberMeta(id) {
         const a = this._state(id)?.attributes || {};
-        return { min: this._toCelsius(id, numeric(a.min)), max: this._toCelsius(id, numeric(a.max)), step: this._toCelsius(id, numeric(a.step), true) };
+        return {
+          min: this._toCelsius(id, numeric(a.min)),
+          max: this._toCelsius(id, numeric(a.max)),
+          step: this._toCelsius(id, numeric(a.step), true)
+        };
       }
       _editing() {
         return this._unlockOpen || this._selectInteracting || !!this.shadowRoot.activeElement?.matches("input, select");
@@ -1363,7 +1374,7 @@
         this._map = {};
         this._entryId = null;
         if (entries.length > 1) {
-          this._bindingError = this._t("Die Steuerungs-Entit\xE4ten stammen aus verschiedenen Reglern. Zuordnung in der Karte pr\xFCfen.");
+          this._bindingError = this._t("Control entities belong to different controllers. Check the card mapping.");
           return;
         }
         const entryPin = cfg.config_entry || entries[0] || "";
@@ -1374,21 +1385,21 @@
             this._entryId = cfg.config_entry;
             return;
           }
-          this._bindingError = this._controllers.length ? this._t("Der konfigurierte KeEnergy-Regler wurde nicht gefunden. Kartenkonfiguration pr\xFCfen.") : this._registryError ? this._t("KeEnergy-Zuordnung nicht lesbar. Als Administrator \xF6ffnen oder Entit\xE4ten und config_entry manuell zuordnen.") : this._t("Kein KeEnergy-Heizkreis mit Heizkurventabelle gefunden.");
+          this._bindingError = this._controllers.length ? this._t("The configured KeEnergy controller was not found. Check the card configuration.") : this._registryError ? this._t("Cannot read the KeEnergy mapping. Open as an administrator or set entities and config_entry manually.") : this._t("No KeEnergy heating circuit with a heating curve table found.");
           return;
         }
         if (entries.length && controller.id !== entries[0]) {
-          this._bindingError = this._t("config_entry und Entit\xE4tszuordnung geh\xF6ren zu verschiedenen Reglern.");
+          this._bindingError = this._t("config_entry and the entity mapping belong to different controllers.");
           return;
         }
         const circuits = [...new Set(anchors.map(parseEntity).filter((p) => p?.circuit).map((p) => p.circuit))];
         if (circuits.length > 1) {
-          this._bindingError = this._t("Die Steuerungs-Entit\xE4ten geh\xF6ren zu verschiedenen Heizkreisen.");
+          this._bindingError = this._t("Control entities belong to different heating circuits.");
           return;
         }
         const circuitPin = cfg.circuit || circuits[0] || "";
         if (cfg.circuit && circuits.length && cfg.circuit !== circuits[0]) {
-          this._bindingError = this._t("circuit und Entit\xE4tszuordnung geh\xF6ren zu verschiedenen Heizkreisen.");
+          this._bindingError = this._t("circuit and the entity mapping belong to different heating circuits.");
           return;
         }
         const wantedCircuit = circuitPin || this._circuitId;
@@ -1396,29 +1407,30 @@
         this._controllerId = controller.id;
         this._entryId = controller.id;
         if (!circuit) {
-          this._bindingError = this._t("Der gew\xE4hlte Heizkreis wurde an diesem Regler nicht gefunden.");
+          this._bindingError = this._t("The selected heating circuit was not found on this controller.");
           return;
         }
         this._circuitId = circuit.id;
         this._map = { ...circuit.map };
         const unresolved = circuit.ambiguous.filter((key) => !explicit[FIELDS[key][2]]);
-        if (unresolved.length) this._bindingError = this._t("Mehrdeutige Entit\xE4ten: {keys}. Bitte entities ausdr\xFCcklich zuordnen.", { keys: unresolved.join(", ") });
+        if (unresolved.length) this._bindingError = this._t("Ambiguous entities: {keys}. Please set entities explicitly.", { keys: unresolved.join(", ") });
         for (const anchor of anchors) {
           if (anchor.platform !== "keba_keenergy") {
-            this._bindingError = this._t("Steuerungs-Entit\xE4ten m\xFCssen aus keba_keenergy stammen.");
+            this._bindingError = this._t("Control entities must come from keba_keenergy.");
             break;
           }
         }
       }
       _targetPanel() {
-        const controller = this._controllers.find((c) => c.id === this._controllerId), circuits = controller?.circuits || [];
+        const controller = this._controllers.find((c) => c.id === this._controllerId);
+        const circuits = controller?.circuits || [];
         const pinned = !!(this._config.config_entry || this._config.serial || Object.keys(this._config.entities || {}).length);
-        return `<section class="target-panel" aria-label="${esc2(this._t("Regler und Heizkreis"))}"><label class="field">${esc2(this._t("Regler"))}<select id="controller-select" aria-label="${esc2(this._t("Regler"))}" ${this._busy || pinned || this._controllers.length < 2 ? "disabled" : ""}>${this._controllerId && !controller ? `<option value="${esc2(this._controllerId)}" selected>${esc2(this._t("Gew\xE4hlter Regler fehlt"))}</option>` : ""}${this._controllers.length ? this._controllers.map((c) => `<option value="${esc2(c.id)}" ${c.id === this._controllerId ? "selected" : ""}>${esc2(c.label)}</option>`).join("") : `<option>${esc2(this._t("Kein Regler gefunden"))}</option>`}</select></label><label class="field">${esc2(this._t("Heizkreis"))}<select id="circuit-select" aria-label="${esc2(this._t("Heizkreis"))}" ${this._busy || !!this._config.circuit || Object.keys(this._config.entities || {}).length > 0 || circuits.length < 2 ? "disabled" : ""}>${this._circuitId && !circuits.some((c) => c.id === this._circuitId) ? `<option value="${esc2(this._circuitId)}" selected>${esc2(this._t("Gew\xE4hlter Heizkreis fehlt"))}</option>` : ""}${circuits.length ? circuits.map((c) => `<option value="${esc2(c.id)}" ${c.id === this._circuitId ? "selected" : ""}>${esc2(c.label)}</option>`).join("") : `<option>${esc2(this._t("Kein Heizkreis gefunden"))}</option>`}</select></label><button type="button" id="reload-registry" ${this._busy ? "disabled" : ""}>${esc2(this._t("Neu erkennen"))}</button>${this._bindingError ? `<p class="target-error" role="alert">${esc2(this._bindingError)}</p>` : ""}${this._registryError ? `<p class="hint">${esc2(this._t("Verzeichnis: "))}${esc2(this._registryError)}</p>` : ""}</section>`;
+        return `<section class="target-panel" aria-label="${esc2(this._t("Controller and heating circuit"))}"><label class="field">${esc2(this._t("Controller"))}<select id="controller-select" aria-label="${esc2(this._t("Controller"))}" ${this._busy || pinned || this._controllers.length < 2 ? "disabled" : ""}>${this._controllerId && !controller ? `<option value="${esc2(this._controllerId)}" selected>${esc2(this._t("Selected controller is missing"))}</option>` : ""}${this._controllers.length ? this._controllers.map((c) => `<option value="${esc2(c.id)}" ${c.id === this._controllerId ? "selected" : ""}>${esc2(c.label)}</option>`).join("") : `<option>${esc2(this._t("No controller found"))}</option>`}</select></label><label class="field">${esc2(this._t("Heating circuit"))}<select id="circuit-select" aria-label="${esc2(this._t("Heating circuit"))}" ${this._busy || !!this._config.circuit || Object.keys(this._config.entities || {}).length > 0 || circuits.length < 2 ? "disabled" : ""}>${this._circuitId && !circuits.some((c) => c.id === this._circuitId) ? `<option value="${esc2(this._circuitId)}" selected>${esc2(this._t("Selected heating circuit is missing"))}</option>` : ""}${circuits.length ? circuits.map((c) => `<option value="${esc2(c.id)}" ${c.id === this._circuitId ? "selected" : ""}>${esc2(c.label)}</option>`).join("") : `<option>${esc2(this._t("No heating circuit found"))}</option>`}</select></label><button type="button" id="reload-registry" ${this._busy ? "disabled" : ""}>${esc2(this._t("Rediscover"))}</button>${this._bindingError ? `<p class="target-error" role="alert">${esc2(this._bindingError)}</p>` : ""}${this._registryError ? `<p class="hint">${esc2(this._t("Registry: "))}${esc2(this._registryError)}</p>` : ""}</section>`;
       }
       _chooseTarget(kind, value) {
         this._selectInteracting = false;
         if (this._busy || this._draft || Object.keys(this._edits).length) {
-          this._notice(this._t("Vor dem Regler- oder Heizkreiswechsel \xC4nderungen speichern oder den Entwurf verwerfen."));
+          this._notice(this._t("Save changes or discard the draft before switching controller or heating circuit."));
           const el = this.shadowRoot.querySelector(kind === "controller" ? "#controller-select" : "#circuit-select");
           if (el) el.value = kind === "controller" ? this._controllerId : this._circuitId;
           return;
@@ -1433,9 +1445,10 @@
         }
         this._loadingCurve = null;
         this._applySelection();
-        this._message = this._t("Ansicht gewechselt. Es wurden keine Werte \xFCbertragen.");
-        if (this._passwordCheck) this._lock(this._t("Ansicht gewechselt. Bearbeitung bitte erneut entsperren."));
-        else this._render(true);
+        this._message = this._t("View changed. No values were sent.");
+        if (this._passwordCheck) this._lock(this._t("View changed. Please unlock editing again."));
+        else
+          this._render(true);
       }
       _readPoints() {
         const raw = this._state(this._ids().curve)?.attributes?.points;
@@ -1467,7 +1480,7 @@
         if (this._busy || !this._requireEdit()) return;
         this._touchEdit();
         if (!this._hass?.user?.is_admin) {
-          this._notice(this._t("Zum Aktivieren deaktivierter Entit\xE4ten als Administrator anmelden."));
+          this._notice(this._t("Sign in as an administrator to enable disabled entities."));
           return;
         }
         if (!this._discovered) {
@@ -1478,24 +1491,24 @@
         if (!disabled.length) {
           this._discovered = false;
           await this._discover();
-          this._message = this._t("Entit\xE4ten neu eingelesen. Nicht vorhandene Werte m\xFCssen vom Regler unterst\xFCtzt werden.");
+          this._message = this._t("Entities reloaded. Missing values must be supported by the controller.");
           this._render();
           return;
         }
         this._busy = true;
-        this._message = this._t("Bearbeitungs-Entit\xE4ten werden aktiviert \u2026");
+        this._message = this._t("Enabling required entities \u2026");
         this._render();
         let count = 0;
         try {
           for (const entry of disabled) {
-            if (!this._canEdit()) throw Error(this._t("Bearbeitung gesperrt. Erneut entsperren."));
+            if (!this._canEdit()) throw Error(this._t("Editing locked. Please unlock again."));
             await this._hass.callWS({ type: "config/entity_registry/update", entity_id: entry.entity_id, disabled_by: null });
             entry.disabled_by = null;
             count++;
           }
-          this._message = this._t("{count} Entit\xE4ten aktiviert. Home Assistant l\xE4dt die Werte; sie erscheinen nach dem n\xE4chsten Update.", { count });
+          this._message = this._t("{count} entities enabled. Home Assistant is loading their values; they will appear after the next update.", { count });
         } catch (error) {
-          this._message = this._t("Aktivierung nach {count} Entit\xE4ten gestoppt: {error}. Als Administrator anmelden oder Entit\xE4ten in den KeEnergy-Einstellungen aktivieren.", { count, error: error.message || error });
+          this._message = this._t("Enabling stopped after {count} entities: {error}. Sign in as an administrator or enable entities in the KeEnergy settings.", { count, error: error.message || error });
         } finally {
           this._busy = false;
           this._discovered = false;
@@ -1507,13 +1520,16 @@
         return Object.hasOwn(this._edits, key) ? this._edits[key] : this._num(this._ids()[key]);
       }
       _input(key) {
-        const [, label, unit] = FIELDS2[key], id = this._ids()[key], s = this._state(id), v = this._fieldValue(key), { min, max, step } = this._numberMeta(id);
+        const [, label, unit] = FIELDS2[key], id = this._ids()[key], s = this._state(id), v = this._fieldValue(key);
+        const { min, max, step } = this._numberMeta(id);
         return `<label class="field">${esc2(this._t(label))}${unit ? " (" + unit + ")" : ""}<input data-setting="${key}" type="number" step="${Number.isFinite(step) && step > 0 ? step : "any"}" ${Number.isFinite(min) ? 'min="' + min + '"' : ""} ${Number.isFinite(max) ? 'max="' + max + '"' : ""} value="${Number.isFinite(v) ? v : ""}" ${!good(s) || this._busy || !!this._bindingError || !this._canEdit() ? "disabled" : ""}></label>`;
       }
       _chart() {
-        const ids = this._ids(), valid = this._points().filter((p) => Number.isFinite(p.outdoor) && Number.isFinite(p.flow) && p.outdoor >= -40 && p.outdoor <= 40 && p.flow >= 10 && p.flow <= 90).sort((a, b) => a.outdoor - b.outdoor);
+        const ids = this._ids();
+        const valid = this._points().filter((p) => Number.isFinite(p.outdoor) && Number.isFinite(p.flow) && p.outdoor >= -40 && p.outdoor <= 40 && p.flow >= 10 && p.flow <= 90).sort((a, b) => a.outdoor - b.outdoor);
         const outside = this._num(ids.outdoor), target = this._num(ids.target), actual = this._num(ids.actual), day = this._fieldValue("limitDay"), night = this._fieldValue("limitNight");
-        const minimum = this._config.flow_min ?? -Infinity, maximum = this._config.flow_max ?? Infinity, clamp = (v) => Math.max(minimum, Math.min(maximum, v));
+        const minimum = this._config.flow_min ?? -Infinity, maximum = this._config.flow_max ?? Infinity;
+        const clamp = (v) => Math.max(minimum, Math.min(maximum, v));
         const unique = valid.filter((p, i) => !i || p.outdoor !== valid[i - 1].outdoor);
         const { x_min, x_max, y_min, y_max } = this._config;
         const xStep = this._config.x_step ?? DEFAULT_AXIS_STEP;
@@ -1530,18 +1546,28 @@
         const visible = (outdoor, flow) => outdoor >= lo && outdoor <= hi && flow >= bottom && flow <= top;
         const tickLabel = (v) => esc2(this._number(v, { maximumFractionDigits: 2 }));
         let grid = "", limits = "", dots = "", samples = "", marks = "";
-        for (const { value, showLabel } of axisTicks(outdoorRange, xStep, { fixedMin: x_min !== null, fixedMax: x_max !== null, length: 580, labelGap: 28 })) {
+        for (const { value, showLabel } of axisTicks(outdoorRange, xStep, {
+          fixedMin: x_min !== null,
+          fixedMax: x_max !== null,
+          length: 580,
+          labelGap: 28
+        })) {
           const px = x(value);
           grid += `<line x1="${px}" y1="24" x2="${px}" y2="344" class="grid"/>`;
           if (showLabel) grid += `<text x="${px}" y="365" text-anchor="middle">${tickLabel(value)}</text>`;
         }
-        for (const { value, showLabel } of axisTicks(flowRange, yStep, { fixedMin: y_min !== null, fixedMax: y_max !== null, length: 320, labelGap: 13 })) {
+        for (const { value, showLabel } of axisTicks(flowRange, yStep, {
+          fixedMin: y_min !== null,
+          fixedMax: y_max !== null,
+          length: 320,
+          labelGap: 13
+        })) {
           const py = y(value);
           grid += `<line x1="58" y1="${py}" x2="638" y2="${py}" class="grid"/>`;
           if (showLabel) grid += `<text x="48" y="${py + 3}" text-anchor="end">${tickLabel(value)}</text>`;
         }
-        [[day, "day", this._t("Tag"), 16], [night, "night", this._t("Nacht"), 34]].forEach(([v, cls, label, labelY]) => {
-          if (Number.isFinite(v) && v >= lo && v <= hi) limits += `<line x1="${x(v)}" y1="24" x2="${x(v)}" y2="344" class="limit ${cls}"/><text x="${Math.max(110, Math.min(585, x(v)))}" y="${labelY}" text-anchor="middle" class="limit-label">${esc2(this._t("HG"))} ${label} ${esc2(this._fmt(v))}</text>`;
+        [[day, "day", this._t("Day"), 16], [night, "night", this._t("Night"), 34]].forEach(([v, cls, label, labelY]) => {
+          if (Number.isFinite(v) && v >= lo && v <= hi) limits += `<line x1="${x(v)}" y1="24" x2="${x(v)}" y2="344" class="limit ${cls}"/><text x="${Math.max(110, Math.min(585, x(v)))}" y="${labelY}" text-anchor="middle" class="limit-label">${esc2(this._t("HL"))} ${label} ${esc2(this._fmt(v))}</text>`;
         });
         [[minimum, "flow-min", this._t("Min")], [maximum, "flow-max", this._t("Max")]].filter(([v]) => v >= bottom && v <= top).forEach(([v, cls, label]) => limits += `<line x1="58" y1="${y(v)}" x2="638" y2="${y(v)}" class="limit ${cls}"/><text x="632" y="${y(v) - 7}" text-anchor="end" class="flow-limit-label ${cls}">${label} ${esc2(this._fmt(v))}</text>`);
         valid.forEach((p, i) => {
@@ -1549,7 +1575,7 @@
           if (!visible(p.outdoor, shown)) return;
           const px = x(p.outdoor), py = y(shown), anchor = px <= 75 ? "start" : px >= 620 ? "end" : "middle";
           const label = shown > minimum && shown < maximum ? `<text x="${px}" y="${Math.max(17, py - 12)}" text-anchor="${anchor}" class="point-label">${this._number(shown, { minimumFractionDigits: 1 })}</text>` : "";
-          dots += `<g><title>${esc2(this._t("P{index}: Au\xDFen {outdoor} \xB0C \xB7 Tabelle {flow} \xB0C \xB7 begrenzte Anzeige {shown} \xB0C", { index: i + 1, outdoor: this._number(p.outdoor, { minimumFractionDigits: 1 }), flow: this._number(p.flow, { minimumFractionDigits: 1 }), shown: this._number(shown, { minimumFractionDigits: 1 }) }))}</title><circle cx="${px}" cy="${py}" r="2.8" class="point"/>${label}</g>`;
+          dots += `<g><title>${esc2(this._t("P{index}: outdoor {outdoor} \xB0C \xB7 table {flow} \xB0C \xB7 limited display {shown} \xB0C", { index: i + 1, outdoor: this._number(p.outdoor, { minimumFractionDigits: 1 }), flow: this._number(p.flow, { minimumFractionDigits: 1 }), shown: this._number(shown, { minimumFractionDigits: 1 }) }))}</title><circle cx="${px}" cy="${py}" r="2.8" class="point"/>${label}</g>`;
         });
         if (unique.length > 1) {
           const intermediateStep = this._config.intermediate_step ?? INTERMEDIATE_STEP.default;
@@ -1568,7 +1594,7 @@
             const px = x(outdoor), py = y(shown);
             const flowLabel = this._number(shown, { minimumFractionDigits: 1 });
             const label = showLabel && !unique.some((point) => Math.abs(x(point.outdoor) - px) < labelGap) ? `<text x="${px}" y="${Math.max(17, py - 9)}" text-anchor="middle" class="sample-label" data-outdoor="${outdoor}">${esc2(flowLabel)}</text>` : "";
-            const tooltip = this._t("Zwischenwert bei {outdoor} \xB0C au\xDFen: {flow} \xB0C Vorlauf", {
+            const tooltip = this._t("Interpolated value at {outdoor} \xB0C outdoors: {flow} \xB0C flow", {
               outdoor: this._number(outdoor, { maximumFractionDigits: 2 }),
               flow: flowLabel
             });
@@ -1578,15 +1604,18 @@
         [[target, "target"], [actual, "actual"]].forEach(([v, cls]) => {
           if (visible(outside, v)) marks += `<circle cx="${x(outside)}" cy="${y(v)}" r="${cls === "target" ? 3.8 : 3}" class="${cls}"/>`;
         });
-        const xs = [lo, ...unique.map((p) => p.outdoor).filter((outdoor) => outdoor > lo && outdoor < hi), hi], crossings = [];
+        const xs = [lo, ...unique.map((p) => p.outdoor).filter((outdoor) => outdoor > lo && outdoor < hi), hi];
+        const crossings = [];
         if (unique.length) for (let i = 0; i < xs.length - 1; i++) {
           const a = interpolate(xs[i], unique), b = interpolate(xs[i + 1], unique);
-          for (const limit of [minimum, maximum]) if ((a - limit) * (b - limit) < 0) crossings.push(xs[i] + (limit - a) / (b - a) * (xs[i + 1] - xs[i]));
+          for (const limit of [minimum, maximum]) {
+            if ((a - limit) * (b - limit) < 0) crossings.push(xs[i] + (limit - a) / (b - a) * (xs[i + 1] - xs[i]));
+          }
         }
         const path = unique.length ? [.../* @__PURE__ */ new Set([...xs, ...crossings])].sort((a, b) => a - b).map((v, i) => (i ? "L" : "M") + x(v) + "," + y(clamp(interpolate(v, unique)))).join(" ") : "";
         const dark = !!this._hass?.themes?.darkMode;
         const palette = `--curve-point-label:${dark ? "#D8AE8B" : "#9A6138"};--curve-sample-label:${dark ? "#9BACB8" : "#657B89"};--curve-line:${dark ? "#65B4B0" : "#278F89"}`;
-        return `<svg viewBox="0 0 700 400" style="${palette}" aria-label="${esc2(this._t("Gespeicherte Heizkurvenpunkte, berechnete Zwischenwerte und aktuelle Vorlauftemperaturen"))}" role="img"><defs><clipPath id="${this._plotId}" clipPathUnits="userSpaceOnUse"><rect x="58" y="24" width="580" height="320"/></clipPath></defs><rect x="58" y="24" width="580" height="320" rx="8" class="plot"/><g class="axes">${grid}</g>${limits}<path d="${path}" class="curve" clip-path="url(#${this._plotId})"/>${samples}${dots}${marks}<g class="axes"><text x="348" y="393" text-anchor="middle">${esc2(this._t("Au\xDFentemperatur"))} \xB0C</text><text x="15" y="184" text-anchor="middle" transform="rotate(-90 15 184)">${esc2(this._t("Vorlauf \xB0C"))}</text></g></svg>`;
+        return `<svg viewBox="0 0 700 400" style="${palette}" aria-label="${esc2(this._t("Saved heating curve points, interpolated values and current flow temperatures"))}" role="img"><defs><clipPath id="${this._plotId}" clipPathUnits="userSpaceOnUse"><rect x="58" y="24" width="580" height="320"/></clipPath></defs><rect x="58" y="24" width="580" height="320" rx="8" class="plot"/><g class="axes">${grid}</g>${limits}<path d="${path}" class="curve" clip-path="url(#${this._plotId})"/>${samples}${dots}${marks}<g class="axes"><text x="348" y="393" text-anchor="middle">${esc2(this._t("Outdoor temperature"))} \xB0C</text><text x="15" y="184" text-anchor="middle" transform="rotate(-90 15 184)">${esc2(this._t("Flow \xB0C"))}</text></g></svg>`;
       }
       _preview() {
         const el = this.shadowRoot.querySelector("#chart");
@@ -1595,13 +1624,18 @@
       _refreshLive() {
         this._preview();
         const ids = this._ids();
-        const values = { outdoor: this._fmt(this._num(ids.outdoor)), target: this._fmt(this._num(ids.target)), actual: this._fmt(this._num(ids.actual)), points: this._points().length };
+        const values = {
+          outdoor: this._fmt(this._num(ids.outdoor)),
+          target: this._fmt(this._num(ids.target)),
+          actual: this._fmt(this._num(ids.actual)),
+          points: this._points().length
+        };
         for (const [key, value] of Object.entries(values)) {
           const el = this.shadowRoot.querySelector('[data-live="' + key + '"]');
           if (el) el.textContent = String(value);
         }
         const message = this.shadowRoot.querySelector("#message");
-        if (message) message.textContent = this._message || (this._loadingCurve ? this._t("Kurve {name} wird geladen \u2026", { name: this._loadingCurve }) : "");
+        if (message) message.textContent = this._message || (this._loadingCurve ? this._t("Loading curve {name} \u2026", { name: this._loadingCurve }) : "");
       }
       _patchPoints(rows, ready, count, dirty) {
         const root = this.shadowRoot, table = root.querySelector(".table-wrap"), body = table?.querySelector("tbody");
@@ -1613,7 +1647,7 @@
         root.querySelector("#add-point").disabled = !ready || count >= 16;
         root.querySelector("#save-points").disabled = !ready;
         const label = root.querySelector("#curve-label");
-        if (label) label.textContent = this._t("Punkttabelle") + (dirty ? this._t(" \xB7 Entwurf") : "");
+        if (label) label.textContent = this._t("Point table") + (dirty ? this._t(" \xB7 Draft") : "");
         for (const key of Object.keys(FIELDS2)) {
           const input = root.querySelector('[data-setting="' + key + '"]'), value = this._fieldValue(key);
           if (input) input.value = Number.isFinite(value) ? String(value) : "";
@@ -1629,10 +1663,11 @@
           return;
         }
         this._pendingRender = false;
-        const ids = this._ids(), selected = this._selected(), select = this._state(ids.select), points = this._points(), canEdit = this._canEdit() && !this._bindingError, ready = this._ready() && canEdit, options = this._options();
-        const tableState = this._state(ids.useCurve)?.state, missing = Object.entries(ids).filter(([, id]) => !good(this._state(id))).map(([key, id]) => id || FIELDS[key][2] + this._t(" (nicht zugeordnet)")), dirty = !!this._draft;
+        const ids = this._ids(), selected = this._selected(), select = this._state(ids.select), points = this._points();
+        const canEdit = this._canEdit() && !this._bindingError, ready = this._ready() && canEdit, options = this._options();
+        const tableState = this._state(ids.useCurve)?.state, missing = Object.entries(ids).filter(([, id]) => !good(this._state(id))).map(([key, id]) => id || FIELDS[key][2] + this._t(" (not mapped)")), dirty = !!this._draft;
         const disabled = this._disabledEditors();
-        const mode = tableState === "on" ? this._t("Punkttabelle wird verwendet") : tableState === "off" ? this._t("Hybrid aktiv \xB7 gespeicherte Punkttabelle") : this._t("Kurvenart nicht verf\xFCgbar");
+        const mode = tableState === "on" ? this._t("Point table is in use") : tableState === "off" ? this._t("Hybrid active \xB7 saved point table") : this._t("Curve mode unavailable");
         const viewState = {
           language: languageCode(this._config, this._hass),
           ids,
@@ -1663,7 +1698,7 @@
           ...viewState,
           points: void 0,
           dirty: void 0,
-          settings: viewState.settings.map(([key, available, value, ...bounds]) => [key, available, ...bounds])
+          settings: viewState.settings.map(([key, available, , ...bounds]) => [key, available, ...bounds])
         });
         if (!force && this._viewKey === viewKey) {
           this._refreshLive();
@@ -1671,14 +1706,14 @@
         }
         const previousTable = this.shadowRoot.querySelector(".table-wrap");
         const tableScroll = previousTable ? { top: previousTable.scrollTop, left: previousTable.scrollLeft } : null;
-        const rows = points.map((p, i) => `<tr><td>${i + 1}</td><td><input data-point="${i}" data-axis="outdoor" type="number" step="any" min="-40" max="40" value="${Number.isFinite(p.outdoor) ? p.outdoor : ""}" ${!ready ? "disabled" : ""} aria-label="${esc2(this._t("Punkt {index} Au\xDFentemperatur", { index: i + 1 }))}"></td><td><input data-point="${i}" data-axis="flow" type="number" step="any" min="10" max="90" value="${Number.isFinite(p.flow) ? p.flow : ""}" ${!ready ? "disabled" : ""} aria-label="${esc2(this._t("Punkt {index} Vorlauf", { index: i + 1 }))}"></td><td><button type="button" data-remove="${i}" ${!ready || points.length <= 1 ? "disabled" : ""} aria-label="${esc2(this._t("Punkt {index} entfernen", { index: i + 1 }))}">\xD7</button></td></tr>`).join("");
+        const rows = points.map((p, i) => `<tr><td>${i + 1}</td><td><input data-point="${i}" data-axis="outdoor" type="number" step="any" min="-40" max="40" value="${Number.isFinite(p.outdoor) ? p.outdoor : ""}" ${!ready ? "disabled" : ""} aria-label="${esc2(this._t("Point {index} outdoor temperature", { index: i + 1 }))}"></td><td><input data-point="${i}" data-axis="flow" type="number" step="any" min="10" max="90" value="${Number.isFinite(p.flow) ? p.flow : ""}" ${!ready ? "disabled" : ""} aria-label="${esc2(this._t("Point {index} flow temperature", { index: i + 1 }))}"></td><td><button type="button" data-remove="${i}" ${!ready || points.length <= 1 ? "disabled" : ""} aria-label="${esc2(this._t("Remove point {index}", { index: i + 1 }))}">\xD7</button></td></tr>`).join("");
         if (!force && this._shellKey === shellKey && this._patchPoints(rows, ready, points.length, dirty)) {
           this._viewKey = viewKey;
           this._refreshLive();
           return;
         }
         const metric = (label, value, cls = "", key = "") => `<div class="metric ${cls}"><span>${label}</span><b data-live="${key}">${value}</b></div>`;
-        this.shadowRoot.innerHTML = `<style>${STYLE}${EXTRA_STYLE}</style><ha-card>${this._targetPanel()}${this._lockPanel()}${disabled.length ? `<div class="setup"><b>${esc2(this._t("Bearbeitung aktivieren"))}</b><p>${esc2(this._t("{count} ben\xF6tigte KeEnergy-Entit\xE4ten sind deaktiviert. Als Administrator kannst du die ben\xF6tigten Entit\xE4ten dieses Heizkreises aktivieren.", { count: disabled.length }))}</p><button type="button" id="enable-editors" class="primary" ${this._busy || !canEdit || !this._hass?.user?.is_admin ? "disabled" : ""}>${esc2(this._t("Bearbeitungs-Entit\xE4ten aktivieren"))}</button></div>` : ""}<div class="layout"><section class="chart-panel"><header><div><small>KEBA KEENERGY</small><h2>${esc2(this._config.title || this._t("Heizkurve KeEnergy"))}</h2><p>${esc2(mode)}</p></div><span class="badge">${esc2(selected || "\u2014")}</span></header><div id="chart">${this._chart()}</div><div class="legend"><span><i class="line"></i><span id="curve-label">${esc2(this._t("Punkttabelle"))}${dirty ? this._t(" \xB7 Entwurf") : ""}</span></span><span><i class="dot target"></i>${esc2(this._t("Regler-Soll"))}</span><span><i class="dot actual"></i>${esc2(this._t("Vorlauf Ist"))}</span>${this._config.flow_min !== null || this._config.flow_max !== null ? `<span><i class="line flow-range"></i>${esc2(this._t("Vorlauf Min / Max"))}</span>` : ""}<span><i class="dot interpolated"></i>${esc2(this._t("Zwischenwerte"))}</span></div><p class="notice">${this._config.flow_min !== null || this._config.flow_max !== null ? this._t("Darstellung begrenzt: ") + esc2(this._config.flow_min !== null ? this._fmt(this._config.flow_min) : this._t("ohne Minimum")) + this._t(" bis ") + esc2(this._config.flow_max !== null ? this._fmt(this._config.flow_max) : this._t("ohne Maximum")) + this._t(". Die Begrenzung gilt nur f\xFCr das Diagramm. ") : this._t("Gespeicherte Tabelle mit linear berechneten Zwischenwerten. ")}${esc2(this._t("Der Regler-Sollwert wird separat aus KeEnergy gelesen."))}</p><div id="message" class="notice" role="status">${esc2(this._message || (this._loadingCurve ? this._t("Kurve {name} wird geladen \u2026", { name: this._loadingCurve }) : ""))}</div></section><aside><h3>${esc2(this._t("Kurventabelle ausw\xE4hlen"))}</h3><label class="field">${esc2(this._t("Kurventabelle f\xFCr diesen Heizkreis"))}<select id="curve-select" aria-label="${esc2(this._t("Kurventabelle f\xFCr diesen Heizkreis"))}" ${!good(select) || this._busy || !canEdit ? "disabled" : ""}>${selected && !options.includes(selected) ? `<option value="" selected>${esc2(this._t("Aktuell: {name}", { name: selected }))}</option>` : ""}${options.length ? options.map((o) => `<option value="${esc2(o)}" ${o === selected ? "selected" : ""}>${esc2(o)}</option>`).join("") : `<option>${esc2(selected || this._t("Keine Kurven verf\xFCgbar"))}</option>`}</select></label><p class="hint">${esc2(this._t("Die vom Regler angebotenen Heiztabellen (HC\u2026) stehen hier zur Auswahl. Die Auswahl weist sie dem Heizkreis zu. Eine Tabelle kann von mehreren Heizkreisen desselben Reglers gemeinsam verwendet werden."))}</p><h3>${esc2(this._t("Aktuelle Werte"))}</h3><div class="metrics">${metric(this._t("Au\xDFentemperatur"), this._fmt(this._num(ids.outdoor)), "", "outdoor")}${metric(this._t("Vorlauf Soll"), this._fmt(this._num(ids.target)), "target", "target")}${metric(this._t("Vorlauf Ist"), this._fmt(this._num(ids.actual)), "actual", "actual")}${metric(this._t("Punkte"), points.length, "", "points")}</div><h3>${esc2(this._t("Heizgrenzen Tag / Nacht"))}</h3><div class="limit-fields">${Object.keys(FIELDS2).map((k) => this._input(k)).join("")}</div><button class="primary" id="save-settings" ${this._busy || !canEdit ? "disabled" : ""}>${esc2(this._t("Heizgrenzen speichern"))}</button></aside></div><section class="editor"><div class="editor-head"><div><h3>${esc2(this._t("Kurvenpunkte bearbeiten"))}</h3><p>${esc2(this._t("1 bis 16 Punkte. Die Vorschau aktualisiert sich beim Eingeben. Erst \u201EPunkte speichern\u201C \xFCbertr\xE4gt die Tabelle."))}</p></div><div class="buttons"><button type="button" id="reset" ${this._busy || !this._canEdit() ? "disabled" : ""}>${esc2(this._t("Entwurf verwerfen"))}</button><button type="button" id="add-point" ${!ready || points.length >= 16 ? "disabled" : ""}>${esc2(this._t("Punkt hinzuf\xFCgen"))}</button><button type="button" id="save-points" class="primary" ${!ready ? "disabled" : ""}>${esc2(this._t("Punkte speichern"))}</button></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>${esc2(this._t("Au\xDFen \xB0C"))}</th><th>${esc2(this._t("Vorlauf \xB0C"))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${missing.length || !this._entryId || !this._pointService() ? `<details open><summary>${esc2(this._t("Entit\xE4ten / Einrichtung pr\xFCfen"))}</summary>${missing.length ? `<p>${esc2(this._t("Diese Entit\xE4ten fehlen oder liefern noch keine Werte:"))}</p>` : ""}<ul>${missing.map((id) => `<li><code>` + esc2(id) + `</code></li>`).join("")}</ul>${!this._entryId ? `<p>${esc2(this._t("Konfigurationseintrag noch nicht gefunden. Optional config_entry in der Karte angeben."))}</p>` : ""}${!this._pointService() ? `<p>${esc2(this._t("Die Aktion keba_keenergy.set_heating_curve_points ist nicht verf\xFCgbar. Die Integration muss das Bearbeiten von Kurvenpunkten unterst\xFCtzen."))}</p>` : ""}<button type="button" id="retry">${esc2(this._t("Zuordnung erneut laden"))}</button></details>` : ""}<p class="hint">${esc2(this._t("KeEnergy Heizkurve \xB7 Allgemeine Version 1.1.0"))}</p></section></ha-card>`;
+        this.shadowRoot.innerHTML = `<style>${STYLE}${EXTRA_STYLE}</style><ha-card>${this._targetPanel()}${this._lockPanel()}${disabled.length ? `<div class="setup"><b>${esc2(this._t("Enable editing"))}</b><p>${esc2(this._t("{count} required KeEnergy entities are disabled. An administrator can enable the required entities for this heating circuit.", { count: disabled.length }))}</p><button type="button" id="enable-editors" class="primary" ${this._busy || !canEdit || !this._hass?.user?.is_admin ? "disabled" : ""}>${esc2(this._t("Enable required entities"))}</button></div>` : ""}<div class="layout"><section class="chart-panel"><header><div><small>KEBA KEENERGY</small><h2>${esc2(this._config.title || this._t("KeEnergy heating curve"))}</h2><p>${esc2(mode)}</p></div><span class="badge">${esc2(selected || "\u2014")}</span></header><div id="chart">${this._chart()}</div><div class="legend"><span><i class="line"></i><span id="curve-label">${esc2(this._t("Point table"))}${dirty ? this._t(" \xB7 Draft") : ""}</span></span><span><i class="dot target"></i>${esc2(this._t("Controller target"))}</span><span><i class="dot actual"></i>${esc2(this._t("Actual flow"))}</span>${this._config.flow_min !== null || this._config.flow_max !== null ? `<span><i class="line flow-range"></i>${esc2(this._t("Flow min / max"))}</span>` : ""}<span><i class="dot interpolated"></i>${esc2(this._t("Interpolated values"))}</span></div><p class="notice">${this._config.flow_min !== null || this._config.flow_max !== null ? this._t("Display limits: ") + esc2(this._config.flow_min !== null ? this._fmt(this._config.flow_min) : this._t("no minimum")) + this._t(" to ") + esc2(this._config.flow_max !== null ? this._fmt(this._config.flow_max) : this._t("no maximum")) + this._t(". Limits apply to the chart only. ") : this._t("Saved table with linearly interpolated values. ")}${esc2(this._t("The controller target is read separately from KeEnergy."))}</p><div id="message" class="notice" role="status">${esc2(this._message || (this._loadingCurve ? this._t("Loading curve {name} \u2026", { name: this._loadingCurve }) : ""))}</div></section><aside><h3>${esc2(this._t("Select curve table"))}</h3><label class="field">${esc2(this._t("Curve table for this heating circuit"))}<select id="curve-select" aria-label="${esc2(this._t("Curve table for this heating circuit"))}" ${!good(select) || this._busy || !canEdit ? "disabled" : ""}>${selected && !options.includes(selected) ? `<option value="" selected>${esc2(this._t("Current: {name}", { name: selected }))}</option>` : ""}${options.length ? options.map((o) => `<option value="${esc2(o)}" ${o === selected ? "selected" : ""}>${esc2(o)}</option>`).join("") : `<option>${esc2(selected || this._t("No curves available"))}</option>`}</select></label><p class="hint">${esc2(this._t("Choose one of the heating tables (HC\u2026) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller."))}</p><h3>${esc2(this._t("Current readings"))}</h3><div class="metrics">${metric(this._t("Outdoor temperature"), this._fmt(this._num(ids.outdoor)), "", "outdoor")}${metric(this._t("Target flow"), this._fmt(this._num(ids.target)), "target", "target")}${metric(this._t("Actual flow"), this._fmt(this._num(ids.actual)), "actual", "actual")}${metric(this._t("Points"), points.length, "", "points")}</div><h3>${esc2(this._t("Day / night heating limits"))}</h3><div class="limit-fields">${Object.keys(FIELDS2).map((k) => this._input(k)).join("")}</div><button class="primary" id="save-settings" ${this._busy || !canEdit ? "disabled" : ""}>${esc2(this._t("Save heating limits"))}</button></aside></div><section class="editor"><div class="editor-head"><div><h3>${esc2(this._t("Edit curve points"))}</h3><p>${esc2(this._t("1 to 16 points. The preview updates as you type. The table is sent only when you select \u201CSave points\u201D."))}</p></div><div class="buttons"><button type="button" id="reset" ${this._busy || !this._canEdit() ? "disabled" : ""}>${esc2(this._t("Discard draft"))}</button><button type="button" id="add-point" ${!ready || points.length >= 16 ? "disabled" : ""}>${esc2(this._t("Add point"))}</button><button type="button" id="save-points" class="primary" ${!ready ? "disabled" : ""}>${esc2(this._t("Save points"))}</button></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>${esc2(this._t("Outdoor \xB0C"))}</th><th>${esc2(this._t("Flow \xB0C"))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${missing.length || !this._entryId || !this._pointService() ? `<details open><summary>${esc2(this._t("Check entities / setup"))}</summary>${missing.length ? `<p>${esc2(this._t("These entities are missing or do not yet provide values:"))}</p>` : ""}<ul>${missing.map((id) => `<li><code>` + esc2(id) + `</code></li>`).join("")}</ul>${!this._entryId ? `<p>${esc2(this._t("Integration entry not found yet. Optionally set config_entry in the card."))}</p>` : ""}${!this._pointService() ? `<p>${esc2(this._t("The keba_keenergy.set_heating_curve_points action is unavailable. The integration must support editing curve points."))}</p>` : ""}<button type="button" id="retry">${esc2(this._t("Reload mapping"))}</button></details>` : ""}<p class="hint">${esc2(this._t("KeEnergy heating curve \xB7 General version 1.1.0"))}</p></section></ha-card>`;
         this._viewKey = viewKey;
         this._shellKey = shellKey;
         this._bind();
@@ -1701,7 +1736,7 @@
           if (!this._draft) this._draft = { name: this._selected(), points: this._readPoints() };
           this._draft.saved = false;
           this._draft.points[Number(el.dataset.point)][el.dataset.axis] = numeric(el.value);
-          this._notice(this._t("Punkte ge\xE4ndert \xB7 noch nicht gespeichert"));
+          this._notice(this._t("Points changed \xB7 not saved yet"));
           this._preview();
         }));
         root.querySelectorAll("[data-remove]").forEach((el) => el.addEventListener("click", () => {
@@ -1714,7 +1749,8 @@
         }));
       }
       _bind() {
-        const root = this.shadowRoot, on = (selector, event, fn) => root.querySelector(selector)?.addEventListener(event, fn);
+        const root = this.shadowRoot;
+        const on = (selector, event, fn) => root.querySelector(selector)?.addEventListener(event, fn);
         this._bindPointRows();
         for (const [selector, kind] of [["#controller-select", "controller"], ["#circuit-select", "circuit"]]) {
           on(selector, "pointerdown", (e) => {
@@ -1740,7 +1776,7 @@
         });
         on("#unlock-editor", "click", () => this._openUnlock());
         on("#lock-editor", "click", () => this._lock());
-        on("#cancel-unlock", "click", () => this._lock(this._t("Bearbeitung gesperrt.")));
+        on("#cancel-unlock", "click", () => this._lock(this._t("Editing locked.")));
         on("#confirm-unlock", "click", (event) => this._submitUnlock(event));
         on("#unlock-form", "submit", (event) => this._submitUnlock(event));
         on("#edit-password", "keydown", (event) => {
@@ -1748,14 +1784,14 @@
           if (event.key === "Escape") {
             event.preventDefault();
             event.stopPropagation();
-            this._lock(this._t("Bearbeitung gesperrt."));
+            this._lock(this._t("Editing locked."));
           }
         });
         root.querySelectorAll("[data-setting]").forEach((el) => el.addEventListener("input", () => {
           if (!this._canEdit() || this._busy) return;
           this._touchEdit();
           this._edits[el.dataset.setting] = numeric(el.value);
-          this._notice(this._t("Parameter ge\xE4ndert \xB7 noch nicht gespeichert"));
+          this._notice(this._t("Settings changed \xB7 not saved yet"));
           this._preview();
         }));
         on("#curve-select", "pointerdown", (e) => {
@@ -1778,7 +1814,7 @@
           this._touchEdit();
           this._draft = null;
           this._edits = {};
-          this._message = this._t("Entwurf verworfen.");
+          this._message = this._t("Draft discarded.");
           this._render();
         });
         on("#retry", "click", () => {
@@ -1800,7 +1836,7 @@
           if (outdoor < -40) outdoor = 1;
           p.push({ outdoor, flow: 30 });
           this._draft = { name: this._selected(), points: p };
-          this._message = this._t("Punkt hinzugef\xFCgt \xB7 noch nicht gespeichert");
+          this._message = this._t("Point added \xB7 not saved yet");
           this._render();
         });
         on("#save-points", "click", () => this._savePoints());
@@ -1810,21 +1846,21 @@
         if (this._busy || !this._requireEdit()) return;
         this._touchEdit();
         if (this._draft || Object.keys(this._edits).length) {
-          this._notice(this._t("Vor dem Tabellenwechsel Punkte / Parameter speichern oder den Entwurf verwerfen."));
+          this._notice(this._t("Save points / settings or discard the draft before switching tables."));
           this._render();
           return;
         }
         if (!this._options().includes(name)) return;
         this._loadingCurve = name;
         this._busy = true;
-        this._message = this._t("Kurve wird zugewiesen \u2026");
+        this._message = this._t("Assigning curve \u2026");
         this._render();
         try {
           await this._hass.callService("select", "select_option", { entity_id: this._ids().select, option: name });
-          this._message = this._t("Kurve {name} zugewiesen. Messwerte werden aktualisiert.", { name });
+          this._message = this._t("Curve {name} assigned. Readings are updating.", { name });
         } catch (error) {
           this._loadingCurve = null;
-          this._message = this._t("Auswahl fehlgeschlagen: ") + (error.message || error);
+          this._message = this._t("Selection failed: ") + (error.message || error);
         } finally {
           this._busy = false;
           const ids = this._ids();
@@ -1839,33 +1875,36 @@
           this._discovered = false;
           await this._discover();
           if (!this._entryId) {
-            this._notice(this._t("Integrationseintrag nicht ermittelbar. config_entry in der Kartenkonfiguration angeben."));
+            this._notice(this._t("Cannot determine the integration entry. Set config_entry in the card configuration."));
             return;
           }
         }
         if (!this._requireEdit()) return;
-        const name = this._selected(), points = this._points().map((p) => ({ outdoor: Math.round(p.outdoor * 100) / 100, flow: Math.round(p.flow * 100) / 100 })).sort((a, b) => a.outdoor - b.outdoor);
+        const name = this._selected();
+        const points = this._points().map((p) => ({ outdoor: Math.round(p.outdoor * 100) / 100, flow: Math.round(p.flow * 100) / 100 })).sort((a, b) => a.outdoor - b.outdoor);
         if (points.length < 1 || points.length > 16 || points.some((p, i) => !Number.isFinite(p.outdoor) || !Number.isFinite(p.flow) || p.outdoor < -40 || p.outdoor > 40 || p.flow < 10 || p.flow > 90 || i > 0 && p.outdoor <= points[i - 1].outdoor)) {
-          this._notice(this._t("Ung\xFCltige Punkte: Au\xDFen \u221240 bis 40 \xB0C, Vorlauf 10 bis 90 \xB0C; Au\xDFentemperaturen m\xFCssen eindeutig sein."));
+          this._notice(this._t("Invalid points: outdoor \u221240 to 40 \xB0C, flow 10 to 90 \xB0C; outdoor temperatures must be unique."));
           return;
         }
         const live = this._readPoints().sort((a, b) => a.outdoor - b.outdoor);
         if (JSON.stringify(points) === JSON.stringify(live)) {
           this._draft = null;
-          this._message = this._t("Keine \xC4nderungen an den Punkten.");
+          this._message = this._t("No changes to the points.");
           this._render();
           return;
         }
         this._busy = true;
-        this._message = this._t("Punkte werden gespeichert \u2026");
+        this._message = this._t("Saving points \u2026");
         this._render();
         try {
           await this._hass.callService("keba_keenergy", "set_heating_curve_points", { config_entry: this._entryId, heating_curve: name, points });
           this._draft = this._canEdit() ? { name, points, saved: true } : null;
-          this._message = this._t("Punkte f\xFCr {name} \xFCbertragen. Reglerwerte werden aktualisiert.", { name });
-          if (JSON.stringify(points) === JSON.stringify(this._readPoints().sort((a, b) => a.outdoor - b.outdoor))) this._draft = null;
+          this._message = this._t("Points for {name} sent. Controller readings are updating.", { name });
+          if (JSON.stringify(points) === JSON.stringify(this._readPoints().sort((a, b) => a.outdoor - b.outdoor))) {
+            this._draft = null;
+          }
         } catch (error) {
-          this._message = this._t("Speichern fehlgeschlagen: ") + (error.message || error);
+          this._message = this._t("Save failed: ") + (error.message || error);
         } finally {
           this._busy = false;
           this._render();
@@ -1876,32 +1915,33 @@
         this._touchEdit();
         const ids = this._ids(), changes = Object.entries(this._edits);
         for (const [key, value] of changes) {
-          const s = this._state(ids[key]), { min, max, step } = this._numberMeta(ids[key]), steps = (value - (Number.isFinite(min) ? min : 0)) / step;
+          const s = this._state(ids[key]), { min, max, step } = this._numberMeta(ids[key]);
+          const steps = (value - (Number.isFinite(min) ? min : 0)) / step;
           if (!good(s) || !Number.isFinite(value) || Number.isFinite(min) && value < min - 1e-6 || Number.isFinite(max) && value > max + 1e-6 || Number.isFinite(step) && step > 0 && Math.abs(steps - Math.round(steps)) > 1e-6) {
-            this._notice(this._t("Ung\xFCltiger Wert f\xFCr {field}. Zul\xE4ssigen Bereich und Schrittweite der Entit\xE4t beachten.", { field: this._t(FIELDS2[key][1]) }));
+            this._notice(this._t("Invalid value for {field}. Observe the entity\u2019s range and step size.", { field: this._t(FIELDS2[key][1]) }));
             return;
           }
         }
         if (!changes.length) {
-          this._notice(this._t("Keine Parameter ge\xE4ndert."));
+          this._notice(this._t("No settings changed."));
           return;
         }
         this._busy = true;
-        this._message = this._t("Parameter werden gespeichert \u2026");
+        this._message = this._t("Saving settings \u2026");
         this._render();
         let saved = 0;
         try {
           for (const [key, value] of changes) {
-            if (!this._canEdit()) throw Error(this._t("Bearbeitung gesperrt. Erneut entsperren."));
+            if (!this._canEdit()) throw Error(this._t("Editing locked. Please unlock again."));
             if (Math.abs(this._num(ids[key]) - value) > 1e-6) {
               await this._hass.callService("number", "set_value", { entity_id: ids[key], value: Math.round(this._fromCelsius(ids[key], value) * 1e8) / 1e8 });
               saved++;
             }
             delete this._edits[key];
           }
-          this._message = this._t("{count} Parameter \xFCbertragen. Der n\xE4chste Abgleich zeigt die Reglerwerte.", { count: saved });
+          this._message = this._t("{count} settings sent. The next update will show the controller values.", { count: saved });
         } catch (error) {
-          this._message = this._t("Teilweise gespeichert ({count}). Weitere \xC4nderungen nicht \xFCbertragen: {error}", { count: saved, error: error.message || error });
+          this._message = this._t("Partially saved ({count}). Remaining changes were not sent: {error}", { count: saved, error: error.message || error });
         } finally {
           this._busy = false;
           this._render();
@@ -1933,8 +1973,8 @@
     .target{stroke-width:1.5}.actual{stroke-width:1}.legend{font-size:10px;gap:12px}.legend .line{height:2px}.dot.interpolated{width:5px;height:5px;background:#8CA1A4}
     .line.flow-range{background:linear-gradient(to right,#4D8DC6 50%,#CE7373 50%)}.metric b{font-size:19px}.notice{font-size:10.5px;padding:8px 10px;border-radius:8px}
   `;
-    if (!customElements.get("keba-keenergy-heizkurve-card")) customElements.define("keba-keenergy-heizkurve-card", KeEnergyHeatingCurveCard);
+    if (!customElements.get("keba-keenergy-heating-curve-card")) customElements.define("keba-keenergy-heating-curve-card", KeEnergyHeatingCurveCard);
     window.customCards = window.customCards || [];
-    if (!window.customCards.some((c) => c.type === "keba-keenergy-heizkurve-card")) window.customCards.push({ type: "keba-keenergy-heizkurve-card", name: "KEBA KeEnergy Heating Curve", description: "Heating curves and limits with automatic discovery \xB7 Deutsch / English", preview: false });
+    if (!window.customCards.some((c) => c.type === "keba-keenergy-heating-curve-card")) window.customCards.push({ type: "keba-keenergy-heating-curve-card", name: "KEBA KeEnergy Heating Curve Card", description: "Heating curves and limits with automatic discovery \xB7 Deutsch / English", preview: false });
   })();
 })();

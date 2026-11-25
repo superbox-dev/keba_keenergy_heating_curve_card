@@ -1,0 +1,16 @@
+# OS generated files
+.DS_Store
+._*
+*.swp
+
+# IDE
+.idea/
+
+# dependencies
+node_modules/
+
+# build
+dist/
+
+# checks
+.rumdl_cache

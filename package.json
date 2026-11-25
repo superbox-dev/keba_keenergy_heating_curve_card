@@ -1,5 +1,5 @@
 {
-  "name": "keba-keenergy-heizkurve-card",
+  "name": "keba-keenergy-heating-curve-card",
   "version": "1.1.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node tests/run.mjs"
+    "test": "node tests/run.mjs",
+    "prepare": "prek install"
   },
   "engines": {
     "node": ">=20.19.0"
@@ -16,6 +17,14 @@
     "@noble/hashes": "2.4.0"
   },
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "@eslint/js": "10.0.1",
+    "@j178/prek": "0.5.11",
+    "@stylistic/eslint-plugin": "6.0.1",
+    "esbuild": "0.28.2",
+    "eslint": "10.15.0",
+    "globals": "17.14.0"
+  },
+  "allowScripts": {
+    "esbuild": true
   }
 }

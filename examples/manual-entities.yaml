@@ -1,0 +1,14 @@
+# Only for special cases when the automatic discovery is not possible.
+# Replace ALL placeholders with values of your own Home Assistant installation.
+type: custom:keba-keenergy-heating-curve-card
+title: KeEnergy heating curve
+config_entry: YOUR_KEENERGY_CONFIG_ENTRY_ID
+entities:
+  curve_select: select.your_curve_select
+  curve_sensor: sensor.your_heating_curve
+  outdoor_temperature: sensor.your_outdoor_temperature
+  flow_temperature: sensor.your_flow_temperature
+  flow_setpoint: sensor.your_flow_temperature_setpoint
+  use_heating_curve: switch.your_use_heating_curve
+  heating_limit_day: number.your_heating_limit_day
+  heating_limit_night: number.your_heating_limit_night

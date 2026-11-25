@@ -20,14 +20,14 @@ export function parseEntity(entity) {
   const outdoor = unique.match(/^(.+)_outdoor_temperature$/);
   if (outdoor && domain === 'sensor') return { serial: outdoor[1], key: 'outdoor' };
   const match = unique.match(/^(.+)_heat_circuit_(?:(\d+)_)?(heating_curve|flow_temperature_setpoint|flow_temperature|use_heating_curve|heating_limit_day|heating_limit_night)(?:_(\d+))?$/);
-  if (!match || match[2] && match[4]) return null;
+  if (!match || (match[2] && match[4])) return null;
   const key = Object.keys(FIELDS).find(k => k !== 'outdoor' && FIELDS[k][0] === domain && FIELDS[k][1] === match[3]);
   return key ? { serial: match[1], circuit: match[2] || match[4] || '1', key } : null;
 }
 
 export function discoverControllers(registry, devices = [], t = text => text) {
   const controllers = new Map();
-  const deviceLabel = id => {
+  const deviceLabel = (id) => {
     const d = devices.find(device => device.id === id);
     return d?.name_by_user || d?.name || '';
   };
@@ -54,12 +54,12 @@ export function discoverControllers(registry, devices = [], t = text => text) {
     circuit.label ||= deviceLabel(entity.device_id);
     (circuit.candidates[p.key] ||= []).push(entity);
   }
-  return [...controllers.values()].map(controller => {
+  return [...controllers.values()].map((controller) => {
     const outdoor = controller.outdoorCandidates;
     controller.outdoor = outdoor.length === 1 ? outdoor[0].entity_id : '';
     controller.label = (controller.label || 'KeEnergy') + ' · ' + controller.serial;
-    controller.circuits = controller.circuits.filter(c => c.candidates.curve || c.candidates.select).map(circuit => {
-      circuit.label = t('Heizkreis') + ' ' + circuit.id + (circuit.label ? ' · ' + circuit.label : '');
+    controller.circuits = controller.circuits.filter(c => c.candidates.curve || c.candidates.select).map((circuit) => {
+      circuit.label = t('Heating circuit') + ' ' + circuit.id + (circuit.label ? ' · ' + circuit.label : '');
       for (const [key, entries] of Object.entries(circuit.candidates)) {
         if (entries.length === 1) circuit.map[key] = entries[0].entity_id;
         else circuit.ambiguous.push(key);
@@ -77,6 +77,6 @@ export async function loadRegistry(hass, t = text => text) {
     hass.callWS({ type: 'config/device_registry/list' }),
   ]);
   if (entities.status === 'rejected') throw entities.reason;
-  if (!Array.isArray(entities.value)) throw Error(t('Entitätenverzeichnis nicht verfügbar.'));
+  if (!Array.isArray(entities.value)) throw Error(t('Entity registry unavailable.'));
   return { registry: entities.value, devices: devices.status === 'fulfilled' && Array.isArray(devices.value) ? devices.value : [] };
 }
