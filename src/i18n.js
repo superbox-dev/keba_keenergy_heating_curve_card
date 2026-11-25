@@ -117,7 +117,7 @@ export const DE = {
   'Integration entry not found yet. Optionally set config_entry in the card.': 'Konfigurationseintrag noch nicht gefunden. Optional config_entry in der Karte angeben.',
   'The keba_keenergy.set_heating_curve_points action is unavailable. The integration must support editing curve points.': 'Die Aktion keba_keenergy.set_heating_curve_points ist nicht verfügbar. Die Integration muss das Bearbeiten von Kurvenpunkten unterstützen.',
   'Reload mapping': 'Zuordnung erneut laden',
-  'KeEnergy heating curve · General version 1.1.0': 'KeEnergy Heizkurve · Allgemeine Version 1.1.0',
+  'KeEnergy heating curve · General version {version}': 'KeEnergy Heizkurve · Allgemeine Version {version}',
   'Points changed · not saved yet': 'Punkte geändert · noch nicht gespeichert',
   'Settings changed · not saved yet': 'Parameter geändert · noch nicht gespeichert',
   'Draft discarded.': 'Entwurf verworfen.',

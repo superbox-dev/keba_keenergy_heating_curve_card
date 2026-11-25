@@ -5,16 +5,20 @@ description: Release or pre-release the card (version bump, changelog, tag). Use
 
 # Release
 
-- Version from the changelog: breaking → major, new options or behavior → minor, else patch
+- Version from the changelog: breaking (incl. `Removed`) → major, `Added`/`Changed`/`Deprecated` → minor, else
+  patch
+  - exception: the English renaming of #1 stays in v1.x
 - Pre-release `N` counts per target version, starting at `-beta.1`
-- Ask before pushing or creating the release, show version, branch and tag
+  - npm only accepts SemVer, so pre-releases are `X.Y.Z-beta.N`, not `X.Y.ZbN` like the Python projects
+- `v*` tags create the GitHub release, the workflow builds `keba_keenergy_heating_curve_card.js` and attaches it
+- Ask before pushing, show version, branch and tag
 
 1. Branch `release/vX.Y.Z` (or `release/vX.Y.Z-beta.N`) from the current `main`
-2. Set the version in `package.json`, `build.mjs`, `src/card.js`, `src/i18n.js` and the README files
-   - **always** identical everywhere, also for pre-releases
-3. `CHANGELOG.md`: release `vX.Y.Z` turns `## Unveröffentlicht` into `## X.Y.Z`, a new empty `## Unveröffentlicht`
-   above it, pre-releases keep the entries under `## Unveröffentlicht`
-4. `npm run build`, update `SHA256SUMS.txt`
-5. Commit, push, pull request against `main` with `Closes #<issue>` if there is one, `@marcofeurer` merges
-6. After the merge, on `main`: `gh release create vX.Y.Z keba_keenergy_heating_curve_card.js`, pre-releases with
-   `--prerelease`
+2. `npm version X.Y.Z --no-git-tag-version` (or `X.Y.Z-beta.N`)
+   - **always** identical in `package.json`, `package-lock.json` and the tag (without `v`), also for pre-releases
+3. `CHANGELOG.md`, use the `changelog` skill:
+   - pre-release `vX.Y.Z-beta.N`: entries stay under `## [Unreleased]`
+   - release `vX.Y.Z`: `## [Unreleased]` becomes `## [X.Y.Z] - YYYY-MM-DD`, a new empty `## [Unreleased]` above it,
+     update the links at the bottom
+4. Commit, push, pull request against `main` with `Closes #<issue>` if there is one, `@marcofeurer` merges
+5. After the merge: `./scripts/release.sh vX.Y.Z` (or `vX.Y.Z-beta.N`) on the updated `main`

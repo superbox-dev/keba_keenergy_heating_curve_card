@@ -12,7 +12,7 @@ plain JavaScript web components bundled with esbuild into one file, only runtime
 npx eslint --fix .   # format and fix (lint.sh only checks)
 ./scripts/lint.sh    # all prek hooks: eslint, tests, yamllint, rumdl, file checks
 npm test             # tests
-npm run build        # build keba_keenergy_heating_curve_card.js from src/
+npm run build        # build dist/keba_keenergy_heating_curve_card.js from src/
 ```
 
 Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this order.
@@ -24,7 +24,7 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this
   config options and their defaults, `entities` keys, the `edit_password_hash` format)
   - only when asked, then as a major release
   - exception: the English renaming of #1 in v1.x, with upgrade steps in both README files
-- `keba_keenergy_heating_curve_card.js` is the committed build, only changed by `npm run build`, never by hand
+- `dist/` is a build output, never commit it, the release workflow builds and attaches the card
 - Every interpolated value in an HTML template goes through `esc()`
 - Writes only from explicit user actions (save buttons, curve table selection, enabling entities), switching the
   view never writes
@@ -52,6 +52,7 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this
 
 - `src/card.js`: the card, `src/editor.js`: the visual card editor, `src/discovery.js`: controllers and heating
   circuits from the entity registry, `src/i18n.js`: translations and number format, `src/chart-axis.js`: chart axes
+- `build.mjs` bundles `src/card.js` as IIFE and sets `__VERSION__` from `package.json`, never hardcode the version
 - Discovery only matches registry `unique_id`s and config entries, never entity IDs or names (users rename them)
   - legacy `unique_id` variants of the integration are aliases in `parseEntity()`
 - Rendering keeps focused inputs and open selects: a full redraw only when the view changes, otherwise
@@ -79,8 +80,8 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this
 
 ## Changelog, versions and git
 
-- Every change users notice gets a German entry under `## Unveröffentlicht` in `CHANGELOG.md`, like the existing
-  entries (not refactorings, tests, CI, `CLAUDE.md` or skills)
+- Every change users notice gets an entry under `## [Unreleased]` in `CHANGELOG.md` (not refactorings, tests, CI,
+  `CLAUDE.md` or skills), use the `changelog` skill
 - Tickets: create and update them with the `issue` skill
 - Version: only change it when asked, use the `release` skill
 - One branch per change from `main`, pull request against `main` with `Closes #<issue>`, never push to `main`

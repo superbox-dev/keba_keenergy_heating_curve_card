@@ -1,4 +1,4 @@
-exclude = '^(node_modules/|keba_keenergy_heating_curve_card\.js$)'
+exclude = '^node_modules/'
 
 [[repos]]
 repo = "builtin"
