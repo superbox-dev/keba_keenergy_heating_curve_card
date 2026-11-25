@@ -5,6 +5,8 @@ A reusable, unofficial Home Assistant custom card for
 The card and its visual editor support **German and English**. There are no hardcoded personal entities,
 serial numbers, addresses or passwords. See `README.md` for full documentation.
 
+![Card preview with example data](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/preview-english.png)
+
 1. Copy `keba-keenergy-heizkurve.js` to `/config/www/`. If you create `www` for the
    first time, restart Home Assistant once.
 2. Add `/local/keba-keenergy-heizkurve.js?v=1.1.0` as a **JavaScript module** dashboard
