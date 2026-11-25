@@ -85,7 +85,7 @@ Regler- oder Heizkreiswechsel; zuerst speichern oder **Entwurf verwerfen** wähl
   jeweiligen `number`-Entitäten. **Heizgrenzen speichern** überträgt geänderte Werte.
   Die Karte stellt Temperaturen in °C dar; HA-Entitäten mit °F/K werden für die
   Anzeige umgerechnet, und Heizgrenzen in der Einheit ihrer Entität zurückgeschrieben.
-- **Diagramm:** Stützpunkte, kleinere Zwischenwerte in 5-°C-Abständen, Heizgrenzen,
+- **Diagramm:** Stützpunkte, kleinere Zwischenwerte mit einstellbarem Abstand, Heizgrenzen,
   Außentemperatur sowie separat gelesene Vorlauf-Soll- und Isttemperatur.
   Zwischenwerte sind eine lineare Berechnung aus der Tabelle. Zusätzliche Einflüsse
   des Reglers können den tatsächlichen Sollwert verändern.
@@ -111,6 +111,12 @@ Nachkommastellen haben. Eine feste Untergrenze dient als Start des Rasters. Bei
 engem Raster werden weniger Zahlen angezeigt. Bei sehr vielen Linien wird das
 Raster in ganzzahligen Vielfachen der eingestellten Rasterweite gezeichnet.
 
+Unter **Zwischenwerte** stellst du den Abstand entlang der Außentemperatur ein,
+zum Beispiel 2,5 °C. Das Feld ist unabhängig vom Achsenraster. Leer gilt wie bisher
+5 °C. Bei kleinen Abständen werden weniger Beschriftungen angezeigt. Bei sehr
+kleinen Abständen erscheinen die Zwischenpunkte in ganzzahligen Vielfachen des
+gewählten Abstands.
+
 Die Achsenoptionen wählen den sichtbaren Ausschnitt. Kurvenpunkte, Heizgrenzen
 und Reglerwerte bleiben gespeichert wie zuvor. `flow_min` und `flow_max`
 begrenzen weiterhin die gezeichnete Kurve.
@@ -125,6 +131,7 @@ x_step: 5
 y_min: 20
 y_max: 45
 y_step: 2.5
+intermediate_step: 2.5
 ```
 
 ## Benötigte Entitäten aktivieren

@@ -1,5 +1,10 @@
 # Änderungen
 
+## Unveröffentlicht
+
+- Abstand der Zwischenwerte entlang der Außentemperatur im Karteneditor oder
+  per `intermediate_step` in YAML einstellen. Standard sind weiterhin 5 °C.
+
 ## 1.1.0
 
 - Sichtbaren Temperaturbereich und Rasterweite für X- und Y-Achse im visuellen

@@ -153,6 +153,7 @@
     "Minimum (\xB0C)": "Minimum (\xB0C)",
     "Maximum (\xB0C)": "Maximum (\xB0C)",
     "Rasterweite (\xB0C)": "Grid interval (\xB0C)",
+    "Abstand der Zwischenwerte auf der X-Achse (\xB0C)": "Interpolated value interval on the X-axis (\xB0C)",
     "Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite betr\xE4gt 5 \xB0C. Diese Einstellungen \xE4ndern nur den sichtbaren Diagrammausschnitt und das Raster.": "Empty bounds are set automatically. The default grid interval is 5 \xB0C. These settings only change the visible chart range and grid.",
     "Vorlaufbegrenzungen im Diagramm": "Chart flow limits",
     "Leer lassen f\xFCr die unver\xE4nderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler \xFCbertragen.": "Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.",
@@ -863,6 +864,11 @@
     x: { min: -100, max: 100 },
     y: { min: 0, max: 150 }
   };
+  var INTERMEDIATE_STEP = {
+    min: MIN_AXIS_STEP,
+    max: AXIS_LIMITS.x.max - AXIS_LIMITS.x.min,
+    default: 5
+  };
   function axisRange(min, max, autoMin, autoMax) {
     return {
       min: min ?? (max !== null && max <= autoMin ? max - DEFAULT_AXIS_STEP : autoMin),
@@ -1010,6 +1016,9 @@
         <p>${esc(this._t("Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite betr\xE4gt 5 \xB0C. Diese Einstellungen \xE4ndern nur den sichtbaren Diagrammausschnitt und das Raster."))}</p>
         ${axisFields("x", this._t("X-Achse \xB7 Au\xDFentemperatur"))}
         ${axisFields("y", this._t("Y-Achse \xB7 Vorlauftemperatur"))}
+        <fieldset><legend>${esc(this._t("Zwischenwerte"))}</legend>
+          ${field(this._t("Abstand der Zwischenwerte auf der X-Achse (\xB0C)"), "intermediate_step", "number", `min="${INTERMEDIATE_STEP.min}" max="${INTERMEDIATE_STEP.max}" step="0.01" placeholder="${INTERMEDIATE_STEP.default}"`)}
+        </fieldset>
       </details>
       <details><summary>${esc(this._t("Vorlaufbegrenzungen im Diagramm"))}</summary><p>${esc(this._t("Leer lassen f\xFCr die unver\xE4nderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler \xFCbertragen."))}</p><div class="grid">${field(this._t("Anzeige Minimum (\xB0C)"), "flow_min", "number", 'min="10" max="90" step="any"')}${field(this._t("Anzeige Maximum (\xB0C)"), "flow_max", "number", 'min="10" max="90" step="any"')}</div></details>
       <details><summary>${esc(this._t("Kennwortschutz"))} ${c.edit_password_hash ? this._t("\xB7 eingerichtet") : this._t("\xB7 optional")}</summary><p>${esc(this._t("Jeder richtet sein eigenes Kennwort ein. Nur der Pr\xFCfwert wird in der Kartenkonfiguration gespeichert. Der Schutz gilt f\xFCr diese Kartenoberfl\xE4che; Home-Assistant-Berechtigungen gelten weiterhin."))}</p>
@@ -1114,27 +1123,29 @@
           if (this._config[key] !== null && (!Number.isFinite(this._config[key]) || this._config[key] < 10 || this._config[key] > 90)) throw Error(this._t("{key} muss zwischen 10 und 90 \xB0C liegen oder leer sein.", { key }));
         }
         if (this._config.flow_min !== null && this._config.flow_max !== null && this._config.flow_min >= this._config.flow_max) throw Error(this._t("flow_min muss kleiner als flow_max sein."));
+        const setChartOption = (key, min, max) => {
+          const raw = this._config[key];
+          const value = raw == null || typeof raw === "string" && !raw.trim() ? null : numeric(raw);
+          if (value !== null && (!["number", "string"].includes(typeof raw) || value < min || value > max || value !== Math.round(value * 100) / 100)) {
+            throw Error(this._t("{key} muss zwischen {min} und {max} \xB0C liegen und darf h\xF6chstens zwei Nachkommastellen haben.", {
+              key,
+              min: this._number(min, { maximumFractionDigits: 2 }),
+              max: this._number(max)
+            }));
+          }
+          this._config[key] = value;
+        };
         for (const [axis, { min, max }] of Object.entries(AXIS_LIMITS)) {
-          const keys = [axis + "_min", axis + "_max", axis + "_step"];
-          const ranges = [[min, max], [min, max], [MIN_AXIS_STEP, max - min]];
-          keys.forEach((key, index) => {
-            const raw = this._config[key];
-            const value = raw == null || typeof raw === "string" && !raw.trim() ? null : numeric(raw);
-            const [lower, upper] = ranges[index];
-            if (value !== null && (!["number", "string"].includes(typeof raw) || value < lower || value > upper || value !== Math.round(value * 100) / 100)) {
-              throw Error(this._t("{key} muss zwischen {min} und {max} \xB0C liegen und darf h\xF6chstens zwei Nachkommastellen haben.", {
-                key,
-                min: this._number(lower, { maximumFractionDigits: 2 }),
-                max: this._number(upper)
-              }));
-            }
-            this._config[key] = value;
-          });
-          const [minKey, maxKey] = keys;
+          const minKey = axis + "_min";
+          const maxKey = axis + "_max";
+          setChartOption(minKey, min, max);
+          setChartOption(maxKey, min, max);
+          setChartOption(axis + "_step", MIN_AXIS_STEP, max - min);
           if (this._config[minKey] !== null && this._config[maxKey] !== null && this._config[minKey] >= this._config[maxKey]) {
             throw Error(this._t("{minKey} muss kleiner als {maxKey} sein.", { minKey, maxKey }));
           }
         }
+        setChartOption("intermediate_step", INTERMEDIATE_STEP.min, INTERMEDIATE_STEP.max);
         this._discoveryRevision++;
         this._controllers = [];
         this._registry = [];
@@ -1540,11 +1551,29 @@
           const label = shown > minimum && shown < maximum ? `<text x="${px}" y="${Math.max(17, py - 12)}" text-anchor="${anchor}" class="point-label">${this._number(shown, { minimumFractionDigits: 1 })}</text>` : "";
           dots += `<g><title>${esc2(this._t("P{index}: Au\xDFen {outdoor} \xB0C \xB7 Tabelle {flow} \xB0C \xB7 begrenzte Anzeige {shown} \xB0C", { index: i + 1, outdoor: this._number(p.outdoor, { minimumFractionDigits: 1 }), flow: this._number(p.flow, { minimumFractionDigits: 1 }), shown: this._number(shown, { minimumFractionDigits: 1 }) }))}</title><circle cx="${px}" cy="${py}" r="2.8" class="point"/>${label}</g>`;
         });
-        if (unique.length > 1) for (let outdoor = Math.ceil(lo / 5) * 5; outdoor <= hi; outdoor += 5) {
-          const px = x(outdoor), shown = clamp(interpolate(outdoor, unique));
-          if (!visible(outdoor, shown) || shown <= minimum || shown >= maximum || unique.some((p) => Math.abs(x(p.outdoor) - px) < 25)) continue;
-          const py = y(shown);
-          samples += `<g><title>${esc2(this._t("Zwischenwert bei {outdoor} \xB0C au\xDFen: {flow} \xB0C Vorlauf", { outdoor: this._number(outdoor), flow: this._number(shown, { minimumFractionDigits: 1 }) }))}</title><circle cx="${px}" cy="${py}" r="1.7" class="sample-point"/><text x="${px}" y="${Math.max(17, py - 9)}" text-anchor="middle" class="sample-label" data-outdoor="${outdoor}">${this._number(shown, { minimumFractionDigits: 1 })}</text></g>`;
+        if (unique.length > 1) {
+          const intermediateStep = this._config.intermediate_step ?? INTERMEDIATE_STEP.default;
+          const pointTemperatures = new Set(unique.map((point) => point.outdoor));
+          const labelGap = 25;
+          const sampleTicks = axisTicks(outdoorRange, intermediateStep, {
+            fixedMin: false,
+            fixedMax: false,
+            length: 580,
+            labelGap
+          });
+          for (const { value: outdoor, showLabel } of sampleTicks) {
+            if (pointTemperatures.has(outdoor)) continue;
+            const shown = clamp(interpolate(outdoor, unique));
+            if (!visible(outdoor, shown) || shown <= minimum || shown >= maximum) continue;
+            const px = x(outdoor), py = y(shown);
+            const flowLabel = this._number(shown, { minimumFractionDigits: 1 });
+            const label = showLabel && !unique.some((point) => Math.abs(x(point.outdoor) - px) < labelGap) ? `<text x="${px}" y="${Math.max(17, py - 9)}" text-anchor="middle" class="sample-label" data-outdoor="${outdoor}">${esc2(flowLabel)}</text>` : "";
+            const tooltip = this._t("Zwischenwert bei {outdoor} \xB0C au\xDFen: {flow} \xB0C Vorlauf", {
+              outdoor: this._number(outdoor, { maximumFractionDigits: 2 }),
+              flow: flowLabel
+            });
+            samples += `<g><title>${esc2(tooltip)}</title><circle cx="${px}" cy="${py}" r="1.7" class="sample-point"/>${label}</g>`;
+          }
         }
         [[target, "target"], [actual, "actual"]].forEach(([v, cls]) => {
           if (visible(outside, v)) marks += `<circle cx="${x(outside)}" cy="${y(v)}" r="${cls === "target" ? 3.8 : 3}" class="${cls}"/>`;

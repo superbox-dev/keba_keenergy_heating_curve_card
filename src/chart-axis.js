@@ -4,6 +4,11 @@ export const AXIS_LIMITS = {
   x: { min: -100, max: 100 },
   y: { min: 0, max: 150 },
 };
+export const INTERMEDIATE_STEP = {
+  min: MIN_AXIS_STEP,
+  max: AXIS_LIMITS.x.max - AXIS_LIMITS.x.min,
+  default: 5,
+};
 
 export function axisRange(min, max, autoMin, autoMax) {
   return {

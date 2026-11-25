@@ -44,6 +44,11 @@ bounds are automatic and the default grid interval is 5 °C. The axis settings
 affect only the visible chart. The `flow_min` and `flow_max` options still limit
 the plotted curve.
 
+Under **Interpolated values** in the same section, set the interval along the outdoor
+temperature axis independently of the grid. In YAML, use `intermediate_step: 2.5`
+for points every 2.5 °C. The default is 5 °C. Short intervals show fewer labels,
+and very dense points are drawn at whole multiples of the requested interval.
+
 The visual editor can also configure a controller/circuit and an individual
 password. Password protection is off
 by default. An optional salted PBKDF2-SHA256 verifier is saved in the card configuration;

@@ -116,6 +116,7 @@ export const EN = {
   'Y-Achse · Vorlauftemperatur': 'Y-axis · Flow temperature',
   'Minimum (°C)': 'Minimum (°C)', 'Maximum (°C)': 'Maximum (°C)',
   'Rasterweite (°C)': 'Grid interval (°C)',
+  'Abstand der Zwischenwerte auf der X-Achse (°C)': 'Interpolated value interval on the X-axis (°C)',
   'Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite beträgt 5 °C. Diese Einstellungen ändern nur den sichtbaren Diagrammausschnitt und das Raster.': 'Empty bounds are set automatically. The default grid interval is 5 °C. These settings only change the visible chart range and grid.',
   'Vorlaufbegrenzungen im Diagramm': 'Chart flow limits',
   'Leer lassen für die unveränderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler übertragen.': 'Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.',

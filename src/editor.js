@@ -2,7 +2,7 @@ import { languageCode, translate } from './i18n.js';
 import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { discoverControllers, loadRegistry } from './discovery.js';
-import { AXIS_LIMITS, DEFAULT_AXIS_STEP, MIN_AXIS_STEP } from './chart-axis.js';
+import { AXIS_LIMITS, DEFAULT_AXIS_STEP, INTERMEDIATE_STEP, MIN_AXIS_STEP } from './chart-axis.js';
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const hex = bytes => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
@@ -88,6 +88,9 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
         <p>${esc(this._t('Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite beträgt 5 °C. Diese Einstellungen ändern nur den sichtbaren Diagrammausschnitt und das Raster.'))}</p>
         ${axisFields('x', this._t('X-Achse · Außentemperatur'))}
         ${axisFields('y', this._t('Y-Achse · Vorlauftemperatur'))}
+        <fieldset><legend>${esc(this._t('Zwischenwerte'))}</legend>
+          ${field(this._t('Abstand der Zwischenwerte auf der X-Achse (°C)'), 'intermediate_step', 'number', `min="${INTERMEDIATE_STEP.min}" max="${INTERMEDIATE_STEP.max}" step="0.01" placeholder="${INTERMEDIATE_STEP.default}"`)}
+        </fieldset>
       </details>
       <details><summary>${esc(this._t("Vorlaufbegrenzungen im Diagramm"))}</summary><p>${esc(this._t("Leer lassen für die unveränderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler übertragen."))}</p><div class="grid">${field(this._t('Anzeige Minimum (°C)'), 'flow_min', 'number', 'min="10" max="90" step="any"')}${field(this._t('Anzeige Maximum (°C)'), 'flow_max', 'number', 'min="10" max="90" step="any"')}</div></details>
       <details><summary>${esc(this._t("Kennwortschutz"))} ${c.edit_password_hash ? this._t('· eingerichtet') : this._t('· optional')}</summary><p>${esc(this._t("Jeder richtet sein eigenes Kennwort ein. Nur der Prüfwert wird in der Kartenkonfiguration gespeichert. Der Schutz gilt für diese Kartenoberfläche; Home-Assistant-Berechtigungen gelten weiterhin."))}</p>
