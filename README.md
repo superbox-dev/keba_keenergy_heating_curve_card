@@ -5,6 +5,8 @@ Allgemeine, eigenständige Home-Assistant-Custom-Card für die Integration
 Version **1.1.0**. Keine fest eingetragene Seriennummer, keine fremden Entitäten,
 kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann daneben bestehen bleiben.
 
+![Vorschau der Karte mit Beispieldaten](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/vorschau.png)
+
 ## Installation
 
 1. `keba-keenergy-heizkurve.js` nach `/config/www/` kopieren. Den Ordner `www`
