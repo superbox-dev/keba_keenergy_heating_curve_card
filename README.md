@@ -11,6 +11,7 @@ kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann dane
    bei Bedarf anlegen; nach erstmaligem Anlegen Home Assistant einmal neu starten.
    Die Datei ist vollständig; zusätzliche Frontend-Bibliotheken
    oder andere Custom Cards sind nicht nötig.
+
 2. Im Dashboard unter **Einstellungen → Dashboards → Ressourcen** hinzufügen:
    URL `/local/keba-keenergy-heizkurve.js?v=1.1.0`, Typ **JavaScript-Modul**.
    Die Ressourcenverwaltung ist gegebenenfalls im Drei-Punkte-Menü und bei
@@ -28,6 +29,7 @@ kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann dane
    Hauptschlüssel anlegen.
    Die aktuelle Einrichtung beschreibt auch die
    [Home-Assistant-Dokumentation zu Ressourcen](https://contributors.home-assistant.io/frontend/custom-ui/resources/).
+
 3. Home-Assistant-Oberfläche vollständig neu laden. Im gewünschten Dashboard
    eine manuelle Karte mit dem Inhalt von `karte.yaml` anlegen:
 

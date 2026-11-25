@@ -2,13 +2,13 @@
 
 ## @noble/hashes 2.4.0
 
-Source: https://github.com/paulmillr/noble-hashes
+Source: <https://github.com/paulmillr/noble-hashes>
 
 Bundled PBKDF2-SHA256 for optional frontend password verification. No runtime downloads.
 
 The MIT License (MIT)
 
-Copyright (c) 2022 Paul Miller (https://paulmillr.com)
+Copyright (c) 2022 Paul Miller (<https://paulmillr.com>)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the “Software”), to deal

@@ -9,7 +9,11 @@ const license = fs.readFileSync(path.join(path.dirname(require.resolve('@noble/h
 await build({
   entryPoints: [fileURLToPath(new URL('./src/card.js', root))],
   outfile: fileURLToPath(new URL('./keba-keenergy-heizkurve.js', root)),
-  bundle: true, format: 'iife', platform: 'browser', target: ['es2020'], legalComments: 'inline',
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  target: ['es2020'],
+  legalComments: 'inline',
   banner: { js: '/* KEBA KeEnergy Heizkurve 1.1.0 – allgemeine Custom Card.\nContains @noble/hashes; bundled locally, no runtime downloads.\n' + license + '*/' },
 });
 console.log('Built keba-keenergy-heizkurve.js');
