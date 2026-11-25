@@ -1,38 +1,35 @@
-# Änderungen
+# Changelog
 
-## Unveröffentlicht
+All notable changes to this project will be documented in this file.
 
-- **Achtung:** Kartentyp heißt jetzt `custom:keba-keenergy-heating-curve-card`, die Datei
-  `keba_keenergy_heating_curve_card.js`. Bestehende Dashboards einmal anpassen, siehe
-  „Bestehende Karte aktualisieren“ im README.
-- Name in HACS: **KEBA KeEnergy Heating Curve Card**.
-- Dokumentation auf Englisch in `README.md`, auf Deutsch in `README.de.md`.
-- Abstand der Zwischenwerte entlang der Außentemperatur im Karteneditor oder
-  per `intermediate_step` in YAML einstellen. Standard sind weiterhin 5 °C.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 1.1.0
+## [Unreleased]
 
-- Sichtbaren Temperaturbereich und Rasterweite für X- und Y-Achse im visuellen
-  Karteneditor oder per YAML einstellen. Die Karteneinstellungen ändern nur das Diagramm.
-- Beide Achsen verwenden weiterhin automatische Grenzen und ein 5-°C-Raster,
-  wenn keine Achseneinstellungen angegeben sind.
+## [1.1.0] - 2026-11-26
 
-## 1.0.2
+### Added
 
-- Deutsch und Englisch für Karte, Editor, Meldungen, Kennwortdialog und Diagramm.
-- Automatische Auswahl anhand der HA-Profilsprache; optional `language: de`/`en`.
-- Englischer Ersatz für weitere HA-Sprachen; HA-Zahlenformat wird berücksichtigt.
-- Eigene Namen, Titel und technische Kennungen bleiben unverändert.
+- Added the chart axis options `x_min`, `x_max`, `x_step`, `y_min`, `y_max` and `y_step`.
+- Added the option `intermediate_step` for the interval of the interpolated values.
 
-## 1.0.1
+### Changed
 
-- Seitensprung beim Hinzufügen und Entfernen von Kurvenpunkten behoben: Karte,
-  Schaltflächen und Scrollbereich bleiben bestehen; nur Punktzeilen und Vorschau
-  werden aktualisiert.
-- Auch bei gleichzeitig ungespeicherten Heizgrenzen bleibt die Ansicht erhalten.
-- Maus-/Tastaturbedienung und die Grenze von 16 Punkten geprüft.
+- Renamed the card type to `custom:keba-keenergy-heating-curve-card`.
+- Renamed the card file to `keba_keenergy_heating_curve_card.js`.
+- Renamed the card in HACS to `KEBA KeEnergy Heating Curve Card`.
+- Wrote the documentation in English, German in `README.de.md`.
 
-## 1.0.0
+## [1.0.2] - 2026-11-24
 
-- Allgemeine Karte mit Regler-/Heizkreiserkennung, Kurventabellen,
-  Punktebearbeitung, Heizgrenzen und optionalem eigenem Kennwort.
+### Added
+
+- Added the heating curve card with detection of the controllers and heating circuits.
+- Added the curve tables and the editing of curve points and heating limits.
+- Added an optional password for the card.
+- Added German and English texts, selected by the Home Assistant profile language or `language`.
+- Added the number format of Home Assistant.
+
+[Unreleased]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/tag/v1.0.2
