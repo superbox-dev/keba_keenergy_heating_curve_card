@@ -1,5 +1,12 @@
 # Änderungen
 
+## 1.1.0
+
+- Sichtbaren Temperaturbereich und Rasterweite für X- und Y-Achse im visuellen
+  Karteneditor oder per YAML einstellen. Die Karteneinstellungen ändern nur das Diagramm.
+- Beide Achsen verwenden weiterhin automatische Grenzen und ein 5-°C-Raster,
+  wenn keine Achseneinstellungen angegeben sind.
+
 ## 1.0.2
 
 - Deutsch und Englisch für Karte, Editor, Meldungen, Kennwortdialog und Diagramm.

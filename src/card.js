@@ -2,8 +2,9 @@ import { languageCode, translate, formatNumber } from './i18n.js';
 import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { FIELDS as ENTITY_FIELDS, parseEntity, discoverControllers, loadRegistry } from './discovery.js';
+import { AXIS_LIMITS, DEFAULT_AXIS_STEP, MIN_AXIS_STEP, axisRange, axisTicks } from './chart-axis.js';
 import './editor.js';
-/* KEBA KeEnergy Heizkurve 1.0.2. Independent name allows the personal card to coexist. */
+/* KEBA KeEnergy Heizkurve 1.1.0. Independent name allows the personal card to coexist. */
 (() => {
   'use strict';
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -54,6 +55,25 @@ import './editor.js';
         if(this._config[key]!==null&&(!Number.isFinite(this._config[key])||this._config[key]<10||this._config[key]>90))throw Error(this._t("{key} muss zwischen 10 und 90 °C liegen oder leer sein.",{key}));
       }
       if(this._config.flow_min!==null&&this._config.flow_max!==null&&this._config.flow_min>=this._config.flow_max)throw Error(this._t('flow_min muss kleiner als flow_max sein.'));
+      for (const [axis, { min, max }] of Object.entries(AXIS_LIMITS)) {
+        const keys = [axis+'_min', axis+'_max', axis+'_step'];
+        const ranges = [[min, max], [min, max], [MIN_AXIS_STEP, max-min]];
+        keys.forEach((key, index) => {
+          const raw = this._config[key];
+          const value = raw == null || (typeof raw === 'string' && !raw.trim()) ? null : numeric(raw);
+          const [lower, upper] = ranges[index];
+          if (value !== null && (!['number', 'string'].includes(typeof raw) || value < lower || value > upper || value !== Math.round(value * 100) / 100)) {
+            throw Error(this._t('{key} muss zwischen {min} und {max} °C liegen und darf höchstens zwei Nachkommastellen haben.', {
+              key, min: this._number(lower, { maximumFractionDigits: 2 }), max: this._number(upper),
+            }));
+          }
+          this._config[key] = value;
+        });
+        const [minKey, maxKey] = keys;
+        if (this._config[minKey] !== null && this._config[maxKey] !== null && this._config[minKey] >= this._config[maxKey]) {
+          throw Error(this._t('{minKey} muss kleiner als {maxKey} sein.', { minKey, maxKey }));
+        }
+      }
       this._discoveryRevision++;this._controllers=[];this._registry=[];this._controllerId='';this._circuitId='';this._bindingError='';this._registryError='';
       this._map={};this._entryId=this._config.config_entry||null;this._discovered=false;this._discovering=false;
       this._message='';this._draft=null;this._edits={};this._loadingCurve=null;this._pendingRender=false;this._selectInteracting=false;this._viewKey=null;this._render(true);this._discover();
@@ -229,27 +249,49 @@ import './editor.js';
       const outside=this._num(ids.outdoor),target=this._num(ids.target),actual=this._num(ids.actual),day=this._fieldValue('limitDay'),night=this._fieldValue('limitNight');
       const minimum=this._config.flow_min??-Infinity,maximum=this._config.flow_max??Infinity,clamp=v=>Math.max(minimum,Math.min(maximum,v));
       const unique=valid.filter((p,i)=>!i||p.outdoor!==valid[i-1].outdoor);
-      const lo=Math.min(-20,...valid.map(p=>p.outdoor)),hi=Math.max(30,...valid.map(p=>p.outdoor)),bottom=Math.floor(Math.min(15,Number.isFinite(minimum)?minimum:15,...valid.map(p=>clamp(p.flow)))/5)*5,top=Math.ceil(Math.max(60,Number.isFinite(maximum)?maximum:60,...valid.map(p=>clamp(p.flow)))/5)*5;
+      const { x_min, x_max, y_min, y_max } = this._config;
+      const xStep = this._config.x_step ?? DEFAULT_AXIS_STEP;
+      const yStep = this._config.y_step ?? DEFAULT_AXIS_STEP;
+      const outdoorValues = valid.map(p => p.outdoor);
+      const flowValues = valid.map(p => clamp(p.flow));
+      const autoBottom = Math.floor(Math.min(15, minimum === -Infinity ? 15 : minimum, ...flowValues)/5)*5;
+      const autoTop = Math.ceil(Math.max(60, maximum === Infinity ? 60 : maximum, ...flowValues)/5)*5;
+      const outdoorRange = axisRange(x_min, x_max, Math.min(-20, ...outdoorValues), Math.max(30, ...outdoorValues));
+      const flowRange = axisRange(y_min, y_max, autoBottom, autoTop);
+      const { min: lo, max: hi } = outdoorRange;
+      const { min: bottom, max: top } = flowRange;
       const x=v=>58+(hi-v)/(hi-lo)*580,y=v=>344-(v-bottom)/(top-bottom)*320;
+      const visible = (outdoor, flow) => outdoor >= lo && outdoor <= hi && flow >= bottom && flow <= top;
+      const tickLabel = v => esc(this._number(v, { maximumFractionDigits: 2 }));
       let grid='',limits='',dots='',samples='',marks='';
-      for(let v=Math.ceil(lo/5)*5;v<=hi;v+=5)grid+=`<line x1="${x(v)}" y1="24" x2="${x(v)}" y2="344" class="grid"/><text x="${x(v)}" y="365" text-anchor="middle">${v}</text>`;
-      for(let v=Math.ceil(bottom/5)*5;v<=top;v+=5)grid+=`<line x1="58" y1="${y(v)}" x2="638" y2="${y(v)}" class="grid"/><text x="48" y="${y(v)+3}" text-anchor="end">${v}</text>`;
+      for (const { value, showLabel } of axisTicks(outdoorRange, xStep, { fixedMin: x_min !== null, fixedMax: x_max !== null, length: 580, labelGap: 28 })) {
+        const px = x(value);
+        grid += `<line x1="${px}" y1="24" x2="${px}" y2="344" class="grid"/>`;
+        if (showLabel) grid += `<text x="${px}" y="365" text-anchor="middle">${tickLabel(value)}</text>`;
+      }
+      for (const { value, showLabel } of axisTicks(flowRange, yStep, { fixedMin: y_min !== null, fixedMax: y_max !== null, length: 320, labelGap: 13 })) {
+        const py = y(value);
+        grid += `<line x1="58" y1="${py}" x2="638" y2="${py}" class="grid"/>`;
+        if (showLabel) grid += `<text x="48" y="${py+3}" text-anchor="end">${tickLabel(value)}</text>`;
+      }
       [[day,'day',this._t('Tag'),16],[night,'night',this._t('Nacht'),34]].forEach(([v,cls,label,labelY])=>{if(Number.isFinite(v)&&v>=lo&&v<=hi)limits+=`<line x1="${x(v)}" y1="24" x2="${x(v)}" y2="344" class="limit ${cls}"/><text x="${Math.max(110,Math.min(585,x(v)))}" y="${labelY}" text-anchor="middle" class="limit-label">${esc(this._t("HG"))} ${label} ${esc(this._fmt(v))}</text>`;});
-      [[minimum,'flow-min',this._t('Min')],[maximum,'flow-max',this._t('Max')]].filter(([v])=>Number.isFinite(v)).forEach(([v,cls,label])=>limits+=`<line x1="58" y1="${y(v)}" x2="638" y2="${y(v)}" class="limit ${cls}"/><text x="632" y="${y(v)-7}" text-anchor="end" class="flow-limit-label ${cls}">${label} ${esc(this._fmt(v))}</text>`);
+      [[minimum,'flow-min',this._t('Min')],[maximum,'flow-max',this._t('Max')]].filter(([v])=>v>=bottom&&v<=top).forEach(([v,cls,label])=>limits+=`<line x1="58" y1="${y(v)}" x2="638" y2="${y(v)}" class="limit ${cls}"/><text x="632" y="${y(v)-7}" text-anchor="end" class="flow-limit-label ${cls}">${label} ${esc(this._fmt(v))}</text>`);
       valid.forEach((p,i)=>{
-        const shown=clamp(p.flow),px=x(p.outdoor),py=y(shown),anchor=px<=75?'start':px>=620?'end':'middle';
+        const shown = clamp(p.flow);
+        if (!visible(p.outdoor, shown)) return;
+        const px=x(p.outdoor),py=y(shown),anchor=px<=75?'start':px>=620?'end':'middle';
         const label=shown>minimum&&shown<maximum?`<text x="${px}" y="${Math.max(17,py-12)}" text-anchor="${anchor}" class="point-label">${this._number(shown,{minimumFractionDigits:1})}</text>`:'';
         dots+=`<g><title>${esc(this._t("P{index}: Außen {outdoor} °C · Tabelle {flow} °C · begrenzte Anzeige {shown} °C",{index:i+1,outdoor:this._number(p.outdoor,{minimumFractionDigits:1}),flow:this._number(p.flow,{minimumFractionDigits:1}),shown:this._number(shown,{minimumFractionDigits:1})}))}</title><circle cx="${px}" cy="${py}" r="2.8" class="point"/>${label}</g>`;
       });
       if(unique.length>1)for(let outdoor=Math.ceil(lo/5)*5;outdoor<=hi;outdoor+=5){
         const px=x(outdoor),shown=clamp(interpolate(outdoor,unique));
         // Saved points have priority; intermediate values stay visually quieter and do not crowd them.
-        if(shown<=minimum||shown>=maximum||unique.some(p=>Math.abs(x(p.outdoor)-px)<25))continue;
+        if(!visible(outdoor,shown)||shown<=minimum||shown>=maximum||unique.some(p=>Math.abs(x(p.outdoor)-px)<25))continue;
         const py=y(shown);
         samples+=`<g><title>${esc(this._t("Zwischenwert bei {outdoor} °C außen: {flow} °C Vorlauf",{outdoor:this._number(outdoor),flow:this._number(shown,{minimumFractionDigits:1})}))}</title><circle cx="${px}" cy="${py}" r="1.7" class="sample-point"/><text x="${px}" y="${Math.max(17,py-9)}" text-anchor="middle" class="sample-label" data-outdoor="${outdoor}">${this._number(shown,{minimumFractionDigits:1})}</text></g>`;
       }
-      [[target,'target'],[actual,'actual']].forEach(([v,cls])=>{if(Number.isFinite(outside)&&Number.isFinite(v)&&outside>=lo&&outside<=hi&&v>=bottom&&v<=top)marks+=`<circle cx="${x(outside)}" cy="${y(v)}" r="${cls==='target'?3.8:3}" class="${cls}"/>`;});
-      const xs=[...new Set([lo,...unique.map(p=>p.outdoor),hi])].sort((a,b)=>a-b),crossings=[];
+      [[target,'target'],[actual,'actual']].forEach(([v,cls])=>{if(visible(outside,v))marks+=`<circle cx="${x(outside)}" cy="${y(v)}" r="${cls==='target'?3.8:3}" class="${cls}"/>`;});
+      const xs=[lo,...unique.map(p=>p.outdoor).filter(outdoor=>outdoor>lo&&outdoor<hi),hi],crossings=[];
       if(unique.length)for(let i=0;i<xs.length-1;i++){
         const a=interpolate(xs[i],unique),b=interpolate(xs[i+1],unique);
         for(const limit of [minimum,maximum])if((a-limit)*(b-limit)<0)crossings.push(xs[i]+(limit-a)/(b-a)*(xs[i+1]-xs[i]));
@@ -310,7 +352,7 @@ import './editor.js';
         this._viewKey=viewKey;this._refreshLive();return;
       }
       const metric=(label,value,cls='',key='')=>`<div class="metric ${cls}"><span>${label}</span><b data-live="${key}">${value}</b></div>`;
-      this.shadowRoot.innerHTML=`<style>${STYLE}${EXTRA_STYLE}</style><ha-card>${this._targetPanel()}${this._lockPanel()}${disabled.length?`<div class="setup"><b>${esc(this._t("Bearbeitung aktivieren"))}</b><p>${esc(this._t("{count} benötigte KeEnergy-Entitäten sind deaktiviert. Als Administrator kannst du die benötigten Entitäten dieses Heizkreises aktivieren.",{count:disabled.length}))}</p><button type="button" id="enable-editors" class="primary" ${this._busy||!canEdit||!this._hass?.user?.is_admin?'disabled':''}>${esc(this._t("Bearbeitungs-Entitäten aktivieren"))}</button></div>`:''}<div class="layout"><section class="chart-panel"><header><div><small>KEBA KEENERGY</small><h2>${esc(this._config.title||this._t("Heizkurve KeEnergy"))}</h2><p>${esc(mode)}</p></div><span class="badge">${esc(selected||'—')}</span></header><div id="chart">${this._chart()}</div><div class="legend"><span><i class="line"></i><span id="curve-label">${esc(this._t("Punkttabelle"))}${dirty?this._t(' · Entwurf'):''}</span></span><span><i class="dot target"></i>${esc(this._t("Regler-Soll"))}</span><span><i class="dot actual"></i>${esc(this._t("Vorlauf Ist"))}</span>${this._config.flow_min!==null||this._config.flow_max!==null?`<span><i class="line flow-range"></i>${esc(this._t("Vorlauf Min / Max"))}</span>`:''}<span><i class="dot interpolated"></i>${esc(this._t("Zwischenwerte"))}</span></div><p class="notice">${this._config.flow_min!==null||this._config.flow_max!==null?this._t('Darstellung begrenzt: ')+esc(this._config.flow_min!==null?this._fmt(this._config.flow_min):this._t('ohne Minimum'))+this._t(' bis ')+esc(this._config.flow_max!==null?this._fmt(this._config.flow_max):this._t('ohne Maximum'))+this._t('. Die Begrenzung gilt nur für das Diagramm. '):this._t('Gespeicherte Tabelle mit linear berechneten Zwischenwerten. ')}${esc(this._t("Der Regler-Sollwert wird separat aus KeEnergy gelesen."))}</p><div id="message" class="notice" role="status">${esc(this._message||(this._loadingCurve?this._t("Kurve {name} wird geladen …",{name:this._loadingCurve}):''))}</div></section><aside><h3>${esc(this._t("Kurventabelle auswählen"))}</h3><label class="field">${esc(this._t("Kurventabelle für diesen Heizkreis"))}<select id="curve-select" aria-label="${esc(this._t("Kurventabelle für diesen Heizkreis"))}" ${!good(select)||this._busy||!canEdit?'disabled':''}>${selected&&!options.includes(selected)?`<option value="" selected>${esc(this._t("Aktuell: {name}",{name:selected}))}</option>`:''}${options.length?options.map(o=>`<option value="${esc(o)}" ${o===selected?'selected':''}>${esc(o)}</option>`).join(''):`<option>${esc(selected||this._t('Keine Kurven verfügbar'))}</option>`}</select></label><p class="hint">${esc(this._t("Die vom Regler angebotenen Heiztabellen (HC…) stehen hier zur Auswahl. Die Auswahl weist sie dem Heizkreis zu. Eine Tabelle kann von mehreren Heizkreisen desselben Reglers gemeinsam verwendet werden."))}</p><h3>${esc(this._t("Aktuelle Werte"))}</h3><div class="metrics">${metric(this._t('Außentemperatur'),this._fmt(this._num(ids.outdoor)),'','outdoor')}${metric(this._t('Vorlauf Soll'),this._fmt(this._num(ids.target)),'target','target')}${metric(this._t('Vorlauf Ist'),this._fmt(this._num(ids.actual)),'actual','actual')}${metric(this._t('Punkte'),points.length,'','points')}</div><h3>${esc(this._t("Heizgrenzen Tag / Nacht"))}</h3><div class="limit-fields">${Object.keys(FIELDS).map(k=>this._input(k)).join('')}</div><button class="primary" id="save-settings" ${this._busy||!canEdit?'disabled':''}>${esc(this._t("Heizgrenzen speichern"))}</button></aside></div><section class="editor"><div class="editor-head"><div><h3>${esc(this._t("Kurvenpunkte bearbeiten"))}</h3><p>${esc(this._t("1 bis 16 Punkte. Die Vorschau aktualisiert sich beim Eingeben. Erst „Punkte speichern“ überträgt die Tabelle."))}</p></div><div class="buttons"><button type="button" id="reset" ${this._busy||!this._canEdit()?'disabled':''}>${esc(this._t("Entwurf verwerfen"))}</button><button type="button" id="add-point" ${!ready||points.length>=16?'disabled':''}>${esc(this._t("Punkt hinzufügen"))}</button><button type="button" id="save-points" class="primary" ${!ready?'disabled':''}>${esc(this._t("Punkte speichern"))}</button></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>${esc(this._t("Außen °C"))}</th><th>${esc(this._t("Vorlauf °C"))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${missing.length||!this._entryId||!this._pointService()?`<details open><summary>${esc(this._t("Entitäten / Einrichtung prüfen"))}</summary>${missing.length?`<p>${esc(this._t("Diese Entitäten fehlen oder liefern noch keine Werte:"))}</p>`:''}<ul>${missing.map(id=>`<li><code>`+esc(id)+`</code></li>`).join('')}</ul>${!this._entryId?`<p>${esc(this._t("Konfigurationseintrag noch nicht gefunden. Optional config_entry in der Karte angeben."))}</p>`:''}${!this._pointService()?`<p>${esc(this._t("Die Aktion keba_keenergy.set_heating_curve_points ist nicht verfügbar. Die Integration muss das Bearbeiten von Kurvenpunkten unterstützen."))}</p>`:''}<button type="button" id="retry">${esc(this._t("Zuordnung erneut laden"))}</button></details>`:''}<p class="hint">${esc(this._t("KeEnergy Heizkurve · Allgemeine Version 1.0.2"))}</p></section></ha-card>`;
+      this.shadowRoot.innerHTML=`<style>${STYLE}${EXTRA_STYLE}</style><ha-card>${this._targetPanel()}${this._lockPanel()}${disabled.length?`<div class="setup"><b>${esc(this._t("Bearbeitung aktivieren"))}</b><p>${esc(this._t("{count} benötigte KeEnergy-Entitäten sind deaktiviert. Als Administrator kannst du die benötigten Entitäten dieses Heizkreises aktivieren.",{count:disabled.length}))}</p><button type="button" id="enable-editors" class="primary" ${this._busy||!canEdit||!this._hass?.user?.is_admin?'disabled':''}>${esc(this._t("Bearbeitungs-Entitäten aktivieren"))}</button></div>`:''}<div class="layout"><section class="chart-panel"><header><div><small>KEBA KEENERGY</small><h2>${esc(this._config.title||this._t("Heizkurve KeEnergy"))}</h2><p>${esc(mode)}</p></div><span class="badge">${esc(selected||'—')}</span></header><div id="chart">${this._chart()}</div><div class="legend"><span><i class="line"></i><span id="curve-label">${esc(this._t("Punkttabelle"))}${dirty?this._t(' · Entwurf'):''}</span></span><span><i class="dot target"></i>${esc(this._t("Regler-Soll"))}</span><span><i class="dot actual"></i>${esc(this._t("Vorlauf Ist"))}</span>${this._config.flow_min!==null||this._config.flow_max!==null?`<span><i class="line flow-range"></i>${esc(this._t("Vorlauf Min / Max"))}</span>`:''}<span><i class="dot interpolated"></i>${esc(this._t("Zwischenwerte"))}</span></div><p class="notice">${this._config.flow_min!==null||this._config.flow_max!==null?this._t('Darstellung begrenzt: ')+esc(this._config.flow_min!==null?this._fmt(this._config.flow_min):this._t('ohne Minimum'))+this._t(' bis ')+esc(this._config.flow_max!==null?this._fmt(this._config.flow_max):this._t('ohne Maximum'))+this._t('. Die Begrenzung gilt nur für das Diagramm. '):this._t('Gespeicherte Tabelle mit linear berechneten Zwischenwerten. ')}${esc(this._t("Der Regler-Sollwert wird separat aus KeEnergy gelesen."))}</p><div id="message" class="notice" role="status">${esc(this._message||(this._loadingCurve?this._t("Kurve {name} wird geladen …",{name:this._loadingCurve}):''))}</div></section><aside><h3>${esc(this._t("Kurventabelle auswählen"))}</h3><label class="field">${esc(this._t("Kurventabelle für diesen Heizkreis"))}<select id="curve-select" aria-label="${esc(this._t("Kurventabelle für diesen Heizkreis"))}" ${!good(select)||this._busy||!canEdit?'disabled':''}>${selected&&!options.includes(selected)?`<option value="" selected>${esc(this._t("Aktuell: {name}",{name:selected}))}</option>`:''}${options.length?options.map(o=>`<option value="${esc(o)}" ${o===selected?'selected':''}>${esc(o)}</option>`).join(''):`<option>${esc(selected||this._t('Keine Kurven verfügbar'))}</option>`}</select></label><p class="hint">${esc(this._t("Die vom Regler angebotenen Heiztabellen (HC…) stehen hier zur Auswahl. Die Auswahl weist sie dem Heizkreis zu. Eine Tabelle kann von mehreren Heizkreisen desselben Reglers gemeinsam verwendet werden."))}</p><h3>${esc(this._t("Aktuelle Werte"))}</h3><div class="metrics">${metric(this._t('Außentemperatur'),this._fmt(this._num(ids.outdoor)),'','outdoor')}${metric(this._t('Vorlauf Soll'),this._fmt(this._num(ids.target)),'target','target')}${metric(this._t('Vorlauf Ist'),this._fmt(this._num(ids.actual)),'actual','actual')}${metric(this._t('Punkte'),points.length,'','points')}</div><h3>${esc(this._t("Heizgrenzen Tag / Nacht"))}</h3><div class="limit-fields">${Object.keys(FIELDS).map(k=>this._input(k)).join('')}</div><button class="primary" id="save-settings" ${this._busy||!canEdit?'disabled':''}>${esc(this._t("Heizgrenzen speichern"))}</button></aside></div><section class="editor"><div class="editor-head"><div><h3>${esc(this._t("Kurvenpunkte bearbeiten"))}</h3><p>${esc(this._t("1 bis 16 Punkte. Die Vorschau aktualisiert sich beim Eingeben. Erst „Punkte speichern“ überträgt die Tabelle."))}</p></div><div class="buttons"><button type="button" id="reset" ${this._busy||!this._canEdit()?'disabled':''}>${esc(this._t("Entwurf verwerfen"))}</button><button type="button" id="add-point" ${!ready||points.length>=16?'disabled':''}>${esc(this._t("Punkt hinzufügen"))}</button><button type="button" id="save-points" class="primary" ${!ready?'disabled':''}>${esc(this._t("Punkte speichern"))}</button></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>${esc(this._t("Außen °C"))}</th><th>${esc(this._t("Vorlauf °C"))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${missing.length||!this._entryId||!this._pointService()?`<details open><summary>${esc(this._t("Entitäten / Einrichtung prüfen"))}</summary>${missing.length?`<p>${esc(this._t("Diese Entitäten fehlen oder liefern noch keine Werte:"))}</p>`:''}<ul>${missing.map(id=>`<li><code>`+esc(id)+`</code></li>`).join('')}</ul>${!this._entryId?`<p>${esc(this._t("Konfigurationseintrag noch nicht gefunden. Optional config_entry in der Karte angeben."))}</p>`:''}${!this._pointService()?`<p>${esc(this._t("Die Aktion keba_keenergy.set_heating_curve_points ist nicht verfügbar. Die Integration muss das Bearbeiten von Kurvenpunkten unterstützen."))}</p>`:''}<button type="button" id="retry">${esc(this._t("Zuordnung erneut laden"))}</button></details>`:''}<p class="hint">${esc(this._t("KeEnergy Heizkurve · Allgemeine Version 1.1.0"))}</p></section></ha-card>`;
       this._viewKey=viewKey;this._shellKey=shellKey;this._bind();
       const table=this.shadowRoot.querySelector('.table-wrap');if(table&&tableScroll){table.scrollTop=tableScroll.top;table.scrollLeft=tableScroll.left;}
     }

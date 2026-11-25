@@ -1,4 +1,4 @@
-# KEBA KeEnergy Heating Curve Card 1.0.2
+# KEBA KeEnergy Heating Curve Card 1.1.0
 
 A reusable, unofficial Home Assistant custom card for
 [superbox-dev/keba_keenergy](https://github.com/superbox-dev/keba_keenergy).
@@ -7,7 +7,7 @@ serial numbers, addresses or passwords. See `README.md` for full documentation.
 
 1. Copy `keba-keenergy-heizkurve.js` to `/config/www/`. If you create `www` for the
    first time, restart Home Assistant once.
-2. Add `/local/keba-keenergy-heizkurve.js?v=1.0.2` as a **JavaScript module** dashboard
+2. Add `/local/keba-keenergy-heizkurve.js?v=1.1.0` as a **JavaScript module** dashboard
    resource and reload the frontend.
 3. Add the card from `karte.yaml`, or use `dashboard.yaml` for a dedicated dashboard.
 
@@ -15,6 +15,12 @@ serial numbers, addresses or passwords. See `README.md` for full documentation.
 type: custom:keba-keenergy-heizkurve-card
 language: auto
 ```
+
+For an existing HACS installation, download **v1.1.0** in HACS and reload the
+dashboard. For a manual installation, replace `/config/www/keba-keenergy-heizkurve.js`
+with the [release file](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/download/v1.1.0/keba-keenergy-heizkurve.js),
+update the existing resource URL to `/local/keba-keenergy-heizkurve.js?v=1.1.0`,
+and reload the dashboard. You can keep your existing card configuration.
 
 Controllers and heating circuits are discovered using the KeEnergy entity registry
 unique IDs, including renamed entity IDs. Switching controller/circuit only changes
@@ -31,8 +37,15 @@ Numbers respect HA number-format preferences. Custom titles, device/room names,
 entity IDs and table names remain unchanged; omit `title` for the localized default.
 Backend error details are passed through as received.
 
-The visual editor can configure a controller/circuit, optional **display-only**
-`flow_min`/`flow_max` limits and an individual password. Password protection is off
+Under **Chart axes** in the visual editor, set the bounds and grid interval in °C
+independently for the outdoor temperature (X) and flow temperature (Y). The YAML
+options are `x_min`, `x_max`, `x_step`, `y_min`, `y_max` and `y_step`. Empty
+bounds are automatic and the default grid interval is 5 °C. The axis settings
+affect only the visible chart. The `flow_min` and `flow_max` options still limit
+the plotted curve.
+
+The visual editor can also configure a controller/circuit and an individual
+password. Password protection is off
 by default. An optional salted PBKDF2-SHA256 verifier is saved in the card configuration;
 the frontend edit lock does not replace HA authorization or protect other cards/actions.
 

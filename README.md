@@ -2,7 +2,7 @@
 
 Allgemeine, eigenständige Home-Assistant-Custom-Card für die Integration
 [superbox-dev/keba_keenergy](https://github.com/superbox-dev/keba_keenergy).
-Version **1.0.2**. Keine fest eingetragene Seriennummer, keine fremden Entitäten,
+Version **1.1.0**. Keine fest eingetragene Seriennummer, keine fremden Entitäten,
 kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann daneben bestehen bleiben.
 
 ## Installation
@@ -12,7 +12,7 @@ kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann dane
    Die Datei ist vollständig; zusätzliche Frontend-Bibliotheken
    oder andere Custom Cards sind nicht nötig.
 2. Im Dashboard unter **Einstellungen → Dashboards → Ressourcen** hinzufügen:
-   URL `/local/keba-keenergy-heizkurve.js?v=1.0.2`, Typ **JavaScript-Modul**.
+   URL `/local/keba-keenergy-heizkurve.js?v=1.1.0`, Typ **JavaScript-Modul**.
    Die Ressourcenverwaltung ist gegebenenfalls im Drei-Punkte-Menü und bei
    aktiviertem erweiterten Benutzermodus sichtbar. Bei YAML-Ressourcenverwaltung:
 
@@ -20,7 +20,7 @@ kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann dane
    lovelace:
      resource_mode: yaml
      resources:
-       - url: /local/keba-keenergy-heizkurve.js?v=1.0.2
+       - url: /local/keba-keenergy-heizkurve.js?v=1.1.0
          type: module
    ```
 
@@ -38,6 +38,18 @@ kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann dane
 Alternativ enthält `dashboard.yaml` ein vollständiges Dashboard mit einer breiten
 Panel-Ansicht. Es ist für ein eigenes/neues Dashboard gedacht; im bestehenden
 Dashboard nur die gewünschte Karte oder Ansicht ergänzen.
+
+## Bestehende Karte aktualisieren
+
+- **Über HACS installiert.** Das **KeEnergy Heizkurven-Dashboard** in HACS öffnen,
+  Version **v1.1.0** herunterladen und das Dashboard im Browser neu laden.
+- **Manuell installiert.** Die [JavaScript-Datei aus dem Release](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/download/v1.1.0/keba-keenergy-heizkurve.js)
+  herunterladen und `/config/www/keba-keenergy-heizkurve.js` ersetzen. In den
+  Dashboard-Ressourcen die vorhandene URL auf `/local/keba-keenergy-heizkurve.js?v=1.1.0`
+  ändern und das Dashboard im Browser neu laden.
+
+Die vorhandene Kartenkonfiguration kannst du weiterverwenden. Für die Achsen
+genügt ein Update der Dashboard-Karte.
 
 ## Regler, Heizkreis und Kurventabelle
 
@@ -88,6 +100,32 @@ Regler- oder Heizkreiswechsel; zuerst speichern oder **Entwurf verwerfen** wähl
 
 Die Karte schaltet weder auf Hybrid um noch verändert sie Steigung/Offset.
 Der vorhandene Zustand des Punkttabellen-Schalters wird nur angezeigt.
+
+## Diagrammachsen einstellen
+
+Öffne im Dashboard **Karte bearbeiten → Diagrammachsen**. Stelle für **X**
+(Außentemperatur) und **Y** (Vorlauftemperatur) unabhängig Minimum, Maximum und
+Rasterweite ein. Leere Grenzen werden automatisch ermittelt. Für eine leere
+Rasterweite gilt 5 °C. Alle Werte sind in °C und können bis zu zwei
+Nachkommastellen haben. Eine feste Untergrenze dient als Start des Rasters. Bei
+engem Raster werden weniger Zahlen angezeigt. Bei sehr vielen Linien wird das
+Raster in ganzzahligen Vielfachen der eingestellten Rasterweite gezeichnet.
+
+Die Achsenoptionen wählen den sichtbaren Ausschnitt. Kurvenpunkte, Heizgrenzen
+und Reglerwerte bleiben gespeichert wie zuvor. `flow_min` und `flow_max`
+begrenzen weiterhin die gezeichnete Kurve.
+
+Dieselben Felder können zur vorhandenen Karten-YAML ergänzt werden:
+
+```yaml
+type: custom:keba-keenergy-heizkurve-card
+x_min: -15
+x_max: 25
+x_step: 5
+y_min: 20
+y_max: 45
+y_step: 2.5
+```
 
 ## Benötigte Entitäten aktivieren
 
@@ -164,6 +202,9 @@ Kennwort wird nicht automatisch übernommen.
 | `config_entry` | automatisch | Regler über ID des Integrationseintrags fest zuordnen |
 | `serial` | automatisch | Alternativ Regler über Seriennummer fest zuordnen |
 | `circuit` | automatisch | Heizkreisnummer ab `1`; auch ein einzelner Heizkreis ist `1` |
+| `x_min`, `x_max` | automatisch | Sichtbarer Außentemperaturbereich, −100 bis 100 °C |
+| `y_min`, `y_max` | automatisch | Sichtbarer Vorlauftemperaturbereich, 0 bis 150 °C |
+| `x_step`, `y_step` | 5 | Rasterweite in °C, ab 0,01 bis 200 (X) bzw. 150 (Y) |
 | `flow_min`, `flow_max` | keine | Optionale Diagrammgrenzen in °C, zwischen 10 und 90 |
 | `edit_password_hash` | kein Schutz | Individueller PBKDF2-Prüfwert aus dem visuellen Editor |
 | `auto_lock_minutes` | 5 | Inaktivitätsfrist bei eingerichtetem Kennwort |
