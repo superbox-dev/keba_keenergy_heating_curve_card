@@ -2,6 +2,7 @@ import { languageCode, translate } from './i18n.js';
 import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { discoverControllers, loadRegistry } from './discovery.js';
+import { AXIS_LIMITS, DEFAULT_AXIS_STEP, MIN_AXIS_STEP } from './chart-axis.js';
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const hex = bytes => Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
@@ -55,12 +56,26 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     if(this._registry)this._controllers=discoverControllers(this._registry,this._devices,text=>this._t(text));
     const selected = this._controllers.find(controller => controller.id === c.config_entry || !c.config_entry && String(c.serial || '') === controller.serial);
     const circuits = selected?.circuits || [];
-    const field = (label, key, type = 'text', extra = '') => `<label>${label}<input data-config="${key}" type="${type}" value="${esc(c[key])}" ${extra}></label>`;
+    const field = (label, key, type = 'text', extra = '') => {
+      const value = type === 'number' ? String(c[key] ?? '').replace(',', '.') : c[key];
+      return `<label>${esc(label)}<input data-config="${key}" type="${type}" value="${esc(value)}" ${extra}></label>`;
+    };
+    const axisFields = (axis, title) => {
+      const { min, max } = AXIS_LIMITS[axis];
+      const bounds = `min="${min}" max="${max}" step="0.01" placeholder="${esc(this._t('Automatisch'))}"`;
+      return `<fieldset><legend>${esc(title)}</legend><div class="grid axis-fields">
+        ${field(this._t('Minimum (°C)'), `${axis}_min`, 'number', bounds)}
+        ${field(this._t('Maximum (°C)'), `${axis}_max`, 'number', bounds)}
+        ${field(this._t('Rasterweite (°C)'), `${axis}_step`, 'number', `min="${MIN_AXIS_STEP}" max="${max - min}" step="0.01" placeholder="${DEFAULT_AXIS_STEP}"`)}
+      </div></fieldset>`;
+    };
+    const axesOpen = this.shadowRoot.querySelector('#chart-axes')?.open;
     this.shadowRoot.innerHTML = `<style>
       :host{display:block;color:var(--primary-text-color);font:14px var(--primary-font-family,Arial)}*{box-sizing:border-box}
       .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{display:grid;gap:6px;margin:12px 0;font-size:12px}
       input,select,button{font:inherit;color:var(--primary-text-color);background:var(--card-background-color,#fff);padding:10px;border:1px solid var(--divider-color,#ccc);border-radius:8px;min-width:0}
       button{cursor:pointer;margin:6px 6px 6px 0}p{color:var(--secondary-text-color);font-size:12px;line-height:1.5}summary{cursor:pointer}#password-message{color:var(--error-color,#a44)}
+      fieldset{min-width:0;border:1px solid var(--divider-color,#ccc);border-radius:8px;margin:10px 0;padding:0 10px}legend{font-size:12px}.axis-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
       @media(max-width:450px){.grid{grid-template-columns:1fr}}
       </style>${field(this._t('Titel'), 'title')}
       <label>${esc(this._t("Sprache"))}<select id="config-language" aria-label="${esc(this._t("Sprache"))}">${['auto','de','en'].map(value=>`<option value="${value}" ${(c.language||'auto')===value?'selected':''}>${esc(this._t(value==='auto'?'Automatisch (Home Assistant)':value==='de'?'Deutsch':'Englisch'))}</option>`).join('')}</select></label>
@@ -68,6 +83,12 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
       <label>${esc(this._t("Heizkreis fest zuordnen"))}<select id="config-circuit" aria-label="${esc(this._t("Heizkreis fest zuordnen"))}"><option value="">${esc(this._t("Automatisch · im Dashboard auswählbar"))}</option>${circuits.map(circuit => `<option value="${esc(circuit.id)}" ${String(c.circuit || '') === circuit.id ? 'selected' : ''}>${esc(circuit.label)}</option>`).join('')}${c.circuit && !circuits.some(circuit => circuit.id === String(c.circuit)) ? `<option value="${esc(c.circuit)}" selected>${esc(this._t("Heizkreis"))} ${esc(c.circuit)}</option>` : ''}</select></label>
       <p>${esc(this._t("Ohne feste Zuordnung werden Regler und Heizkreis direkt in der Karte gewählt. Das Umschalten der Ansicht sendet keine Befehle."))}</p>
       ${this._error ? `<p>${esc(this._error)}</p>` : ''}
+      <details id="chart-axes" ${axesOpen ? 'open' : ''}>
+        <summary>${esc(this._t('Diagrammachsen'))}</summary>
+        <p>${esc(this._t('Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite beträgt 5 °C. Diese Einstellungen ändern nur den sichtbaren Diagrammausschnitt und das Raster.'))}</p>
+        ${axisFields('x', this._t('X-Achse · Außentemperatur'))}
+        ${axisFields('y', this._t('Y-Achse · Vorlauftemperatur'))}
+      </details>
       <details><summary>${esc(this._t("Vorlaufbegrenzungen im Diagramm"))}</summary><p>${esc(this._t("Leer lassen für die unveränderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler übertragen."))}</p><div class="grid">${field(this._t('Anzeige Minimum (°C)'), 'flow_min', 'number', 'min="10" max="90" step="any"')}${field(this._t('Anzeige Maximum (°C)'), 'flow_max', 'number', 'min="10" max="90" step="any"')}</div></details>
       <details><summary>${esc(this._t("Kennwortschutz"))} ${c.edit_password_hash ? this._t('· eingerichtet') : this._t('· optional')}</summary><p>${esc(this._t("Jeder richtet sein eigenes Kennwort ein. Nur der Prüfwert wird in der Kartenkonfiguration gespeichert. Der Schutz gilt für diese Kartenoberfläche; Home-Assistant-Berechtigungen gelten weiterhin."))}</p>
       <div class="grid"><label>${esc(this._t("Neues Kennwort"))}<input id="new-password" type="password" autocomplete="new-password"></label><label>${esc(this._t("Kennwort wiederholen"))}<input id="repeat-password" type="password" autocomplete="new-password"></label></div>
@@ -75,6 +96,7 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
       <p id="password-message" role="status"></p>${field(this._t('Automatisch sperren nach Minuten'), 'auto_lock_minutes', 'number', 'min="1" max="60" step="1"')}</details>
       <p>${esc(this._t("Weitere Optionen und manuelle Entitätszuordnungen sind im YAML-Editor möglich."))}</p>`;
     this.shadowRoot.querySelectorAll('[data-config]').forEach(input => input.addEventListener('change', () => {
+      if (input.closest('#chart-axes') && !input.reportValidity()) return;
       const value = input.type === 'number' && input.value !== '' ? Number(input.value) : input.value;
       this._change(input.dataset.config, value);
     }));
