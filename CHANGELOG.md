@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-26
+
 ### Added
 
 - Added the chart axis options `x_min`, `x_max`, `x_step`, `y_min`, `y_max` and `y_step`.
