@@ -1,6 +1,6 @@
 # Third-party notices
 
-## @noble/hashes 2.4.0
+## @noble/hashes
 
 Source: <https://github.com/paulmillr/noble-hashes>
 
