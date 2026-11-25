@@ -4,13 +4,13 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { FIELDS as ENTITY_FIELDS, parseEntity, discoverControllers, loadRegistry } from './discovery.js';
 import { AXIS_LIMITS, DEFAULT_AXIS_STEP, INTERMEDIATE_STEP, MIN_AXIS_STEP, axisRange, axisTicks } from './chart-axis.js';
 import './editor.js';
-/* KEBA KeEnergy Heizkurve 1.1.0. Independent name allows the personal card to coexist. */
+/* KEBA KeEnergy Heating Curve Card 1.1.0. Independent name allows the personal card to coexist. */
 (() => {
   'use strict';
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c]));
   const numeric = v => v == null || String(v).trim() === '' ? NaN : Number(String(v).replace(',', '.'));
   const good = s => !!s && !['unknown', 'unavailable', ''].includes(s.state);
-  const FIELDS = { limitDay: ['heating_limit_day', 'Heizgrenze Tag', '°C'], limitNight: ['heating_limit_night', 'Heizgrenze Nacht', '°C'] };
+  const FIELDS = { limitDay: ['heating_limit_day', 'Day heating limit', '°C'], limitNight: ['heating_limit_night', 'Night heating limit', '°C'] };
   let cardSequence = 0;
   const interpolate = (outdoor, points) => {
     if (!points.length) return NaN;
@@ -45,7 +45,7 @@ import './editor.js';
       this._controllerId = '';
       this._circuitId = '';
       this._visibilityHandler = () => {
-        if (this._passwordCheck && globalThis.document?.hidden) this._lock(this._t('Bearbeitung gesperrt.'));
+        if (this._passwordCheck && globalThis.document?.hidden) this._lock(this._t('Editing locked.'));
       };
       const flush = () => queueMicrotask(() => {
         if (this._pendingRender && !this._editing()) this._render();
@@ -59,22 +59,22 @@ import './editor.js';
     }
 
     setConfig(config) {
-      if (config.entities && (typeof config.entities !== 'object' || Array.isArray(config.entities))) throw Error(this._t('entities muss eine Zuordnung sein.'));
+      if (config.entities && (typeof config.entities !== 'object' || Array.isArray(config.entities))) throw Error(this._t('entities must be a mapping.'));
       this._config = { title: '', language: 'auto', serial: '', circuit: '', flow_min: null, flow_max: null, edit_password_hash: '', auto_lock_minutes: 5, ...config };
-      if (!['auto', 'de', 'en'].includes(this._config.language)) throw Error(this._t('language muss auto, de oder en sein.'));
+      if (!['auto', 'de', 'en'].includes(this._config.language)) throw Error(this._t('language must be auto, de or en.'));
       for (const key of ['serial', 'circuit', 'config_entry']) this._config[key] = String(this._config[key] ?? '').trim();
-      if (this._config.circuit && !/^[1-9]\d*$/.test(this._config.circuit)) throw Error(this._t('circuit muss eine Heizkreisnummer ab 1 sein.'));
+      if (this._config.circuit && !/^[1-9]\d*$/.test(this._config.circuit)) throw Error(this._t('circuit must be a heating circuit number starting at 1.'));
       for (const [key, id] of Object.entries(this._config.entities || {})) {
         const field = Object.values(ENTITY_FIELDS).find(f => f[2] === key);
-        if (!field || typeof id !== 'string' || !id.startsWith(field[0] + '.')) throw Error(this._t('Ungültige Entitätszuordnung: ') + key);
+        if (!field || typeof id !== 'string' || !id.startsWith(field[0] + '.')) throw Error(this._t('Invalid entity mapping: ') + key);
       }
       const token = String(this._config.edit_password_hash || '').match(/^pbkdf2-sha256\$(\d+)\$([0-9a-f]{32})\$([0-9a-f]{64})$/i);
-      if (this._config.edit_password_hash && (!token || Number(token[1]) < 100000 || Number(token[1]) > 1000000)) throw Error(this._t('edit_password_hash muss ein gültiger PBKDF2-SHA256-Prüfwert sein. Im visuellen Editor kann er erstellt werden.'));
+      if (this._config.edit_password_hash && (!token || Number(token[1]) < 100000 || Number(token[1]) > 1000000)) throw Error(this._t('edit_password_hash must be a valid PBKDF2-SHA256 verifier. Create one in the visual editor.'));
       this._passwordCheck = token
         ? { iterations: Number(token[1]), salt: token[2], hash: token[3].toLowerCase() }
         : null;
       this._config.auto_lock_minutes = numeric(this._config.auto_lock_minutes);
-      if (!Number.isFinite(this._config.auto_lock_minutes) || this._config.auto_lock_minutes < 1 || this._config.auto_lock_minutes > 60) throw Error(this._t('auto_lock_minutes muss zwischen 1 und 60 Minuten liegen.'));
+      if (!Number.isFinite(this._config.auto_lock_minutes) || this._config.auto_lock_minutes < 1 || this._config.auto_lock_minutes > 60) throw Error(this._t('auto_lock_minutes must be between 1 and 60 minutes.'));
       clearTimeout(this._lockTimer);
       this._lockTimer = null;
       this._unlockedUntil = 0;
@@ -84,14 +84,14 @@ import './editor.js';
       this._unlockError = '';
       for (const key of ['flow_min', 'flow_max']) {
         this._config[key] = this._config[key] === null || this._config[key] === '' ? null : numeric(this._config[key]);
-        if (this._config[key] !== null && (!Number.isFinite(this._config[key]) || this._config[key] < 10 || this._config[key] > 90)) throw Error(this._t('{key} muss zwischen 10 und 90 °C liegen oder leer sein.', { key }));
+        if (this._config[key] !== null && (!Number.isFinite(this._config[key]) || this._config[key] < 10 || this._config[key] > 90)) throw Error(this._t('{key} must be between 10 and 90 °C or empty.', { key }));
       }
-      if (this._config.flow_min !== null && this._config.flow_max !== null && this._config.flow_min >= this._config.flow_max) throw Error(this._t('flow_min muss kleiner als flow_max sein.'));
+      if (this._config.flow_min !== null && this._config.flow_max !== null && this._config.flow_min >= this._config.flow_max) throw Error(this._t('flow_min must be less than flow_max.'));
       const setChartOption = (key, min, max) => {
         const raw = this._config[key];
         const value = raw == null || (typeof raw === 'string' && !raw.trim()) ? null : numeric(raw);
         if (value !== null && (!['number', 'string'].includes(typeof raw) || value < min || value > max || value !== Math.round(value * 100) / 100)) {
-          throw Error(this._t('{key} muss zwischen {min} und {max} °C liegen und darf höchstens zwei Nachkommastellen haben.', {
+          throw Error(this._t('{key} must be between {min} and {max} °C and have at most two decimal places.', {
             key,
             min: this._number(min, { maximumFractionDigits: 2 }),
             max: this._number(max),
@@ -107,7 +107,7 @@ import './editor.js';
         setChartOption(axis + '_step', MIN_AXIS_STEP, max - min);
         if (this._config[minKey] !== null && this._config[maxKey] !== null
           && this._config[minKey] >= this._config[maxKey]) {
-          throw Error(this._t('{minKey} muss kleiner als {maxKey} sein.', { minKey, maxKey }));
+          throw Error(this._t('{minKey} must be less than {maxKey}.', { minKey, maxKey }));
         }
       }
       setChartOption('intermediate_step', INTERMEDIATE_STEP.min, INTERMEDIATE_STEP.max);
@@ -166,11 +166,11 @@ import './editor.js';
     getCardSize() { return 11; }
     getGridOptions() { return { columns: 'full', min_columns: 6 }; }
     static getStubConfig() { return {}; }
-    static getConfigElement() { return document.createElement('keba-keenergy-heizkurve-editor'); }
+    static getConfigElement() { return document.createElement('keba-keenergy-heating-curve-card-editor'); }
     connectedCallback() { globalThis.document?.addEventListener('visibilitychange', this._visibilityHandler); }
     disconnectedCallback() {
       globalThis.document?.removeEventListener('visibilitychange', this._visibilityHandler);
-      if (this._passwordCheck) this._lock(this._t('Bearbeitung gesperrt.'));
+      if (this._passwordCheck) this._lock(this._t('Editing locked.'));
     }
 
     _canEdit() { return !this._passwordCheck || this._unlockedUntil > Date.now(); }
@@ -180,7 +180,7 @@ import './editor.js';
         return false;
       }
       if (this._canEdit()) return true;
-      this._notice(this._t('Einstellungen gesperrt. Bitte mit Kennwort entsperren.'));
+      this._notice(this._t('Editing is locked. Please enter the password to unlock.'));
       return false;
     }
 
@@ -188,10 +188,10 @@ import './editor.js';
       if (!this._passwordCheck || !this._canEdit()) return;
       this._unlockedUntil = Date.now() + this._config.auto_lock_minutes * 60000;
       clearTimeout(this._lockTimer);
-      this._lockTimer = setTimeout(() => this._lock(this._t('Nach Inaktivität automatisch gesperrt. Ungespeicherte Änderungen verworfen.')), this._config.auto_lock_minutes * 60000);
+      this._lockTimer = setTimeout(() => this._lock(this._t('Locked automatically after inactivity. Unsaved changes discarded.')), this._config.auto_lock_minutes * 60000);
     }
 
-    _lock(message = this._t('Bearbeitung gesperrt. Ungespeicherte Änderungen verworfen.')) {
+    _lock(message = this._t('Editing locked. Unsaved changes discarded.')) {
       clearTimeout(this._lockTimer);
       this._lockTimer = null;
       this._unlockedUntil = 0;
@@ -219,7 +219,7 @@ import './editor.js';
       if (this._verifying) return;
       const input = this.shadowRoot.querySelector('#edit-password'), password = input?.value || '';
       if (!password) {
-        this._unlockError = this._t('Bitte Kennwort eingeben.');
+        this._unlockError = this._t('Please enter the password.');
         this._render(true);
         queueMicrotask(() => this.shadowRoot.querySelector('#edit-password')?.focus());
         return;
@@ -244,16 +244,16 @@ import './editor.js';
         let difference = 0;
         for (let i = 0; i < expected.length; i++)difference |= derived[i] ^ expected[i];
         if (difference) {
-          this._unlockError = this._t('Kennwort ist nicht korrekt.');
+          this._unlockError = this._t('Incorrect password.');
           return false;
         }
         this._unlockedUntil = Date.now() + this._config.auto_lock_minutes * 60000;
         this._unlockOpen = false;
-        this._message = this._t('Bearbeitung freigegeben.');
+        this._message = this._t('Editing unlocked.');
         this._touchEdit();
         return true;
       } catch {
-        if (revision === this._lockRevision) this._unlockError = this._t('Kennwortprüfung fehlgeschlagen. Bitte erneut versuchen.');
+        if (revision === this._lockRevision) this._unlockError = this._t('Password verification failed. Please try again.');
         return false;
       } finally {
         bytes.fill(0);
@@ -269,7 +269,7 @@ import './editor.js';
     _lockPanel() {
       if (!this._passwordCheck) return '';
       const unlocked = this._canEdit();
-      return `<section class="edit-lock" aria-label="${esc(this._t('Kennwortschutz'))}"><div class="edit-lock-info"><ha-icon icon="mdi:${unlocked ? 'lock-open-outline' : 'lock-outline'}" aria-hidden="true"></ha-icon><div><b>${unlocked ? this._t('Einstellungen freigegeben') : this._t('Einstellungen gesperrt')}</b><span>${unlocked ? this._t('Automatische Sperre nach {minutes} Minuten ohne Bearbeitung.', { minutes: this._config.auto_lock_minutes }) : this._t('Zum Ändern von Kurventabelle, Punkten und Heizgrenzen entsperren.')}</span></div></div><button type="button" id="${unlocked ? 'lock-editor' : 'unlock-editor'}">${unlocked ? this._t('Sperren') : this._t('Entsperren')}</button>${this._unlockOpen && !unlocked ? `<form id="unlock-form" class="unlock-form"><label class="field">${esc(this._t('Kennwort'))}<input id="edit-password" type="password" autocomplete="current-password" required ${this._verifying ? 'disabled' : ''}></label><div class="buttons"><button type="button" id="confirm-unlock" class="primary" ${this._verifying ? 'disabled' : ''}>${this._verifying ? this._t('Wird geprüft …') : this._t('Bearbeitung freigeben')}</button><button type="button" id="cancel-unlock">${esc(this._t('Abbrechen'))}</button></div><span class="unlock-error" role="alert">${esc(this._unlockError)}</span></form>` : ''}</section>`;
+      return `<section class="edit-lock" aria-label="${esc(this._t('Password protection'))}"><div class="edit-lock-info"><ha-icon icon="mdi:${unlocked ? 'lock-open-outline' : 'lock-outline'}" aria-hidden="true"></ha-icon><div><b>${unlocked ? this._t('Editing unlocked') : this._t('Editing locked')}</b><span>${unlocked ? this._t('Locks automatically after {minutes} minutes without editing.', { minutes: this._config.auto_lock_minutes }) : this._t('Unlock to change the curve table, points and heating limits.')}</span></div></div><button type="button" id="${unlocked ? 'lock-editor' : 'unlock-editor'}">${unlocked ? this._t('Lock') : this._t('Unlock')}</button>${this._unlockOpen && !unlocked ? `<form id="unlock-form" class="unlock-form"><label class="field">${esc(this._t('Password'))}<input id="edit-password" type="password" autocomplete="current-password" required ${this._verifying ? 'disabled' : ''}></label><div class="buttons"><button type="button" id="confirm-unlock" class="primary" ${this._verifying ? 'disabled' : ''}>${this._verifying ? this._t('Verifying …') : this._t('Unlock editing')}</button><button type="button" id="cancel-unlock">${esc(this._t('Cancel'))}</button></div><span class="unlock-error" role="alert">${esc(this._unlockError)}</span></form>` : ''}</section>`;
     }
 
     _ids() {
@@ -332,7 +332,7 @@ import './editor.js';
       this._map = {};
       this._entryId = null;
       if (entries.length > 1) {
-        this._bindingError = this._t('Die Steuerungs-Entitäten stammen aus verschiedenen Reglern. Zuordnung in der Karte prüfen.');
+        this._bindingError = this._t('Control entities belong to different controllers. Check the card mapping.');
         return;
       }
       const entryPin = cfg.config_entry || entries[0] || '';
@@ -345,21 +345,21 @@ import './editor.js';
           this._entryId = cfg.config_entry;
           return;
         }
-        this._bindingError = this._controllers.length ? this._t('Der konfigurierte KeEnergy-Regler wurde nicht gefunden. Kartenkonfiguration prüfen.') : this._registryError ? this._t('KeEnergy-Zuordnung nicht lesbar. Als Administrator öffnen oder Entitäten und config_entry manuell zuordnen.') : this._t('Kein KeEnergy-Heizkreis mit Heizkurventabelle gefunden.');
+        this._bindingError = this._controllers.length ? this._t('The configured KeEnergy controller was not found. Check the card configuration.') : this._registryError ? this._t('Cannot read the KeEnergy mapping. Open as an administrator or set entities and config_entry manually.') : this._t('No KeEnergy heating circuit with a heating curve table found.');
         return;
       }
       if (entries.length && controller.id !== entries[0]) {
-        this._bindingError = this._t('config_entry und Entitätszuordnung gehören zu verschiedenen Reglern.');
+        this._bindingError = this._t('config_entry and the entity mapping belong to different controllers.');
         return;
       }
       const circuits = [...new Set(anchors.map(parseEntity).filter(p => p?.circuit).map(p => p.circuit))];
       if (circuits.length > 1) {
-        this._bindingError = this._t('Die Steuerungs-Entitäten gehören zu verschiedenen Heizkreisen.');
+        this._bindingError = this._t('Control entities belong to different heating circuits.');
         return;
       }
       const circuitPin = cfg.circuit || circuits[0] || '';
       if (cfg.circuit && circuits.length && cfg.circuit !== circuits[0]) {
-        this._bindingError = this._t('circuit und Entitätszuordnung gehören zu verschiedenen Heizkreisen.');
+        this._bindingError = this._t('circuit and the entity mapping belong to different heating circuits.');
         return;
       }
       const wantedCircuit = circuitPin || this._circuitId;
@@ -367,16 +367,16 @@ import './editor.js';
       this._controllerId = controller.id;
       this._entryId = controller.id;
       if (!circuit) {
-        this._bindingError = this._t('Der gewählte Heizkreis wurde an diesem Regler nicht gefunden.');
+        this._bindingError = this._t('The selected heating circuit was not found on this controller.');
         return;
       }
       this._circuitId = circuit.id;
       this._map = { ...circuit.map };
       const unresolved = circuit.ambiguous.filter(key => !explicit[ENTITY_FIELDS[key][2]]);
-      if (unresolved.length) this._bindingError = this._t('Mehrdeutige Entitäten: {keys}. Bitte entities ausdrücklich zuordnen.', { keys: unresolved.join(', ') });
+      if (unresolved.length) this._bindingError = this._t('Ambiguous entities: {keys}. Please set entities explicitly.', { keys: unresolved.join(', ') });
       for (const anchor of anchors) {
         if (anchor.platform !== 'keba_keenergy') {
-          this._bindingError = this._t('Steuerungs-Entitäten müssen aus keba_keenergy stammen.');
+          this._bindingError = this._t('Control entities must come from keba_keenergy.');
           break;
         }
       }
@@ -387,13 +387,13 @@ import './editor.js';
       const circuits = controller?.circuits || [];
       const pinned = !!(this._config.config_entry || this._config.serial
         || Object.keys(this._config.entities || {}).length);
-      return `<section class="target-panel" aria-label="${esc(this._t('Regler und Heizkreis'))}"><label class="field">${esc(this._t('Regler'))}<select id="controller-select" aria-label="${esc(this._t('Regler'))}" ${this._busy || pinned || this._controllers.length < 2 ? 'disabled' : ''}>${this._controllerId && !controller ? `<option value="${esc(this._controllerId)}" selected>${esc(this._t('Gewählter Regler fehlt'))}</option>` : ''}${this._controllers.length ? this._controllers.map(c => `<option value="${esc(c.id)}" ${c.id === this._controllerId ? 'selected' : ''}>${esc(c.label)}</option>`).join('') : `<option>${esc(this._t('Kein Regler gefunden'))}</option>`}</select></label><label class="field">${esc(this._t('Heizkreis'))}<select id="circuit-select" aria-label="${esc(this._t('Heizkreis'))}" ${this._busy || !!this._config.circuit || Object.keys(this._config.entities || {}).length > 0 || circuits.length < 2 ? 'disabled' : ''}>${this._circuitId && !circuits.some(c => c.id === this._circuitId) ? `<option value="${esc(this._circuitId)}" selected>${esc(this._t('Gewählter Heizkreis fehlt'))}</option>` : ''}${circuits.length ? circuits.map(c => `<option value="${esc(c.id)}" ${c.id === this._circuitId ? 'selected' : ''}>${esc(c.label)}</option>`).join('') : `<option>${esc(this._t('Kein Heizkreis gefunden'))}</option>`}</select></label><button type="button" id="reload-registry" ${this._busy ? 'disabled' : ''}>${esc(this._t('Neu erkennen'))}</button>${this._bindingError ? `<p class="target-error" role="alert">${esc(this._bindingError)}</p>` : ''}${this._registryError ? `<p class="hint">${esc(this._t('Verzeichnis: '))}${esc(this._registryError)}</p>` : ''}</section>`;
+      return `<section class="target-panel" aria-label="${esc(this._t('Controller and heating circuit'))}"><label class="field">${esc(this._t('Controller'))}<select id="controller-select" aria-label="${esc(this._t('Controller'))}" ${this._busy || pinned || this._controllers.length < 2 ? 'disabled' : ''}>${this._controllerId && !controller ? `<option value="${esc(this._controllerId)}" selected>${esc(this._t('Selected controller is missing'))}</option>` : ''}${this._controllers.length ? this._controllers.map(c => `<option value="${esc(c.id)}" ${c.id === this._controllerId ? 'selected' : ''}>${esc(c.label)}</option>`).join('') : `<option>${esc(this._t('No controller found'))}</option>`}</select></label><label class="field">${esc(this._t('Heating circuit'))}<select id="circuit-select" aria-label="${esc(this._t('Heating circuit'))}" ${this._busy || !!this._config.circuit || Object.keys(this._config.entities || {}).length > 0 || circuits.length < 2 ? 'disabled' : ''}>${this._circuitId && !circuits.some(c => c.id === this._circuitId) ? `<option value="${esc(this._circuitId)}" selected>${esc(this._t('Selected heating circuit is missing'))}</option>` : ''}${circuits.length ? circuits.map(c => `<option value="${esc(c.id)}" ${c.id === this._circuitId ? 'selected' : ''}>${esc(c.label)}</option>`).join('') : `<option>${esc(this._t('No heating circuit found'))}</option>`}</select></label><button type="button" id="reload-registry" ${this._busy ? 'disabled' : ''}>${esc(this._t('Rediscover'))}</button>${this._bindingError ? `<p class="target-error" role="alert">${esc(this._bindingError)}</p>` : ''}${this._registryError ? `<p class="hint">${esc(this._t('Registry: '))}${esc(this._registryError)}</p>` : ''}</section>`;
     }
 
     _chooseTarget(kind, value) {
       this._selectInteracting = false;
       if (this._busy || this._draft || Object.keys(this._edits).length) {
-        this._notice(this._t('Vor dem Regler- oder Heizkreiswechsel Änderungen speichern oder den Entwurf verwerfen.'));
+        this._notice(this._t('Save changes or discard the draft before switching controller or heating circuit.'));
         const el = this.shadowRoot.querySelector(kind === 'controller' ? '#controller-select' : '#circuit-select');
         if (el)el.value = kind === 'controller' ? this._controllerId : this._circuitId;
         return;
@@ -410,8 +410,8 @@ import './editor.js';
       }
       this._loadingCurve = null;
       this._applySelection();
-      this._message = this._t('Ansicht gewechselt. Es wurden keine Werte übertragen.');
-      if (this._passwordCheck) this._lock(this._t('Ansicht gewechselt. Bearbeitung bitte erneut entsperren.')); else
+      this._message = this._t('View changed. No values were sent.');
+      if (this._passwordCheck) this._lock(this._t('View changed. Please unlock editing again.')); else
         this._render(true);
     }
 
@@ -450,7 +450,7 @@ import './editor.js';
       if (this._busy || !this._requireEdit()) return;
       this._touchEdit();
       if (!this._hass?.user?.is_admin) {
-        this._notice(this._t('Zum Aktivieren deaktivierter Entitäten als Administrator anmelden.'));
+        this._notice(this._t('Sign in as an administrator to enable disabled entities.'));
         return;
       }
       if (!this._discovered) {
@@ -461,23 +461,23 @@ import './editor.js';
       if (!disabled.length) {
         this._discovered = false;
         await this._discover();
-        this._message = this._t('Entitäten neu eingelesen. Nicht vorhandene Werte müssen vom Regler unterstützt werden.');
+        this._message = this._t('Entities reloaded. Missing values must be supported by the controller.');
         this._render();
         return;
       }
       this._busy = true;
-      this._message = this._t('Bearbeitungs-Entitäten werden aktiviert …');
+      this._message = this._t('Enabling required entities …');
       this._render();
       let count = 0;
       try {
         for (const entry of disabled) {
-          if (!this._canEdit()) throw Error(this._t('Bearbeitung gesperrt. Erneut entsperren.'));
+          if (!this._canEdit()) throw Error(this._t('Editing locked. Please unlock again.'));
           await this._hass.callWS({ type: 'config/entity_registry/update', entity_id: entry.entity_id, disabled_by: null });
           entry.disabled_by = null;
           count++;
         }
-        this._message = this._t('{count} Entitäten aktiviert. Home Assistant lädt die Werte; sie erscheinen nach dem nächsten Update.', { count });
-      } catch (error) { this._message = this._t('Aktivierung nach {count} Entitäten gestoppt: {error}. Als Administrator anmelden oder Entitäten in den KeEnergy-Einstellungen aktivieren.', { count, error: error.message || error }); } finally {
+        this._message = this._t('{count} entities enabled. Home Assistant is loading their values; they will appear after the next update.', { count });
+      } catch (error) { this._message = this._t('Enabling stopped after {count} entities: {error}. Sign in as an administrator or enable entities in the KeEnergy settings.', { count, error: error.message || error }); } finally {
         this._busy = false;
         this._discovered = false;
         this._render();
@@ -537,8 +537,8 @@ import './editor.js';
         grid += `<line x1="58" y1="${py}" x2="638" y2="${py}" class="grid"/>`;
         if (showLabel) grid += `<text x="48" y="${py + 3}" text-anchor="end">${tickLabel(value)}</text>`;
       }
-      [[day, 'day', this._t('Tag'), 16], [night, 'night', this._t('Nacht'), 34]].forEach(([v, cls, label, labelY]) => {
-        if (Number.isFinite(v) && v >= lo && v <= hi)limits += `<line x1="${x(v)}" y1="24" x2="${x(v)}" y2="344" class="limit ${cls}"/><text x="${Math.max(110, Math.min(585, x(v)))}" y="${labelY}" text-anchor="middle" class="limit-label">${esc(this._t('HG'))} ${label} ${esc(this._fmt(v))}</text>`;
+      [[day, 'day', this._t('Day'), 16], [night, 'night', this._t('Night'), 34]].forEach(([v, cls, label, labelY]) => {
+        if (Number.isFinite(v) && v >= lo && v <= hi)limits += `<line x1="${x(v)}" y1="24" x2="${x(v)}" y2="344" class="limit ${cls}"/><text x="${Math.max(110, Math.min(585, x(v)))}" y="${labelY}" text-anchor="middle" class="limit-label">${esc(this._t('HL'))} ${label} ${esc(this._fmt(v))}</text>`;
       });
       [[minimum, 'flow-min', this._t('Min')], [maximum, 'flow-max', this._t('Max')]].filter(([v]) => v >= bottom && v <= top).forEach(([v, cls, label]) => limits += `<line x1="58" y1="${y(v)}" x2="638" y2="${y(v)}" class="limit ${cls}"/><text x="632" y="${y(v) - 7}" text-anchor="end" class="flow-limit-label ${cls}">${label} ${esc(this._fmt(v))}</text>`);
       valid.forEach((p, i) => {
@@ -546,7 +546,7 @@ import './editor.js';
         if (!visible(p.outdoor, shown)) return;
         const px = x(p.outdoor), py = y(shown), anchor = px <= 75 ? 'start' : px >= 620 ? 'end' : 'middle';
         const label = shown > minimum && shown < maximum ? `<text x="${px}" y="${Math.max(17, py - 12)}" text-anchor="${anchor}" class="point-label">${this._number(shown, { minimumFractionDigits: 1 })}</text>` : '';
-        dots += `<g><title>${esc(this._t('P{index}: Außen {outdoor} °C · Tabelle {flow} °C · begrenzte Anzeige {shown} °C', { index: i + 1, outdoor: this._number(p.outdoor, { minimumFractionDigits: 1 }), flow: this._number(p.flow, { minimumFractionDigits: 1 }), shown: this._number(shown, { minimumFractionDigits: 1 }) }))}</title><circle cx="${px}" cy="${py}" r="2.8" class="point"/>${label}</g>`;
+        dots += `<g><title>${esc(this._t('P{index}: outdoor {outdoor} °C · table {flow} °C · limited display {shown} °C', { index: i + 1, outdoor: this._number(p.outdoor, { minimumFractionDigits: 1 }), flow: this._number(p.flow, { minimumFractionDigits: 1 }), shown: this._number(shown, { minimumFractionDigits: 1 }) }))}</title><circle cx="${px}" cy="${py}" r="2.8" class="point"/>${label}</g>`;
       });
       if (unique.length > 1) {
         const intermediateStep = this._config.intermediate_step ?? INTERMEDIATE_STEP.default;
@@ -568,7 +568,7 @@ import './editor.js';
           const label = showLabel && !unique.some(point => Math.abs(x(point.outdoor) - px) < labelGap)
             ? `<text x="${px}" y="${Math.max(17, py - 9)}" text-anchor="middle" class="sample-label" data-outdoor="${outdoor}">${esc(flowLabel)}</text>`
             : '';
-          const tooltip = this._t('Zwischenwert bei {outdoor} °C außen: {flow} °C Vorlauf', {
+          const tooltip = this._t('Interpolated value at {outdoor} °C outdoors: {flow} °C flow', {
             outdoor: this._number(outdoor, { maximumFractionDigits: 2 }),
             flow: flowLabel,
           });
@@ -589,7 +589,7 @@ import './editor.js';
       const path = unique.length ? [...new Set([...xs, ...crossings])].sort((a, b) => a - b).map((v, i) => (i ? 'L' : 'M') + x(v) + ',' + y(clamp(interpolate(v, unique)))).join(' ') : '';
       const dark = !!this._hass?.themes?.darkMode;
       const palette = `--curve-point-label:${dark ? '#D8AE8B' : '#9A6138'};--curve-sample-label:${dark ? '#9BACB8' : '#657B89'};--curve-line:${dark ? '#65B4B0' : '#278F89'}`;
-      return `<svg viewBox="0 0 700 400" style="${palette}" aria-label="${esc(this._t('Gespeicherte Heizkurvenpunkte, berechnete Zwischenwerte und aktuelle Vorlauftemperaturen'))}" role="img"><defs><clipPath id="${this._plotId}" clipPathUnits="userSpaceOnUse"><rect x="58" y="24" width="580" height="320"/></clipPath></defs><rect x="58" y="24" width="580" height="320" rx="8" class="plot"/><g class="axes">${grid}</g>${limits}<path d="${path}" class="curve" clip-path="url(#${this._plotId})"/>${samples}${dots}${marks}<g class="axes"><text x="348" y="393" text-anchor="middle">${esc(this._t('Außentemperatur'))} °C</text><text x="15" y="184" text-anchor="middle" transform="rotate(-90 15 184)">${esc(this._t('Vorlauf °C'))}</text></g></svg>`;
+      return `<svg viewBox="0 0 700 400" style="${palette}" aria-label="${esc(this._t('Saved heating curve points, interpolated values and current flow temperatures'))}" role="img"><defs><clipPath id="${this._plotId}" clipPathUnits="userSpaceOnUse"><rect x="58" y="24" width="580" height="320"/></clipPath></defs><rect x="58" y="24" width="580" height="320" rx="8" class="plot"/><g class="axes">${grid}</g>${limits}<path d="${path}" class="curve" clip-path="url(#${this._plotId})"/>${samples}${dots}${marks}<g class="axes"><text x="348" y="393" text-anchor="middle">${esc(this._t('Outdoor temperature'))} °C</text><text x="15" y="184" text-anchor="middle" transform="rotate(-90 15 184)">${esc(this._t('Flow °C'))}</text></g></svg>`;
     }
 
     _preview() {
@@ -611,7 +611,7 @@ import './editor.js';
         if (el)el.textContent = String(value);
       }
       const message = this.shadowRoot.querySelector('#message');
-      if (message)message.textContent = this._message || (this._loadingCurve ? this._t('Kurve {name} wird geladen …', { name: this._loadingCurve }) : '');
+      if (message)message.textContent = this._message || (this._loadingCurve ? this._t('Loading curve {name} …', { name: this._loadingCurve }) : '');
     }
 
     _patchPoints(rows, ready, count, dirty) {
@@ -626,7 +626,7 @@ import './editor.js';
       root.querySelector('#add-point').disabled = !ready || count >= 16;
       root.querySelector('#save-points').disabled = !ready;
       const label = root.querySelector('#curve-label');
-      if (label)label.textContent = this._t('Punkttabelle') + (dirty ? this._t(' · Entwurf') : '');
+      if (label)label.textContent = this._t('Point table') + (dirty ? this._t(' · Draft') : '');
       for (const key of Object.keys(FIELDS)) {
         const input = root.querySelector('[data-setting="' + key + '"]'), value = this._fieldValue(key);
         if (input)input.value = Number.isFinite(value) ? String(value) : '';
@@ -651,10 +651,10 @@ import './editor.js';
       const tableState = this._state(ids.useCurve)?.state,
         missing = Object.entries(ids)
           .filter(([, id]) => !good(this._state(id)))
-          .map(([key, id]) => id || ENTITY_FIELDS[key][2] + this._t(' (nicht zugeordnet)')),
+          .map(([key, id]) => id || ENTITY_FIELDS[key][2] + this._t(' (not mapped)')),
         dirty = !!this._draft;
       const disabled = this._disabledEditors();
-      const mode = tableState === 'on' ? this._t('Punkttabelle wird verwendet') : tableState === 'off' ? this._t('Hybrid aktiv · gespeicherte Punkttabelle') : this._t('Kurvenart nicht verfügbar');
+      const mode = tableState === 'on' ? this._t('Point table is in use') : tableState === 'off' ? this._t('Hybrid active · saved point table') : this._t('Curve mode unavailable');
       // Readings change frequently; keep the actual controls and scroll container
       // when the editor structure/data is unchanged. Scrollbar dragging and touch
       // scrolling must not depend on an input already having keyboard focus.
@@ -696,14 +696,14 @@ import './editor.js';
       }
       const previousTable = this.shadowRoot.querySelector('.table-wrap');
       const tableScroll = previousTable ? { top: previousTable.scrollTop, left: previousTable.scrollLeft } : null;
-      const rows = points.map((p, i) => `<tr><td>${i + 1}</td><td><input data-point="${i}" data-axis="outdoor" type="number" step="any" min="-40" max="40" value="${Number.isFinite(p.outdoor) ? p.outdoor : ''}" ${!ready ? 'disabled' : ''} aria-label="${esc(this._t('Punkt {index} Außentemperatur', { index: i + 1 }))}"></td><td><input data-point="${i}" data-axis="flow" type="number" step="any" min="10" max="90" value="${Number.isFinite(p.flow) ? p.flow : ''}" ${!ready ? 'disabled' : ''} aria-label="${esc(this._t('Punkt {index} Vorlauf', { index: i + 1 }))}"></td><td><button type="button" data-remove="${i}" ${!ready || points.length <= 1 ? 'disabled' : ''} aria-label="${esc(this._t('Punkt {index} entfernen', { index: i + 1 }))}">×</button></td></tr>`).join('');
+      const rows = points.map((p, i) => `<tr><td>${i + 1}</td><td><input data-point="${i}" data-axis="outdoor" type="number" step="any" min="-40" max="40" value="${Number.isFinite(p.outdoor) ? p.outdoor : ''}" ${!ready ? 'disabled' : ''} aria-label="${esc(this._t('Point {index} outdoor temperature', { index: i + 1 }))}"></td><td><input data-point="${i}" data-axis="flow" type="number" step="any" min="10" max="90" value="${Number.isFinite(p.flow) ? p.flow : ''}" ${!ready ? 'disabled' : ''} aria-label="${esc(this._t('Point {index} flow temperature', { index: i + 1 }))}"></td><td><button type="button" data-remove="${i}" ${!ready || points.length <= 1 ? 'disabled' : ''} aria-label="${esc(this._t('Remove point {index}', { index: i + 1 }))}">×</button></td></tr>`).join('');
       if (!force && this._shellKey === shellKey && this._patchPoints(rows, ready, points.length, dirty)) {
         this._viewKey = viewKey;
         this._refreshLive();
         return;
       }
       const metric = (label, value, cls = '', key = '') => `<div class="metric ${cls}"><span>${label}</span><b data-live="${key}">${value}</b></div>`;
-      this.shadowRoot.innerHTML = `<style>${STYLE}${EXTRA_STYLE}</style><ha-card>${this._targetPanel()}${this._lockPanel()}${disabled.length ? `<div class="setup"><b>${esc(this._t('Bearbeitung aktivieren'))}</b><p>${esc(this._t('{count} benötigte KeEnergy-Entitäten sind deaktiviert. Als Administrator kannst du die benötigten Entitäten dieses Heizkreises aktivieren.', { count: disabled.length }))}</p><button type="button" id="enable-editors" class="primary" ${this._busy || !canEdit || !this._hass?.user?.is_admin ? 'disabled' : ''}>${esc(this._t('Bearbeitungs-Entitäten aktivieren'))}</button></div>` : ''}<div class="layout"><section class="chart-panel"><header><div><small>KEBA KEENERGY</small><h2>${esc(this._config.title || this._t('Heizkurve KeEnergy'))}</h2><p>${esc(mode)}</p></div><span class="badge">${esc(selected || '—')}</span></header><div id="chart">${this._chart()}</div><div class="legend"><span><i class="line"></i><span id="curve-label">${esc(this._t('Punkttabelle'))}${dirty ? this._t(' · Entwurf') : ''}</span></span><span><i class="dot target"></i>${esc(this._t('Regler-Soll'))}</span><span><i class="dot actual"></i>${esc(this._t('Vorlauf Ist'))}</span>${this._config.flow_min !== null || this._config.flow_max !== null ? `<span><i class="line flow-range"></i>${esc(this._t('Vorlauf Min / Max'))}</span>` : ''}<span><i class="dot interpolated"></i>${esc(this._t('Zwischenwerte'))}</span></div><p class="notice">${this._config.flow_min !== null || this._config.flow_max !== null ? this._t('Darstellung begrenzt: ') + esc(this._config.flow_min !== null ? this._fmt(this._config.flow_min) : this._t('ohne Minimum')) + this._t(' bis ') + esc(this._config.flow_max !== null ? this._fmt(this._config.flow_max) : this._t('ohne Maximum')) + this._t('. Die Begrenzung gilt nur für das Diagramm. ') : this._t('Gespeicherte Tabelle mit linear berechneten Zwischenwerten. ')}${esc(this._t('Der Regler-Sollwert wird separat aus KeEnergy gelesen.'))}</p><div id="message" class="notice" role="status">${esc(this._message || (this._loadingCurve ? this._t('Kurve {name} wird geladen …', { name: this._loadingCurve }) : ''))}</div></section><aside><h3>${esc(this._t('Kurventabelle auswählen'))}</h3><label class="field">${esc(this._t('Kurventabelle für diesen Heizkreis'))}<select id="curve-select" aria-label="${esc(this._t('Kurventabelle für diesen Heizkreis'))}" ${!good(select) || this._busy || !canEdit ? 'disabled' : ''}>${selected && !options.includes(selected) ? `<option value="" selected>${esc(this._t('Aktuell: {name}', { name: selected }))}</option>` : ''}${options.length ? options.map(o => `<option value="${esc(o)}" ${o === selected ? 'selected' : ''}>${esc(o)}</option>`).join('') : `<option>${esc(selected || this._t('Keine Kurven verfügbar'))}</option>`}</select></label><p class="hint">${esc(this._t('Die vom Regler angebotenen Heiztabellen (HC…) stehen hier zur Auswahl. Die Auswahl weist sie dem Heizkreis zu. Eine Tabelle kann von mehreren Heizkreisen desselben Reglers gemeinsam verwendet werden.'))}</p><h3>${esc(this._t('Aktuelle Werte'))}</h3><div class="metrics">${metric(this._t('Außentemperatur'), this._fmt(this._num(ids.outdoor)), '', 'outdoor')}${metric(this._t('Vorlauf Soll'), this._fmt(this._num(ids.target)), 'target', 'target')}${metric(this._t('Vorlauf Ist'), this._fmt(this._num(ids.actual)), 'actual', 'actual')}${metric(this._t('Punkte'), points.length, '', 'points')}</div><h3>${esc(this._t('Heizgrenzen Tag / Nacht'))}</h3><div class="limit-fields">${Object.keys(FIELDS).map(k => this._input(k)).join('')}</div><button class="primary" id="save-settings" ${this._busy || !canEdit ? 'disabled' : ''}>${esc(this._t('Heizgrenzen speichern'))}</button></aside></div><section class="editor"><div class="editor-head"><div><h3>${esc(this._t('Kurvenpunkte bearbeiten'))}</h3><p>${esc(this._t('1 bis 16 Punkte. Die Vorschau aktualisiert sich beim Eingeben. Erst „Punkte speichern“ überträgt die Tabelle.'))}</p></div><div class="buttons"><button type="button" id="reset" ${this._busy || !this._canEdit() ? 'disabled' : ''}>${esc(this._t('Entwurf verwerfen'))}</button><button type="button" id="add-point" ${!ready || points.length >= 16 ? 'disabled' : ''}>${esc(this._t('Punkt hinzufügen'))}</button><button type="button" id="save-points" class="primary" ${!ready ? 'disabled' : ''}>${esc(this._t('Punkte speichern'))}</button></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>${esc(this._t('Außen °C'))}</th><th>${esc(this._t('Vorlauf °C'))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${missing.length || !this._entryId || !this._pointService() ? `<details open><summary>${esc(this._t('Entitäten / Einrichtung prüfen'))}</summary>${missing.length ? `<p>${esc(this._t('Diese Entitäten fehlen oder liefern noch keine Werte:'))}</p>` : ''}<ul>${missing.map(id => `<li><code>` + esc(id) + `</code></li>`).join('')}</ul>${!this._entryId ? `<p>${esc(this._t('Konfigurationseintrag noch nicht gefunden. Optional config_entry in der Karte angeben.'))}</p>` : ''}${!this._pointService() ? `<p>${esc(this._t('Die Aktion keba_keenergy.set_heating_curve_points ist nicht verfügbar. Die Integration muss das Bearbeiten von Kurvenpunkten unterstützen.'))}</p>` : ''}<button type="button" id="retry">${esc(this._t('Zuordnung erneut laden'))}</button></details>` : ''}<p class="hint">${esc(this._t('KeEnergy Heizkurve · Allgemeine Version 1.1.0'))}</p></section></ha-card>`;
+      this.shadowRoot.innerHTML = `<style>${STYLE}${EXTRA_STYLE}</style><ha-card>${this._targetPanel()}${this._lockPanel()}${disabled.length ? `<div class="setup"><b>${esc(this._t('Enable editing'))}</b><p>${esc(this._t('{count} required KeEnergy entities are disabled. An administrator can enable the required entities for this heating circuit.', { count: disabled.length }))}</p><button type="button" id="enable-editors" class="primary" ${this._busy || !canEdit || !this._hass?.user?.is_admin ? 'disabled' : ''}>${esc(this._t('Enable required entities'))}</button></div>` : ''}<div class="layout"><section class="chart-panel"><header><div><small>KEBA KEENERGY</small><h2>${esc(this._config.title || this._t('KeEnergy heating curve'))}</h2><p>${esc(mode)}</p></div><span class="badge">${esc(selected || '—')}</span></header><div id="chart">${this._chart()}</div><div class="legend"><span><i class="line"></i><span id="curve-label">${esc(this._t('Point table'))}${dirty ? this._t(' · Draft') : ''}</span></span><span><i class="dot target"></i>${esc(this._t('Controller target'))}</span><span><i class="dot actual"></i>${esc(this._t('Actual flow'))}</span>${this._config.flow_min !== null || this._config.flow_max !== null ? `<span><i class="line flow-range"></i>${esc(this._t('Flow min / max'))}</span>` : ''}<span><i class="dot interpolated"></i>${esc(this._t('Interpolated values'))}</span></div><p class="notice">${this._config.flow_min !== null || this._config.flow_max !== null ? this._t('Display limits: ') + esc(this._config.flow_min !== null ? this._fmt(this._config.flow_min) : this._t('no minimum')) + this._t(' to ') + esc(this._config.flow_max !== null ? this._fmt(this._config.flow_max) : this._t('no maximum')) + this._t('. Limits apply to the chart only. ') : this._t('Saved table with linearly interpolated values. ')}${esc(this._t('The controller target is read separately from KeEnergy.'))}</p><div id="message" class="notice" role="status">${esc(this._message || (this._loadingCurve ? this._t('Loading curve {name} …', { name: this._loadingCurve }) : ''))}</div></section><aside><h3>${esc(this._t('Select curve table'))}</h3><label class="field">${esc(this._t('Curve table for this heating circuit'))}<select id="curve-select" aria-label="${esc(this._t('Curve table for this heating circuit'))}" ${!good(select) || this._busy || !canEdit ? 'disabled' : ''}>${selected && !options.includes(selected) ? `<option value="" selected>${esc(this._t('Current: {name}', { name: selected }))}</option>` : ''}${options.length ? options.map(o => `<option value="${esc(o)}" ${o === selected ? 'selected' : ''}>${esc(o)}</option>`).join('') : `<option>${esc(selected || this._t('No curves available'))}</option>`}</select></label><p class="hint">${esc(this._t('Choose one of the heating tables (HC…) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller.'))}</p><h3>${esc(this._t('Current readings'))}</h3><div class="metrics">${metric(this._t('Outdoor temperature'), this._fmt(this._num(ids.outdoor)), '', 'outdoor')}${metric(this._t('Target flow'), this._fmt(this._num(ids.target)), 'target', 'target')}${metric(this._t('Actual flow'), this._fmt(this._num(ids.actual)), 'actual', 'actual')}${metric(this._t('Points'), points.length, '', 'points')}</div><h3>${esc(this._t('Day / night heating limits'))}</h3><div class="limit-fields">${Object.keys(FIELDS).map(k => this._input(k)).join('')}</div><button class="primary" id="save-settings" ${this._busy || !canEdit ? 'disabled' : ''}>${esc(this._t('Save heating limits'))}</button></aside></div><section class="editor"><div class="editor-head"><div><h3>${esc(this._t('Edit curve points'))}</h3><p>${esc(this._t('1 to 16 points. The preview updates as you type. The table is sent only when you select “Save points”.'))}</p></div><div class="buttons"><button type="button" id="reset" ${this._busy || !this._canEdit() ? 'disabled' : ''}>${esc(this._t('Discard draft'))}</button><button type="button" id="add-point" ${!ready || points.length >= 16 ? 'disabled' : ''}>${esc(this._t('Add point'))}</button><button type="button" id="save-points" class="primary" ${!ready ? 'disabled' : ''}>${esc(this._t('Save points'))}</button></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>${esc(this._t('Outdoor °C'))}</th><th>${esc(this._t('Flow °C'))}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>${missing.length || !this._entryId || !this._pointService() ? `<details open><summary>${esc(this._t('Check entities / setup'))}</summary>${missing.length ? `<p>${esc(this._t('These entities are missing or do not yet provide values:'))}</p>` : ''}<ul>${missing.map(id => `<li><code>` + esc(id) + `</code></li>`).join('')}</ul>${!this._entryId ? `<p>${esc(this._t('Integration entry not found yet. Optionally set config_entry in the card.'))}</p>` : ''}${!this._pointService() ? `<p>${esc(this._t('The keba_keenergy.set_heating_curve_points action is unavailable. The integration must support editing curve points.'))}</p>` : ''}<button type="button" id="retry">${esc(this._t('Reload mapping'))}</button></details>` : ''}<p class="hint">${esc(this._t('KeEnergy heating curve · General version 1.1.0'))}</p></section></ha-card>`;
       this._viewKey = viewKey;
       this._shellKey = shellKey;
       this._bind();
@@ -728,7 +728,7 @@ import './editor.js';
         if (!this._draft) this._draft = { name: this._selected(), points: this._readPoints() };
         this._draft.saved = false;
         this._draft.points[Number(el.dataset.point)][el.dataset.axis] = numeric(el.value);
-        this._notice(this._t('Punkte geändert · noch nicht gespeichert'));
+        this._notice(this._t('Points changed · not saved yet'));
         this._preview();
       }));
       root.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => {
@@ -769,7 +769,7 @@ import './editor.js';
       });
       on('#unlock-editor', 'click', () => this._openUnlock());
       on('#lock-editor', 'click', () => this._lock());
-      on('#cancel-unlock', 'click', () => this._lock(this._t('Bearbeitung gesperrt.')));
+      on('#cancel-unlock', 'click', () => this._lock(this._t('Editing locked.')));
       on('#confirm-unlock', 'click', event => this._submitUnlock(event));
       on('#unlock-form', 'submit', event => this._submitUnlock(event));
       on('#edit-password', 'keydown', (event) => {
@@ -777,14 +777,14 @@ import './editor.js';
         if (event.key === 'Escape') {
           event.preventDefault();
           event.stopPropagation();
-          this._lock(this._t('Bearbeitung gesperrt.'));
+          this._lock(this._t('Editing locked.'));
         }
       });
       root.querySelectorAll('[data-setting]').forEach(el => el.addEventListener('input', () => {
         if (!this._canEdit() || this._busy) return;
         this._touchEdit();
         this._edits[el.dataset.setting] = numeric(el.value);
-        this._notice(this._t('Parameter geändert · noch nicht gespeichert'));
+        this._notice(this._t('Settings changed · not saved yet'));
         this._preview();
       }));
       on('#curve-select', 'pointerdown', (e) => {
@@ -807,7 +807,7 @@ import './editor.js';
         this._touchEdit();
         this._draft = null;
         this._edits = {};
-        this._message = this._t('Entwurf verworfen.');
+        this._message = this._t('Draft discarded.');
         this._render();
       });
       on('#retry', 'click', () => {
@@ -829,7 +829,7 @@ import './editor.js';
         if (outdoor < -40)outdoor = 1;
         p.push({ outdoor, flow: 30 });
         this._draft = { name: this._selected(), points: p };
-        this._message = this._t('Punkt hinzugefügt · noch nicht gespeichert');
+        this._message = this._t('Point added · not saved yet');
         this._render();
       });
       on('#save-points', 'click', () => this._savePoints());
@@ -840,21 +840,21 @@ import './editor.js';
       if (this._busy || !this._requireEdit()) return;
       this._touchEdit();
       if (this._draft || Object.keys(this._edits).length) {
-        this._notice(this._t('Vor dem Tabellenwechsel Punkte / Parameter speichern oder den Entwurf verwerfen.'));
+        this._notice(this._t('Save points / settings or discard the draft before switching tables.'));
         this._render();
         return;
       }
       if (!this._options().includes(name)) return;
       this._loadingCurve = name;
       this._busy = true;
-      this._message = this._t('Kurve wird zugewiesen …');
+      this._message = this._t('Assigning curve …');
       this._render();
       try {
         await this._hass.callService('select', 'select_option', { entity_id: this._ids().select, option: name });
-        this._message = this._t('Kurve {name} zugewiesen. Messwerte werden aktualisiert.', { name });
+        this._message = this._t('Curve {name} assigned. Readings are updating.', { name });
       } catch (error) {
         this._loadingCurve = null;
-        this._message = this._t('Auswahl fehlgeschlagen: ') + (error.message || error);
+        this._message = this._t('Selection failed: ') + (error.message || error);
       } finally {
         this._busy = false;
         const ids = this._ids();
@@ -870,7 +870,7 @@ import './editor.js';
         this._discovered = false;
         await this._discover();
         if (!this._entryId) {
-          this._notice(this._t('Integrationseintrag nicht ermittelbar. config_entry in der Kartenkonfiguration angeben.'));
+          this._notice(this._t('Cannot determine the integration entry. Set config_entry in the card configuration.'));
           return;
         }
       }
@@ -882,27 +882,27 @@ import './editor.js';
       if (points.length < 1 || points.length > 16 || points.some((p, i) =>
         !Number.isFinite(p.outdoor) || !Number.isFinite(p.flow) || p.outdoor < -40 || p.outdoor > 40
         || p.flow < 10 || p.flow > 90 || (i > 0 && p.outdoor <= points[i - 1].outdoor))) {
-        this._notice(this._t('Ungültige Punkte: Außen −40 bis 40 °C, Vorlauf 10 bis 90 °C; Außentemperaturen müssen eindeutig sein.'));
+        this._notice(this._t('Invalid points: outdoor −40 to 40 °C, flow 10 to 90 °C; outdoor temperatures must be unique.'));
         return;
       }
       const live = this._readPoints().sort((a, b) => a.outdoor - b.outdoor);
       if (JSON.stringify(points) === JSON.stringify(live)) {
         this._draft = null;
-        this._message = this._t('Keine Änderungen an den Punkten.');
+        this._message = this._t('No changes to the points.');
         this._render();
         return;
       }
       this._busy = true;
-      this._message = this._t('Punkte werden gespeichert …');
+      this._message = this._t('Saving points …');
       this._render();
       try {
         await this._hass.callService('keba_keenergy', 'set_heating_curve_points', { config_entry: this._entryId, heating_curve: name, points });
         this._draft = this._canEdit() ? { name, points, saved: true } : null;
-        this._message = this._t('Punkte für {name} übertragen. Reglerwerte werden aktualisiert.', { name });
+        this._message = this._t('Points for {name} sent. Controller readings are updating.', { name });
         if (JSON.stringify(points) === JSON.stringify(this._readPoints().sort((a, b) => a.outdoor - b.outdoor))) {
           this._draft = null;
         }
-      } catch (error) { this._message = this._t('Speichern fehlgeschlagen: ') + (error.message || error); } finally {
+      } catch (error) { this._message = this._t('Save failed: ') + (error.message || error); } finally {
         this._busy = false;
         this._render();
       }
@@ -918,29 +918,29 @@ import './editor.js';
         if (!good(s) || !Number.isFinite(value)
           || (Number.isFinite(min) && value < min - 1e-6) || (Number.isFinite(max) && value > max + 1e-6)
           || (Number.isFinite(step) && step > 0 && Math.abs(steps - Math.round(steps)) > 1e-6)) {
-          this._notice(this._t('Ungültiger Wert für {field}. Zulässigen Bereich und Schrittweite der Entität beachten.', { field: this._t(FIELDS[key][1]) }));
+          this._notice(this._t('Invalid value for {field}. Observe the entity’s range and step size.', { field: this._t(FIELDS[key][1]) }));
           return;
         }
       }
       if (!changes.length) {
-        this._notice(this._t('Keine Parameter geändert.'));
+        this._notice(this._t('No settings changed.'));
         return;
       }
       this._busy = true;
-      this._message = this._t('Parameter werden gespeichert …');
+      this._message = this._t('Saving settings …');
       this._render();
       let saved = 0;
       try {
         for (const [key, value] of changes) {
-          if (!this._canEdit()) throw Error(this._t('Bearbeitung gesperrt. Erneut entsperren.'));
+          if (!this._canEdit()) throw Error(this._t('Editing locked. Please unlock again.'));
           if (Math.abs(this._num(ids[key]) - value) > 1e-6) {
             await this._hass.callService('number', 'set_value', { entity_id: ids[key], value: Math.round(this._fromCelsius(ids[key], value) * 1e8) / 1e8 });
             saved++;
           }
           delete this._edits[key];
         }
-        this._message = this._t('{count} Parameter übertragen. Der nächste Abgleich zeigt die Reglerwerte.', { count: saved });
-      } catch (error) { this._message = this._t('Teilweise gespeichert ({count}). Weitere Änderungen nicht übertragen: {error}', { count: saved, error: error.message || error }); } finally {
+        this._message = this._t('{count} settings sent. The next update will show the controller values.', { count: saved });
+      } catch (error) { this._message = this._t('Partially saved ({count}). Remaining changes were not sent: {error}', { count: saved, error: error.message || error }); } finally {
         this._busy = false;
         this._render();
       }
@@ -972,7 +972,7 @@ import './editor.js';
     .target{stroke-width:1.5}.actual{stroke-width:1}.legend{font-size:10px;gap:12px}.legend .line{height:2px}.dot.interpolated{width:5px;height:5px;background:#8CA1A4}
     .line.flow-range{background:linear-gradient(to right,#4D8DC6 50%,#CE7373 50%)}.metric b{font-size:19px}.notice{font-size:10.5px;padding:8px 10px;border-radius:8px}
   `;
-  if (!customElements.get('keba-keenergy-heizkurve-card'))customElements.define('keba-keenergy-heizkurve-card', KeEnergyHeatingCurveCard);
+  if (!customElements.get('keba-keenergy-heating-curve-card'))customElements.define('keba-keenergy-heating-curve-card', KeEnergyHeatingCurveCard);
   window.customCards = window.customCards || [];
-  if (!window.customCards.some(c => c.type === 'keba-keenergy-heizkurve-card'))window.customCards.push({ type: 'keba-keenergy-heizkurve-card', name: 'KEBA KeEnergy Heating Curve', description: 'Heating curves and limits with automatic discovery · Deutsch / English', preview: false });
+  if (!window.customCards.some(c => c.type === 'keba-keenergy-heating-curve-card'))window.customCards.push({ type: 'keba-keenergy-heating-curve-card', name: 'KEBA KeEnergy Heating Curve Card', description: 'Heating curves and limits with automatic discovery · Deutsch / English', preview: false });
 })();

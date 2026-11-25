@@ -14,7 +14,7 @@ description: Release or pre-release the card (version bump, changelog, tag). Use
    - **always** identical everywhere, also for pre-releases
 3. `CHANGELOG.md`: release `vX.Y.Z` turns `## Unveröffentlicht` into `## X.Y.Z`, a new empty `## Unveröffentlicht`
    above it, pre-releases keep the entries under `## Unveröffentlicht`
-4. `npm run build`, update `SHA256SUMS.txt`
+4. `npm run build`, remove `keba-keenergy-heizkurve.js` if it still exists, update `SHA256SUMS.txt`
 5. Commit, push, pull request against `main` with `Closes #<issue>` if there is one, `@marcofeurer` merges
-6. After the merge, on `main`: `gh release create vX.Y.Z keba-keenergy-heizkurve.js`, pre-releases with
+6. After the merge, on `main`: `gh release create vX.Y.Z keba_keenergy_heating_curve_card.js`, pre-releases with
    `--prerelease`

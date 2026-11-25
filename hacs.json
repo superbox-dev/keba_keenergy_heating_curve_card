@@ -1,5 +1,5 @@
 {
-  "name": "KeEnergy Heizkurven-Dashboard",
-  "filename": "keba-keenergy-heizkurve.js",
+  "name": "KEBA KeEnergy Heating Curve Card",
+  "filename": "keba_keenergy_heating_curve_card.js",
   "render_readme": true
 }

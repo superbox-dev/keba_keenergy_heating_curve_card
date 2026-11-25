@@ -5,24 +5,34 @@ A reusable, unofficial Home Assistant custom card for
 The card and its visual editor support **German and English**. There are no hardcoded personal entities,
 serial numbers, addresses or passwords. See `README.md` for full documentation.
 
-![Card preview with example data](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/preview-english.png)
+![Card preview with example data](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/assets/preview.png)
 
-1. Copy `keba-keenergy-heizkurve.js` to `/config/www/`. If you create `www` for the
+1. Copy `keba_keenergy_heating_curve_card.js` to `/config/www/`. If you create `www` for the
    first time, restart Home Assistant once.
-2. Add `/local/keba-keenergy-heizkurve.js?v=1.1.0` as a **JavaScript module** dashboard
+2. Add `/local/keba_keenergy_heating_curve_card.js?v=1.1.0` as a **JavaScript module** dashboard
    resource and reload the frontend.
-3. Add the card from `karte.yaml`, or use `dashboard.yaml` for a dedicated dashboard.
+3. Add the card from `card.yaml`, or use `dashboard.yaml` for a dedicated dashboard.
 
 ```yaml
-type: custom:keba-keenergy-heizkurve-card
+type: custom:keba-keenergy-heating-curve-card
 language: auto
 ```
 
-For an existing HACS installation, download **v1.1.0** in HACS and reload the
-dashboard. For a manual installation, replace `/config/www/keba-keenergy-heizkurve.js`
-with the [release file](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/download/v1.1.0/keba-keenergy-heizkurve.js),
-update the existing resource URL to `/local/keba-keenergy-heizkurve.js?v=1.1.0`,
-and reload the dashboard. You can keep your existing card configuration.
+## Update an existing card
+
+The card and its file now have English names. Adapt existing dashboards once:
+
+1. Install the new version: in HACS, open **KEBA KeEnergy Heating Curve Card** and download it. For a manual
+   installation, copy the [release file](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/latest/download/keba_keenergy_heating_curve_card.js) to `/config/www/` and delete
+   `/config/www/keba-keenergy-heizkurve.js`.
+2. In the dashboard resources, replace `/local/keba-keenergy-heizkurve.js` with
+   `/local/keba_keenergy_heating_curve_card.js?v=1.1.0`. With HACS, check that the resource points to
+   `keba_keenergy_heating_curve_card.js`.
+3. In every card, replace `type: custom:keba-keenergy-heizkurve-card` with
+   `type: custom:keba-keenergy-heating-curve-card`. All other options stay the same.
+4. Reload the dashboard in the browser.
+
+Until then, Home Assistant shows an error in place of the card.
 
 Controllers and heating circuits are discovered using the KeEnergy entity registry
 unique IDs, including renamed entity IDs. Switching controller/circuit only changes
@@ -58,7 +68,7 @@ the frontend edit lock does not replace HA authorization or protect other cards/
 
 An administrator can enable the required disabled entities from the card. Missing
 hardware capabilities cannot be added by this card. For manual mappings see
-`beispiele/manuelle-entitaeten.yaml`; substitute every placeholder with your own IDs.
+`examples/manual-entities.yaml`; substitute every placeholder with your own IDs.
 
 Checked against integration source 1.12.2 on 2026-11-23. Requires a heating-curve sensor
 with a `points` attribute and, for saving points, the

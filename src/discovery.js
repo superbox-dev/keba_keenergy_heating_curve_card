@@ -59,7 +59,7 @@ export function discoverControllers(registry, devices = [], t = text => text) {
     controller.outdoor = outdoor.length === 1 ? outdoor[0].entity_id : '';
     controller.label = (controller.label || 'KeEnergy') + ' · ' + controller.serial;
     controller.circuits = controller.circuits.filter(c => c.candidates.curve || c.candidates.select).map((circuit) => {
-      circuit.label = t('Heizkreis') + ' ' + circuit.id + (circuit.label ? ' · ' + circuit.label : '');
+      circuit.label = t('Heating circuit') + ' ' + circuit.id + (circuit.label ? ' · ' + circuit.label : '');
       for (const [key, entries] of Object.entries(circuit.candidates)) {
         if (entries.length === 1) circuit.map[key] = entries[0].entity_id;
         else circuit.ambiguous.push(key);
@@ -77,6 +77,6 @@ export async function loadRegistry(hass, t = text => text) {
     hass.callWS({ type: 'config/device_registry/list' }),
   ]);
   if (entities.status === 'rejected') throw entities.reason;
-  if (!Array.isArray(entities.value)) throw Error(t('Entitätenverzeichnis nicht verfügbar.'));
+  if (!Array.isArray(entities.value)) throw Error(t('Entity registry unavailable.'));
   return { registry: entities.value, devices: devices.status === 'fulfilled' && Array.isArray(devices.value) ? devices.value : [] };
 }

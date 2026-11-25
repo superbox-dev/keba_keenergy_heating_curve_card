@@ -36,7 +36,7 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
       this._registry = registry;
       this._devices = devices;
       this._controllers = discoverControllers(registry, devices, text => this._t(text));
-    } catch (error) { this._error = this._t('Automatische Auswahl nicht verfügbar: ') + (error.message || error); } finally {
+    } catch (error) { this._error = this._t('Automatic selection unavailable: ') + (error.message || error); } finally {
       this._loaded = true;
       this._loading = false;
       if (!this.shadowRoot.activeElement) this._render();
@@ -59,11 +59,11 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     const one = this.shadowRoot.querySelector('#new-password'), two = this.shadowRoot.querySelector('#repeat-password');
     const message = this.shadowRoot.querySelector('#password-message');
     if (!one.value || one.value !== two.value) {
-      message.textContent = this._t('Beide Kennwörter müssen ausgefüllt und gleich sein.');
+      message.textContent = this._t('Both passwords must be filled in and match.');
       return;
     }
     if (!globalThis.crypto?.getRandomValues) {
-      message.textContent = this._t('Der Browser kann keinen sicheren Zufallswert erzeugen.');
+      message.textContent = this._t('The browser cannot generate secure random values.');
       return;
     }
     const revision = this._revision, bytes = new TextEncoder().encode(one.value);
@@ -76,11 +76,11 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     try {
       derived = await pbkdf2Async(sha256, bytes, salt, { c: 120000, dkLen: 32 });
       if (revision !== this._revision) {
-        message.textContent = this._t('Konfiguration geändert. Kennwort bitte erneut setzen.');
+        message.textContent = this._t('Configuration changed. Please set the password again.');
         return;
       }
       this._change('edit_password_hash', ['pbkdf2-sha256', 120000, hex(salt), hex(derived)].join('$'), true);
-    } catch (error) { message.textContent = this._t('Kennwort konnte nicht eingerichtet werden: ') + (error.message || error); } finally {
+    } catch (error) { message.textContent = this._t('Could not set the password: ') + (error.message || error); } finally {
       bytes.fill(0);
       derived?.fill(0);
       button.disabled = false;
@@ -99,11 +99,11 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     };
     const axisFields = (axis, title) => {
       const { min, max } = AXIS_LIMITS[axis];
-      const bounds = `min="${min}" max="${max}" step="0.01" placeholder="${esc(this._t('Automatisch'))}"`;
+      const bounds = `min="${min}" max="${max}" step="0.01" placeholder="${esc(this._t('Automatic'))}"`;
       return `<fieldset><legend>${esc(title)}</legend><div class="grid axis-fields">
         ${field(this._t('Minimum (°C)'), `${axis}_min`, 'number', bounds)}
         ${field(this._t('Maximum (°C)'), `${axis}_max`, 'number', bounds)}
-        ${field(this._t('Rasterweite (°C)'), `${axis}_step`, 'number', `min="${MIN_AXIS_STEP}" max="${max - min}" step="0.01" placeholder="${DEFAULT_AXIS_STEP}"`)}
+        ${field(this._t('Grid interval (°C)'), `${axis}_step`, 'number', `min="${MIN_AXIS_STEP}" max="${max - min}" step="0.01" placeholder="${DEFAULT_AXIS_STEP}"`)}
       </div></fieldset>`;
     };
     const axesOpen = this.shadowRoot.querySelector('#chart-axes')?.open;
@@ -114,27 +114,27 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
       button{cursor:pointer;margin:6px 6px 6px 0}p{color:var(--secondary-text-color);font-size:12px;line-height:1.5}summary{cursor:pointer}#password-message{color:var(--error-color,#a44)}
       fieldset{min-width:0;border:1px solid var(--divider-color,#ccc);border-radius:8px;margin:10px 0;padding:0 10px}legend{font-size:12px}.axis-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
       @media(max-width:450px){.grid{grid-template-columns:1fr}}
-      </style>${field(this._t('Titel'), 'title')}
-      <label>${esc(this._t('Sprache'))}<select id="config-language" aria-label="${esc(this._t('Sprache'))}">${['auto', 'de', 'en'].map(value => `<option value="${value}" ${(c.language || 'auto') === value ? 'selected' : ''}>${esc(this._t(value === 'auto' ? 'Automatisch (Home Assistant)' : value === 'de' ? 'Deutsch' : 'Englisch'))}</option>`).join('')}</select></label>
-      <label>${esc(this._t('Regler fest zuordnen'))}<select id="config-controller" aria-label="${esc(this._t('Regler fest zuordnen'))}"><option value="">${esc(this._t('Automatisch · im Dashboard auswählbar'))}</option>${this._controllers.map(controller => `<option value="${esc(controller.id)}" ${selected?.id === controller.id ? 'selected' : ''}>${esc(controller.label)}</option>`).join('')}</select></label>
-      <label>${esc(this._t('Heizkreis fest zuordnen'))}<select id="config-circuit" aria-label="${esc(this._t('Heizkreis fest zuordnen'))}"><option value="">${esc(this._t('Automatisch · im Dashboard auswählbar'))}</option>${circuits.map(circuit => `<option value="${esc(circuit.id)}" ${String(c.circuit || '') === circuit.id ? 'selected' : ''}>${esc(circuit.label)}</option>`).join('')}${c.circuit && !circuits.some(circuit => circuit.id === String(c.circuit)) ? `<option value="${esc(c.circuit)}" selected>${esc(this._t('Heizkreis'))} ${esc(c.circuit)}</option>` : ''}</select></label>
-      <p>${esc(this._t('Ohne feste Zuordnung werden Regler und Heizkreis direkt in der Karte gewählt. Das Umschalten der Ansicht sendet keine Befehle.'))}</p>
+      </style>${field(this._t('Title'), 'title')}
+      <label>${esc(this._t('Language'))}<select id="config-language" aria-label="${esc(this._t('Language'))}">${['auto', 'de', 'en'].map(value => `<option value="${value}" ${(c.language || 'auto') === value ? 'selected' : ''}>${esc(this._t(value === 'auto' ? 'Automatic (Home Assistant)' : value === 'de' ? 'German' : 'English'))}</option>`).join('')}</select></label>
+      <label>${esc(this._t('Pin controller'))}<select id="config-controller" aria-label="${esc(this._t('Pin controller'))}"><option value="">${esc(this._t('Automatic · selectable in the dashboard'))}</option>${this._controllers.map(controller => `<option value="${esc(controller.id)}" ${selected?.id === controller.id ? 'selected' : ''}>${esc(controller.label)}</option>`).join('')}</select></label>
+      <label>${esc(this._t('Pin heating circuit'))}<select id="config-circuit" aria-label="${esc(this._t('Pin heating circuit'))}"><option value="">${esc(this._t('Automatic · selectable in the dashboard'))}</option>${circuits.map(circuit => `<option value="${esc(circuit.id)}" ${String(c.circuit || '') === circuit.id ? 'selected' : ''}>${esc(circuit.label)}</option>`).join('')}${c.circuit && !circuits.some(circuit => circuit.id === String(c.circuit)) ? `<option value="${esc(c.circuit)}" selected>${esc(this._t('Heating circuit'))} ${esc(c.circuit)}</option>` : ''}</select></label>
+      <p>${esc(this._t('Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands.'))}</p>
       ${this._error ? `<p>${esc(this._error)}</p>` : ''}
       <details id="chart-axes" ${axesOpen ? 'open' : ''}>
-        <summary>${esc(this._t('Diagrammachsen'))}</summary>
-        <p>${esc(this._t('Leere Grenzen werden automatisch bestimmt. Die Standard-Rasterweite beträgt 5 °C. Diese Einstellungen ändern nur den sichtbaren Diagrammausschnitt und das Raster.'))}</p>
-        ${axisFields('x', this._t('X-Achse · Außentemperatur'))}
-        ${axisFields('y', this._t('Y-Achse · Vorlauftemperatur'))}
-        <fieldset><legend>${esc(this._t('Zwischenwerte'))}</legend>
-          ${field(this._t('Abstand der Zwischenwerte auf der X-Achse (°C)'), 'intermediate_step', 'number', `min="${INTERMEDIATE_STEP.min}" max="${INTERMEDIATE_STEP.max}" step="0.01" placeholder="${INTERMEDIATE_STEP.default}"`)}
+        <summary>${esc(this._t('Chart axes'))}</summary>
+        <p>${esc(this._t('Empty bounds are set automatically. The default grid interval is 5 °C. These settings only change the visible chart range and grid.'))}</p>
+        ${axisFields('x', this._t('X-axis · Outdoor temperature'))}
+        ${axisFields('y', this._t('Y-axis · Flow temperature'))}
+        <fieldset><legend>${esc(this._t('Interpolated values'))}</legend>
+          ${field(this._t('Interpolated value interval on the X-axis (°C)'), 'intermediate_step', 'number', `min="${INTERMEDIATE_STEP.min}" max="${INTERMEDIATE_STEP.max}" step="0.01" placeholder="${INTERMEDIATE_STEP.default}"`)}
         </fieldset>
       </details>
-      <details><summary>${esc(this._t('Vorlaufbegrenzungen im Diagramm'))}</summary><p>${esc(this._t('Leer lassen für die unveränderte Tabelle. Diese Werte begrenzen nur die Darstellung und werden nicht an den Regler übertragen.'))}</p><div class="grid">${field(this._t('Anzeige Minimum (°C)'), 'flow_min', 'number', 'min="10" max="90" step="any"')}${field(this._t('Anzeige Maximum (°C)'), 'flow_max', 'number', 'min="10" max="90" step="any"')}</div></details>
-      <details><summary>${esc(this._t('Kennwortschutz'))} ${c.edit_password_hash ? this._t('· eingerichtet') : this._t('· optional')}</summary><p>${esc(this._t('Jeder richtet sein eigenes Kennwort ein. Nur der Prüfwert wird in der Kartenkonfiguration gespeichert. Der Schutz gilt für diese Kartenoberfläche; Home-Assistant-Berechtigungen gelten weiterhin.'))}</p>
-      <div class="grid"><label>${esc(this._t('Neues Kennwort'))}<input id="new-password" type="password" autocomplete="new-password"></label><label>${esc(this._t('Kennwort wiederholen'))}<input id="repeat-password" type="password" autocomplete="new-password"></label></div>
-      <button type="button" id="create-password">${esc(this._t('Kennwort einrichten'))}</button>${c.edit_password_hash ? `<button type="button" id="remove-password">${esc(this._t('Kennwortschutz entfernen'))}</button>` : ''}
-      <p id="password-message" role="status"></p>${field(this._t('Automatisch sperren nach Minuten'), 'auto_lock_minutes', 'number', 'min="1" max="60" step="1"')}</details>
-      <p>${esc(this._t('Weitere Optionen und manuelle Entitätszuordnungen sind im YAML-Editor möglich.'))}</p>`;
+      <details><summary>${esc(this._t('Chart flow limits'))}</summary><p>${esc(this._t('Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.'))}</p><div class="grid">${field(this._t('Display minimum (°C)'), 'flow_min', 'number', 'min="10" max="90" step="any"')}${field(this._t('Display maximum (°C)'), 'flow_max', 'number', 'min="10" max="90" step="any"')}</div></details>
+      <details><summary>${esc(this._t('Password protection'))} ${c.edit_password_hash ? this._t('· configured') : this._t('· optional')}</summary><p>${esc(this._t('Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply.'))}</p>
+      <div class="grid"><label>${esc(this._t('New password'))}<input id="new-password" type="password" autocomplete="new-password"></label><label>${esc(this._t('Repeat password'))}<input id="repeat-password" type="password" autocomplete="new-password"></label></div>
+      <button type="button" id="create-password">${esc(this._t('Set password'))}</button>${c.edit_password_hash ? `<button type="button" id="remove-password">${esc(this._t('Remove password protection'))}</button>` : ''}
+      <p id="password-message" role="status"></p>${field(this._t('Auto-lock after minutes'), 'auto_lock_minutes', 'number', 'min="1" max="60" step="1"')}</details>
+      <p>${esc(this._t('Additional options and manual entity mappings are available in the YAML editor.'))}</p>`;
     this.shadowRoot.querySelectorAll('[data-config]').forEach(input => input.addEventListener('change', () => {
       if (input.closest('#chart-axes') && !input.reportValidity()) return;
       const value = input.type === 'number' && input.value !== '' ? Number(input.value) : input.value;
@@ -151,4 +151,4 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     this.shadowRoot.querySelector('#remove-password')?.addEventListener('click', () => this._change('edit_password_hash', '', true));
   }
 }
-if (!customElements.get('keba-keenergy-heizkurve-editor')) customElements.define('keba-keenergy-heizkurve-editor', KeEnergyHeatingCurveEditor);
+if (!customElements.get('keba-keenergy-heating-curve-card-editor')) customElements.define('keba-keenergy-heating-curve-card-editor', KeEnergyHeatingCurveEditor);

@@ -5,17 +5,17 @@ Allgemeine, eigenständige Home-Assistant-Custom-Card für die Integration
 Version **1.1.0**. Keine fest eingetragene Seriennummer, keine fremden Entitäten,
 kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann daneben bestehen bleiben.
 
-![Vorschau der Karte mit Beispieldaten](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/vorschau.png)
+![Vorschau der Karte mit Beispieldaten](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/assets/preview-de.png)
 
 ## Installation
 
-1. `keba-keenergy-heizkurve.js` nach `/config/www/` kopieren. Den Ordner `www`
+1. `keba_keenergy_heating_curve_card.js` nach `/config/www/` kopieren. Den Ordner `www`
    bei Bedarf anlegen; nach erstmaligem Anlegen Home Assistant einmal neu starten.
    Die Datei ist vollständig; zusätzliche Frontend-Bibliotheken
    oder andere Custom Cards sind nicht nötig.
 
 2. Im Dashboard unter **Einstellungen → Dashboards → Ressourcen** hinzufügen:
-   URL `/local/keba-keenergy-heizkurve.js?v=1.1.0`, Typ **JavaScript-Modul**.
+   URL `/local/keba_keenergy_heating_curve_card.js?v=1.1.0`, Typ **JavaScript-Modul**.
    Die Ressourcenverwaltung ist gegebenenfalls im Drei-Punkte-Menü und bei
    aktiviertem erweiterten Benutzermodus sichtbar. Bei YAML-Ressourcenverwaltung:
 
@@ -23,7 +23,7 @@ kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann dane
    lovelace:
      resource_mode: yaml
      resources:
-       - url: /local/keba-keenergy-heizkurve.js?v=1.1.0
+       - url: /local/keba_keenergy_heating_curve_card.js?v=1.1.0
          type: module
    ```
 
@@ -33,10 +33,10 @@ kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann dane
    [Home-Assistant-Dokumentation zu Ressourcen](https://contributors.home-assistant.io/frontend/custom-ui/resources/).
 
 3. Home-Assistant-Oberfläche vollständig neu laden. Im gewünschten Dashboard
-   eine manuelle Karte mit dem Inhalt von `karte.yaml` anlegen:
+   eine manuelle Karte mit dem Inhalt von `card.yaml` anlegen:
 
    ```yaml
-   type: custom:keba-keenergy-heizkurve-card
+   type: custom:keba-keenergy-heating-curve-card
    ```
 
 Alternativ enthält `dashboard.yaml` ein vollständiges Dashboard mit einer breiten
@@ -45,15 +45,22 @@ Dashboard nur die gewünschte Karte oder Ansicht ergänzen.
 
 ## Bestehende Karte aktualisieren
 
-- **Über HACS installiert.** Das **KeEnergy Heizkurven-Dashboard** in HACS öffnen,
-  Version **v1.1.0** herunterladen und das Dashboard im Browser neu laden.
-- **Manuell installiert.** Die [JavaScript-Datei aus dem Release](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/download/v1.1.0/keba-keenergy-heizkurve.js)
-  herunterladen und `/config/www/keba-keenergy-heizkurve.js` ersetzen. In den
-  Dashboard-Ressourcen die vorhandene URL auf `/local/keba-keenergy-heizkurve.js?v=1.1.0`
-  ändern und das Dashboard im Browser neu laden.
+Karte und Datei heißen jetzt englisch. Bestehende Dashboards einmal anpassen:
 
-Die vorhandene Kartenkonfiguration kannst du weiterverwenden. Für die Achsen
-genügt ein Update der Dashboard-Karte.
+1. Neue Version installieren:
+   - **Über HACS installiert.** Die **KEBA KeEnergy Heating Curve Card** in HACS öffnen und die neue Version
+     herunterladen.
+   - **Manuell installiert.** Die [JavaScript-Datei aus dem Release](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/latest/download/keba_keenergy_heating_curve_card.js) nach `/config/www/` kopieren und die
+     alte Datei `/config/www/keba-keenergy-heizkurve.js` löschen.
+
+2. In den Dashboard-Ressourcen die URL `/local/keba-keenergy-heizkurve.js` durch
+   `/local/keba_keenergy_heating_curve_card.js?v=1.1.0` ersetzen. Bei HACS prüfen, dass die Ressource auf
+   `keba_keenergy_heating_curve_card.js` zeigt.
+3. In jeder Karte `type: custom:keba-keenergy-heizkurve-card` durch
+   `type: custom:keba-keenergy-heating-curve-card` ersetzen. Alle anderen Optionen bleiben gleich.
+4. Dashboard im Browser neu laden.
+
+Bis zur Anpassung zeigt Home Assistant an der Stelle der Karte einen Fehler.
 
 ## Regler, Heizkreis und Kurventabelle
 
@@ -128,7 +135,7 @@ begrenzen weiterhin die gezeichnete Kurve.
 Dieselben Felder können zur vorhandenen Karten-YAML ergänzt werden:
 
 ```yaml
-type: custom:keba-keenergy-heizkurve-card
+type: custom:keba-keenergy-heating-curve-card
 x_min: -15
 x_max: 25
 x_step: 5
@@ -154,7 +161,7 @@ Nicht vom Gerät unterstützte Entitäten kann die Karte nicht erzeugen.
 
 Bei eingeschränkten Rechten kann das Lesen des Verzeichnisses fehlschlagen. Dann
 als Administrator einrichten oder `config_entry` und `entities` manuell zuordnen,
-siehe `beispiele/manuelle-entitaeten.yaml`. Steuerungs-Entitäten müssen aus demselben
+siehe `examples/manual-entities.yaml`. Steuerungs-Entitäten müssen aus demselben
 KeEnergy-Regler und Heizkreis stammen. Eine widersprüchliche oder mehrdeutige
 Zuordnung blockiert Schreibaktionen. Ein verschwundener ausgewählter Regler wird
 nicht automatisch durch einen anderen ersetzt. **Neu erkennen** liest das
@@ -173,7 +180,7 @@ Im visuellen Karteneditor unter **Sprache** zwischen Automatisch, Deutsch und
 Englisch wählen. Alternativ in YAML:
 
 ```yaml
-type: custom:keba-keenergy-heizkurve-card
+type: custom:keba-keenergy-heating-curve-card
 language: auto
 ```
 
@@ -242,7 +249,7 @@ an echte Anlagen im Rahmen dieser Tests.
 
 ## Weitergeben und Quellcode
 
-Das Paket kann vollständig weitergegeben werden. `vorschau.png` enthält ausschließlich
+Das Paket kann vollständig weitergegeben werden. `assets/` enthält ausschließlich
 Beispieldaten. Die Karte lädt zur Laufzeit keine externen Skripte. Sie enthält weder
 persönliche Zugangsdaten noch feste Netzadressen oder Seriennummern.
 
