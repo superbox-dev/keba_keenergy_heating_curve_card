@@ -10,4 +10,4 @@ Closes #
 
 - [ ] `npm test` passes
 - [ ] `CHANGELOG.md` updated if users notice the change
-- [ ] `README.md` and `README.en.md` updated if options or behavior changed
+- [ ] `README.md` and `README.de.md` updated if options or behavior changed

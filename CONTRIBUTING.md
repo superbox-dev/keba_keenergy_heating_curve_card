@@ -30,7 +30,7 @@ Every change goes through a pull request against `main`. Direct pushes to `main`
    - with an issue (forks): `git switch -c 12-fix-tooltip-on-mobile main`
    - without an issue: `git switch -c fix-typo-in-readme main`
 3. Commit with the issue number first, if there is one: `#12 Fix tooltip on mobile`.
-4. Update [README.md](README.md) and [README.en.md](README.en.md) if you changed something user-visible and add
+4. Update [README.md](README.md) and [README.de.md](README.de.md) if you changed something user-visible and add
    an entry under `## Unveröffentlicht` in [CHANGELOG.md](CHANGELOG.md).
 5. Make sure `./scripts/lint.sh` and `npm test` pass.
 6. Push the branch and open the pull request against `main`: `gh pr create --base main --fill`.
@@ -56,7 +56,7 @@ The project only uses [Claude Code](https://claude.com/claude-code) as AI assist
 
 ## Documentation
 
-The documentation is in [README.md](README.md) (German) and [README.en.md](README.en.md) (English). Card examples
+The documentation is in [README.md](README.md) (English) and [README.de.md](README.de.md) (German). Card examples
 are in [card.yaml](card.yaml), [dashboard.yaml](dashboard.yaml) and `examples/`, screenshots in `assets/`.
 
 ## Tests
