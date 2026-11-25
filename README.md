@@ -1,138 +1,145 @@
 # KEBA KeEnergy Heating Curve Card
 
-Allgemeine, eigenständige Home-Assistant-Custom-Card für die Integration
-[superbox-dev/keba_keenergy](https://github.com/superbox-dev/keba_keenergy).
-Version **1.1.0**. Keine fest eingetragene Seriennummer, keine fremden Entitäten,
-kein voreingestelltes Kennwort. Die bisherige persönliche M-TEC-Karte kann daneben bestehen bleiben.
+A Home Assistant dashboard card for the heating curves of KEBA KeEnergy heat pumps.
 
-![Vorschau der Karte mit Beispieldaten](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/assets/preview-de.png)
+[Deutsche Version](README.de.md)
+
+![Preview](https://raw.githubusercontent.com/superbox-dev/keba_keenergy_heating_curve_card/main/assets/preview.png)
+
+## Features
+
+- Shows the heating curve as a chart, with the current outdoor and flow temperatures.
+- Edits the points of the curve table (1 to 16 points).
+- Edits the day and night heating limits.
+- Selects the curve table of a heating circuit.
+- Finds controllers and heating circuits on its own.
+- Optional password lock for the card.
+- English and German.
+
+## Requirements
+
+- Home Assistant with the [KEBA KeEnergy](https://github.com/superbox-dev/keba_keenergy) integration.
+- To save points: the action `keba_keenergy.set_heating_curve_points` (integration 1.12.2 or newer).
 
 ## Installation
 
-1. `keba_keenergy_heating_curve_card.js` nach `/config/www/` kopieren. Den Ordner `www`
-   bei Bedarf anlegen; nach erstmaligem Anlegen Home Assistant einmal neu starten.
-   Die Datei ist vollständig; zusätzliche Frontend-Bibliotheken
-   oder andere Custom Cards sind nicht nötig.
+### HACS
 
-2. Im Dashboard unter **Einstellungen → Dashboards → Ressourcen** hinzufügen:
-   URL `/local/keba_keenergy_heating_curve_card.js?v=1.1.0`, Typ **JavaScript-Modul**.
-   Die Ressourcenverwaltung ist gegebenenfalls im Drei-Punkte-Menü und bei
-   aktiviertem erweiterten Benutzermodus sichtbar. Bei YAML-Ressourcenverwaltung:
+[![Open the repository in the Marketplace of your Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)][redirect-hacs]
 
-   ```yaml
-   lovelace:
-     resource_mode: yaml
-     resources:
-       - url: /local/keba_keenergy_heating_curve_card.js?v=1.1.0
-         type: module
-   ```
+1. Go to **Settings** → **Marketplace**.
+2. Search for **KEBA KeEnergy Heating Curve Card** and select **Install**.
+3. Reload the browser.
 
-   In eine vorhandene `lovelace`-Konfiguration einfügen, keinen zweiten gleichnamigen
-   Hauptschlüssel anlegen.
-   Die aktuelle Einrichtung beschreibt auch die
-   [Home-Assistant-Dokumentation zu Ressourcen](https://contributors.home-assistant.io/frontend/custom-ui/resources/).
+[redirect-hacs]: https://my.home-assistant.io/redirect/hacs_repository/?owner=superbox-dev&repository=keba_keenergy_heating_curve_card&category=plugin
 
-3. Home-Assistant-Oberfläche vollständig neu laden. Im gewünschten Dashboard
-   eine manuelle Karte mit dem Inhalt von `card.yaml` anlegen:
+### Manual
 
-   ```yaml
-   type: custom:keba-keenergy-heating-curve-card
-   ```
+1. Download `keba_keenergy_heating_curve_card.js` from the [latest release][latest-release].
+2. Copy it to `/config/www/`.
+   - Did you create the `www` folder? Then restart Home Assistant once.
+3. Go to **Settings** → **Dashboards** → **Resources**.
+   - The menu is in the top right corner.
+   - It needs the advanced mode in your user profile.
+4. Add the URL `/local/keba_keenergy_heating_curve_card.js` as **JavaScript module**.
+5. Reload the browser.
 
-Alternativ enthält `dashboard.yaml` ein vollständiges Dashboard mit einer breiten
-Panel-Ansicht. Es ist für ein eigenes/neues Dashboard gedacht; im bestehenden
-Dashboard nur die gewünschte Karte oder Ansicht ergänzen.
+After an update, add `?v=<version>` to the URL. Then the browser loads the new file.
 
-## Bestehende Karte aktualisieren
+With YAML resources, add this to your `lovelace` configuration:
 
-Karte und Datei heißen jetzt englisch. Bestehende Dashboards einmal anpassen:
+```yaml
+lovelace:
+  resource_mode: yaml
+  resources:
+    - url: /local/keba_keenergy_heating_curve_card.js
+      type: module
+```
 
-1. Neue Version installieren:
-   - **Über HACS installiert.** Die **KEBA KeEnergy Heating Curve Card** in HACS öffnen und die neue Version
-     herunterladen.
-   - **Manuell installiert.** Die [JavaScript-Datei aus dem Release](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/latest/download/keba_keenergy_heating_curve_card.js) nach `/config/www/` kopieren und die
-     alte Datei `/config/www/keba-keenergy-heizkurve.js` löschen.
+[latest-release]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/latest
 
-2. In den Dashboard-Ressourcen die URL `/local/keba-keenergy-heizkurve.js` durch
-   `/local/keba_keenergy_heating_curve_card.js?v=1.1.0` ersetzen. Bei HACS prüfen, dass die Ressource auf
-   `keba_keenergy_heating_curve_card.js` zeigt.
-3. In jeder Karte `type: custom:keba-keenergy-heizkurve-card` durch
-   `type: custom:keba-keenergy-heating-curve-card` ersetzen. Alle anderen Optionen bleiben gleich.
-4. Dashboard im Browser neu laden.
+### Update from `keba-keenergy-heizkurve`
 
-Bis zur Anpassung zeigt Home Assistant an der Stelle der Karte einen Fehler.
+The card and its file have English names now. Adapt existing dashboards once:
 
-## Regler, Heizkreis und Kurventabelle
+1. Install the new version.
+   - HACS: download it in HACS.
+   - Manual: copy the [new file](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/latest/download/keba_keenergy_heating_curve_card.js) to `/config/www/` and delete
+     `/config/www/keba-keenergy-heizkurve.js`.
+2. In the dashboard resources, replace `/local/keba-keenergy-heizkurve.js` with
+   `/local/keba_keenergy_heating_curve_card.js`.
+   - With HACS, check that the resource points to `keba_keenergy_heating_curve_card.js`.
+3. In every card, replace `type: custom:keba-keenergy-heizkurve-card` with
+   `type: custom:keba-keenergy-heating-curve-card`.
+   - All other options stay the same.
+4. Reload the browser.
 
-Die Karte liest das Entitätenverzeichnis von Home Assistant einmal beim Einrichten.
-Sie ordnet die `unique_id` und den Integrationseintrag aus `keba_keenergy` zu.
-Umbenannte Entity-IDs werden dadurch ebenfalls gefunden. Bei einem Regler mit
-einem Heizkreis ist keine weitere Zuordnung erforderlich.
+Until then, Home Assistant shows an error in place of the card.
 
-Bei mehreren Reglern oder Heizkreisen erscheinen Auswahlfelder in der Karte.
-**Regler/Heizkreis wechseln nur die Ansicht und senden keine Befehle.** Der erste
-erkannte Regler/Heizkreis ist die Startansicht. Die Auswahl gilt für die aktuelle
-Karteninstanz; für eine feste Startansicht die Zuordnung im visuellen Karteneditor
-speichern. Eine weitere Karte kann einen anderen Heizkreis fest anzeigen.
+## Usage
 
-Die **Kurventabelle** ist eine eigene Auswahl, z. B. HC1 oder HC2. Sie ist nicht die
-Nummer des Heizkreises. Die Auswahl einer Kurventabelle weist diese dem angezeigten
-Heizkreis zu und wird unmittelbar übertragen. Angezeigt werden die vom Regler
-angebotenen Heiztabellen mit dem Präfix `HC`.
+Add a card with this content to a dashboard:
 
-Eine Kurventabelle kann von mehreren Heizkreisen desselben Reglers gemeinsam
-verwendet werden. Werden ihre Punkte gespeichert, wirkt sich das auf alle diese
-Heizkreise aus. Bei ungespeicherten Änderungen blockiert die Karte einen Tabellen-,
-Regler- oder Heizkreiswechsel; zuerst speichern oder **Entwurf verwerfen** wählen.
+```yaml
+type: custom:keba-keenergy-heating-curve-card
+```
 
-## Punkte, Heizgrenzen und Anzeige
+- That's all for one controller with one heating circuit.
+- [dashboard.yaml](dashboard.yaml) contains a complete dashboard with a wide view.
+- More examples are in [examples/](examples/).
 
-- **Punkte:** 1 bis 16 Stützpunkte bearbeiten, hinzufügen und entfernen.
-  Die Vorschau aktualisiert sich beim Eingeben. Erst **Punkte speichern** ruft
-  `keba_keenergy.set_heating_curve_points` auf, mit dem passenden Integrationseintrag
-  und Tabellennamen. Zulässig: außen −40 bis +40 °C, Vorlauf 10 bis 90 °C;
-  Außentemperaturen müssen auch nach Rundung auf zwei Nachkommastellen eindeutig sein.
-- **Heizgrenzen Tag/Nacht:** Die Felder verwenden die Grenzen und Schrittweiten der
-  jeweiligen `number`-Entitäten. **Heizgrenzen speichern** überträgt geänderte Werte.
-  Die Karte stellt Temperaturen in °C dar; HA-Entitäten mit °F/K werden für die
-  Anzeige umgerechnet, und Heizgrenzen in der Einheit ihrer Entität zurückgeschrieben.
-- **Diagramm:** Stützpunkte, kleinere Zwischenwerte mit einstellbarem Abstand, Heizgrenzen,
-  Außentemperatur sowie separat gelesene Vorlauf-Soll- und Isttemperatur.
-  Zwischenwerte sind eine lineare Berechnung aus der Tabelle. Zusätzliche Einflüsse
-  des Reglers können den tatsächlichen Sollwert verändern.
-- **Vorlauf Min/Max im Diagramm:** Optional im visuellen Editor oder per `flow_min`
-  und `flow_max`. Ohne Angabe wird keine persönliche Begrenzung angenommen.
-  Diese Optionen begrenzen ausschließlich die Zeichnung, verändern weder die
-  gespeicherten Punkte noch die Vorlaufbegrenzungen im Regler.
-- **Aktualisierung:** Messwerte werden aktualisiert, ohne bei jedem Sensorupdate
-  Eingabefelder, offene Auswahllisten und den Scrollbereich neu anzulegen.
-  Ab Version 1.0.1 bleiben beim Hinzufügen und Entfernen von Punkten auch die
-  umgebende Karte und die Seitenposition erhalten.
+### Controllers and heating circuits
 
-Die Karte schaltet weder auf Hybrid um noch verändert sie Steigung/Offset.
-Der vorhandene Zustand des Punkttabellen-Schalters wird nur angezeigt.
+- The card finds all controllers and heating circuits of the integration.
+- Renamed entities are found too.
+- With several of them, the card shows selection fields.
+- **Switching only changes the view. It sends nothing to the heat pump.**
+- The first controller and heating circuit is shown first.
+- For a fixed view, select them in the visual card editor.
 
-## Diagrammachsen einstellen
+### Curve tables
 
-Öffne im Dashboard **Karte bearbeiten → Diagrammachsen**. Stelle für **X**
-(Außentemperatur) und **Y** (Vorlauftemperatur) unabhängig Minimum, Maximum und
-Rasterweite ein. Leere Grenzen werden automatisch ermittelt. Für eine leere
-Rasterweite gilt 5 °C. Alle Werte sind in °C und können bis zu zwei
-Nachkommastellen haben. Eine feste Untergrenze dient als Start des Rasters. Bei
-engem Raster werden weniger Zahlen angezeigt. Bei sehr vielen Linien wird das
-Raster in ganzzahligen Vielfachen der eingestellten Rasterweite gezeichnet.
+- A curve table is a table like `HC1` or `HC2`.
+- It is not the number of the heating circuit.
+- Selecting a curve table assigns it to the shown heating circuit. **This is sent at once.**
+- Several heating circuits can share one curve table.
+  - Saving its points changes it for all of them.
 
-Unter **Zwischenwerte** stellst du den Abstand entlang der Außentemperatur ein,
-zum Beispiel 2,5 °C. Das Feld ist unabhängig vom Achsenraster. Leer gilt wie bisher
-5 °C. Bei kleinen Abständen werden weniger Beschriftungen angezeigt. Bei sehr
-kleinen Abständen erscheinen die Zwischenpunkte in ganzzahligen Vielfachen des
-gewählten Abstands.
+### Points
 
-Die Achsenoptionen wählen den sichtbaren Ausschnitt. Kurvenpunkte, Heizgrenzen
-und Reglerwerte bleiben gespeichert wie zuvor. `flow_min` und `flow_max`
-begrenzen weiterhin die gezeichnete Kurve.
+- Edit, add and remove 1 to 16 points.
+- The chart updates while you type.
+- **Only Save points sends the points to the heat pump.**
+- Allowed values:
+  - Outdoor temperature: −40 to 40 °C
+  - Flow temperature: 10 to 90 °C
+  - Every outdoor temperature only once
+- With unsaved changes, you can't switch the table, controller or heating circuit.
+  - Save first, or select **Discard draft**.
 
-Dieselben Felder können zur vorhandenen Karten-YAML ergänzt werden:
+### Heating limits
+
+- Edit the heating limits for day and night.
+- **Save heating limits** sends the changed values.
+- The fields use the limits and steps of the entities.
+
+### Chart
+
+- Shows the points, the heating limits and the outdoor temperature.
+- Shows the target and actual flow temperature.
+- Shows interpolated values every 5 °C, or every `intermediate_step`.
+  - They are calculated from the table.
+  - The controller can still use a different target.
+- `flow_min` and `flow_max` only limit the chart.
+  - They don't change the points or the controller.
+
+### Chart axes
+
+- Open **Chart axes** in the visual card editor.
+- Set minimum, maximum and grid interval in °C for the outdoor temperature (X) and the flow temperature (Y).
+  - Empty bounds are automatic, the default grid interval is 5 °C.
+- **Interpolated values** sets the interval of the interpolated values, independent of the grid.
+- The axes only change the chart, not the points or the controller.
 
 ```yaml
 type: custom:keba-keenergy-heating-curve-card
@@ -145,116 +152,118 @@ y_step: 2.5
 intermediate_step: 2.5
 ```
 
-## Benötigte Entitäten aktivieren
+### Units
 
-Die Integration deaktiviert manche Konfigurations- und Messentitäten standardmäßig.
-Die Karte zeigt gefundene, aber deaktivierte Entitäten an. Als HA-Administrator
-kann man sie mit **Bearbeitungs-Entitäten aktivieren** aktivieren. Es werden nur
-die von dieser Karte verwendeten Entitäten des gewählten Reglers/Heizkreises
-berücksichtigt; Thermostat- und andere Heizkreis-Einstellungen gehören nicht dazu.
+- The card shows all temperatures in °C.
+- Entities in °F or K are converted.
+- Heating limits are saved in the unit of their entity.
 
-Alternativ in den Entitätseinstellungen der Integration manuell aktivieren:
-Kurvenauswahl (`select`), Heizkurven-Sensor mit Attribut `points`, Heizgrenze Tag/Nacht
-(`number`), Außentemperatur, Vorlauf Soll/Ist und optional Punkttabellen-Status.
-Fehlende Messwerte erscheinen als „—“; verfügbare Funktionen bleiben nutzbar.
-Nicht vom Gerät unterstützte Entitäten kann die Karte nicht erzeugen.
+### Disabled entities
 
-Bei eingeschränkten Rechten kann das Lesen des Verzeichnisses fehlschlagen. Dann
-als Administrator einrichten oder `config_entry` und `entities` manuell zuordnen,
-siehe `examples/manual-entities.yaml`. Steuerungs-Entitäten müssen aus demselben
-KeEnergy-Regler und Heizkreis stammen. Eine widersprüchliche oder mehrdeutige
-Zuordnung blockiert Schreibaktionen. Ein verschwundener ausgewählter Regler wird
-nicht automatisch durch einen anderen ersetzt. **Neu erkennen** liest das
-Verzeichnis erneut, etwa nach Integrations- oder Entitätsänderungen.
+The integration disables some entities by default. The card needs the [entities](#entities) in the table below.
 
-## Sprache
+How to enable them:
 
-Ab Version 1.0.2 sind Karte und visueller Karteneditor auf **Deutsch und Englisch**
-verfügbar, einschließlich Kennwortdialog, eigener Status-/Fehlermeldungen und
-Beschriftungen im Diagramm. Standard ist `language: auto`: Die Sprache wird aus dem
-Home-Assistant-Profil des jeweiligen Benutzers übernommen. Deutsch einschließlich
-regionaler Varianten wie `de-CH` verwendet Deutsch; Englisch und andere HA-Sprachen
-verwenden Englisch als Ersatz. Es werden keine weiteren Sprachpakete heruntergeladen.
+- As administrator: select **Enable required entities** in the card.
+- Or enable them in the entity settings of the integration.
 
-Im visuellen Karteneditor unter **Sprache** zwischen Automatisch, Deutsch und
-Englisch wählen. Alternativ in YAML:
+Missing readings are shown as `—`.
 
-```yaml
-type: custom:keba-keenergy-heating-curve-card
-language: auto
-```
+### Without administrator rights
 
-Mit `language: de` oder `language: en` die Sprache für diese Karte fest vorgeben.
-Zahlen folgen der HA-Zahlenformat-Einstellung beziehungsweise der gewählten Sprache.
-Eigene Titel, Geräte-/Raumnamen, Entity-IDs und Tabellennamen wie HC1 bleiben
-unverändert. Ohne `title` verwendet die Karte eine übersetzte Standardüberschrift.
-Von HA oder dem Gerät gelieferte Fehlertexte werden unverändert weitergereicht.
-Die API-Befehle, Einheitenumrechnung und gespeicherten Kurvenpunkte sind sprachunabhängig.
+- The card may not be able to read the entity registry.
+- Then set `config_entry` and `entities` by hand.
+- See [examples/manual-entities.yaml](examples/manual-entities.yaml).
+- All entities must belong to the same controller and heating circuit.
+- **Rediscover** reads the registry again.
 
-## Eigenes Kennwort
+### Language
 
-Standardmäßig ist kein Kennwort gesetzt. Im **visuellen Karteneditor → Kennwortschutz**
-das eigene Kennwort zweimal eingeben, **Kennwort einrichten** wählen und anschließend
-die Kartenkonfiguration speichern. Es wird ein zufällig gesalzener
-PBKDF2-SHA256-Prüfwert mit 120.000 Durchläufen unter `edit_password_hash` abgelegt,
-kein Klartextkennwort. Jede Installation kann ihr eigenes Kennwort nutzen.
+- Default: the language of your Home Assistant profile.
+- German profiles use German, all others English.
+- Set a fixed language in the visual editor or with `language: de` or `language: en`.
+- Your own titles, names and table names stay unchanged.
 
-Die Karte ist danach beim Öffnen gesperrt. Entsperren ist per Schaltfläche oder Enter
-möglich. Automatische Sperre nach `auto_lock_minutes` ohne Bearbeitung (Standard 5,
-zulässig 1 bis 60), beim Verlassen des Tabs, beim Schließen der Karte oder beim
-Wechsel von Regler/Heizkreis. Sperren verwirft ungespeicherte Änderungen.
-Das Kennwort und die Freigabe werden nicht im Browser-Speicher abgelegt.
+### Password
 
-**Der Kennwortschutz ist eine Bediensperre dieser Karte.** Er ersetzt keine
-Home-Assistant-Berechtigungen. Wer die Dashboard-Konfiguration bearbeiten kann,
-kann den Prüfwert entfernen; andere HA-Karten und direkte Aktionen werden dadurch
-nicht gesperrt. Ein früher in einer anderen persönlichen Karte eingerichtetes
-Kennwort wird nicht automatisch übernommen.
+- No password is set by default.
+- To set one:
+  1. Open the visual card editor.
+  2. Open **Password protection**.
+  3. Enter the password twice and select **Set password**.
+  4. Save the card.
+- The card only stores a check value (PBKDF2-SHA256), never the password.
+- The card locks again:
+  - after `auto_lock_minutes` without editing (default 5)
+  - when you leave the browser tab
+  - when you close the card
+  - when you switch the controller or heating circuit
+- Locking discards unsaved changes.
 
-## Optionen
+> [!WARNING]
+> The password only locks this card. It doesn't replace Home Assistant permissions.
+> Anyone who can edit the dashboard can remove it.
 
-| Option | Standard | Bedeutung |
+## Configuration
+
+| Option | Default | Description |
 | --- | --- | --- |
-| `title` | Heizkurve KeEnergy | Überschrift |
-| `language` | auto | HA-Profilsprache; alternativ `de` oder `en` |
-| `config_entry` | automatisch | Regler über ID des Integrationseintrags fest zuordnen |
-| `serial` | automatisch | Alternativ Regler über Seriennummer fest zuordnen |
-| `circuit` | automatisch | Heizkreisnummer ab `1`; auch ein einzelner Heizkreis ist `1` |
-| `x_min`, `x_max` | automatisch | Sichtbarer Außentemperaturbereich, −100 bis 100 °C |
-| `y_min`, `y_max` | automatisch | Sichtbarer Vorlauftemperaturbereich, 0 bis 150 °C |
-| `x_step`, `y_step` | 5 | Rasterweite in °C, ab 0,01 bis 200 (X) bzw. 150 (Y) |
-| `flow_min`, `flow_max` | keine | Optionale Diagrammgrenzen in °C, zwischen 10 und 90 |
-| `edit_password_hash` | kein Schutz | Individueller PBKDF2-Prüfwert aus dem visuellen Editor |
-| `auto_lock_minutes` | 5 | Inaktivitätsfrist bei eingerichtetem Kennwort |
-| `entities` | automatisch | Manuelle Zuordnung mit den Schlüsseln der Beispieldatei |
+| `title` | KeEnergy heating curve | Title of the card |
+| `language` | `auto` | `auto`, `de` or `en` |
+| `config_entry` | automatic | Fixed controller, by its config entry ID |
+| `serial` | automatic | Fixed controller, by its serial number |
+| `circuit` | automatic | Fixed heating circuit, starting at `1` |
+| `flow_min`, `flow_max` | none | Chart limits in °C, 10 to 90 |
+| `x_min`, `x_max` | automatic | Visible outdoor temperature range in °C, −100 to 100 |
+| `y_min`, `y_max` | automatic | Visible flow temperature range in °C, 0 to 150 |
+| `x_step`, `y_step` | 5 | Grid interval in °C, 0.01 to 200 (X) or 150 (Y) |
+| `intermediate_step` | 5 | Interval of the interpolated values in °C |
+| `edit_password_hash` | none | Set by the visual editor |
+| `auto_lock_minutes` | 5 | Minutes until the card locks again, 1 to 60 |
+| `entities` | automatic | Manual entities, see [examples/manual-entities.yaml](examples/manual-entities.yaml) |
 
-Für automatisch auswählbare Regler/Heizkreise `config_entry`, `serial`, `circuit`
-und `entities` weglassen. Feste Zuordnungen und manuelle Entitäten müssen zusammenpassen.
+- Leave out `config_entry`, `serial`, `circuit` and `entities` to select them in the card.
+- [examples/fixed-heating-circuit.yaml](examples/fixed-heating-circuit.yaml) shows a fixed heating circuit.
 
-## Kompatibilität und Prüfung
+### Entities
 
-Abgeglichen mit dem öffentlichen Quellcode von `superbox-dev/keba_keenergy`
-Version **1.12.2**, abgerufen am **23.11.2026**. Benötigt einen Heizkurven-Sensor
-mit `points`, für Punkteänderungen außerdem die Aktion
-`keba_keenergy.set_heating_curve_points`. Ältere Integrationen ohne diese Aktion
-können die Punkte nicht über diese Karte speichern. Kein MQTT oder Node-RED nötig.
-Andere, nur ähnlich benannte Integrationen sind nicht automatisch kompatibel.
+The card finds these entities on its own. Set them in `entities` only if that doesn't work.
 
-Lokal in Edge mit simuliertem HA getestet: mehrere Regler/Heizkreise, umbenannte
-Entitäten, getrennte Schreibziele, deaktivierte Entitäten, fehlende Dienste,
-eingeschränkte Rechte, widersprüchliche Zuordnungen, verschwundener Regler,
-Kennwort-Erstellung/Entsperren, Dropdowns und Scrollen bei 25 Updates pro Sekunde,
-helle/dunkle Darstellung und Mobilansicht. Keine Hardwareprüfung und keine Befehle
-an echte Anlagen im Rahmen dieser Tests.
+| Key | Domain | Entity |
+| --- | --- | --- |
+| `curve_select` | `select` | Curve table of the heating circuit |
+| `curve_sensor` | `sensor` | Heating curve with the attribute `points` |
+| `outdoor_temperature` | `sensor` | Outdoor temperature |
+| `flow_temperature` | `sensor` | Actual flow temperature |
+| `flow_setpoint` | `sensor` | Target flow temperature |
+| `use_heating_curve` | `switch` | Point table state (optional) |
+| `heating_limit_day` | `number` | Heating limit day |
+| `heating_limit_night` | `number` | Heating limit night |
 
-## Weitergeben und Quellcode
+- All entities must belong to the same controller and heating circuit.
+- See [examples/manual-entities.yaml](examples/manual-entities.yaml).
 
-Das Paket kann vollständig weitergegeben werden. `assets/` enthält ausschließlich
-Beispieldaten. Die Karte lädt zur Laufzeit keine externen Skripte. Sie enthält weder
-persönliche Zugangsdaten noch feste Netzadressen oder Seriennummern.
+## Good to know
 
-Quellcode in `src/`, portable Erkennungstests in `tests/`. Für Änderungen Node.js 20.19+
-verwenden, im Paketordner `npm install`, `npm test` und `npm run build` ausführen.
-Die neue Bundle-Datei liegt anschließend wieder im Paketordner. Zur Nutzung in HA
-ist dieser Build-Schritt nicht erforderlich. MIT-Lizenz, Hinweise zu eingebundenem
-`@noble/hashes` in `THIRD_PARTY_NOTICES.md`. Inoffizielle Karte; kein KEBA-Produkt.
+- The card never changes the curve mode (point table or hybrid).
+- The card never changes slope or offset.
+- The card loads nothing from the internet.
+- No MQTT or Node-RED needed.
+
+## Changelog
+
+The [changelog](CHANGELOG.md) lists the changes of every release (in German).
+
+## Get involved
+
+[![CI](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/actions/workflows/ci.yml/badge.svg?branch=main)][workflow-ci]
+
+- Found a bug or have an idea? [Open an issue](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/new/choose).
+- Want to help with the code? Read the [contribution guide](CONTRIBUTING.md).
+
+[workflow-ci]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/actions/workflows/ci.yml
+
+## License
+
+- [MIT](LICENSE)
+- The bundled [@noble/hashes](https://github.com/paulmillr/noble-hashes) library: see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)

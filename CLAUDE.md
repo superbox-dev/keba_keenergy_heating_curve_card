@@ -70,9 +70,9 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this
 
 ## Documentation
 
-- `README.md` (German) and `README.en.md` (English) are the only documentation, update both when options, behavior
+- `README.md` (English) and `README.de.md` (German) are the only documentation, update both when options, behavior
   or requirements change
-  - UI labels as the card shows them in the language
+  - same sections in the same order, UI labels as the card shows them in the language
   - short sentences, prefer lists
 - Card examples in `card.yaml`, `dashboard.yaml` and `examples/`, keep them working
 - Images in `assets/`, only with example data

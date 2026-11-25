@@ -6,6 +6,7 @@
   `keba_keenergy_heating_curve_card.js`. Bestehende Dashboards einmal anpassen, siehe
   „Bestehende Karte aktualisieren“ im README.
 - Name in HACS: **KEBA KeEnergy Heating Curve Card**.
+- Dokumentation auf Englisch in `README.md`, auf Deutsch in `README.de.md`.
 - Abstand der Zwischenwerte entlang der Außentemperatur im Karteneditor oder
   per `intermediate_step` in YAML einstellen. Standard sind weiterhin 5 °C.
 
