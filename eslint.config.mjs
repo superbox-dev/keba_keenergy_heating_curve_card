@@ -4,7 +4,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['dist/', 'node_modules/', 'keba-keenergy-heizkurve.js'],
+    ignores: ['dist/', 'node_modules/', 'keba_keenergy_heating_curve_card.js'],
   },
   js.configs.recommended,
   stylistic.configs.customize({

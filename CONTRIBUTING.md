@@ -15,7 +15,8 @@ The project needs [Node.js](https://nodejs.org) (see `engines` in `package.json`
 
 1. Set up the project with `./scripts/setup.sh`. This installs the dependencies and the [prek](https://prek.j178.dev)
    hooks.
-2. Change the sources in `src/` and build the card with `npm run build`. This creates `keba-keenergy-heizkurve.js`.
+2. Change the sources in `src/` and build the card with `npm run build`. This creates
+   `keba_keenergy_heating_curve_card.js`.
 3. Copy this file to the `www/` folder of your Home Assistant configuration and add it as a dashboard resource
    (see [README.md](README.md)).
 
@@ -56,8 +57,7 @@ The project only uses [Claude Code](https://claude.com/claude-code) as AI assist
 ## Documentation
 
 The documentation is in [README.md](README.md) (German) and [README.en.md](README.en.md) (English). Card examples
-are in [karte.yaml](karte.yaml), [dashboard.yaml](dashboard.yaml) and `beispiele/`, screenshots in `vorschau.png`
-and `preview-english.png`.
+are in [card.yaml](card.yaml), [dashboard.yaml](dashboard.yaml) and `examples/`, screenshots in `assets/`.
 
 ## Tests
 
@@ -74,7 +74,8 @@ Only maintainers create releases. Releases and pre-releases are tagged on `main`
 1. Create the branch `release/vX.Y.Z` (or `release/vX.Y.Z-beta.N`) from `main`.
 2. Set the version, update `CHANGELOG.md` and build the card.
 3. Open the pull request against `main`, `@marcofeurer` reviews and merges it.
-4. Create the GitHub release with the tag `vX.Y.Z` on `main` and attach `keba-keenergy-heizkurve.js`.
+4. Create the GitHub release with the tag `vX.Y.Z` on `main` and attach
+   `keba_keenergy_heating_curve_card.js`.
    Mark `vX.Y.Z-beta.N` as pre-release.
 
 ## Report bugs

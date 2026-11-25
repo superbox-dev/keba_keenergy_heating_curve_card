@@ -12,7 +12,7 @@ plain JavaScript web components bundled with esbuild into one file, only runtime
 npx eslint --fix .   # format and fix (lint.sh only checks)
 ./scripts/lint.sh    # all prek hooks: eslint, tests, yamllint, rumdl, file checks
 npm test             # tests
-npm run build        # build keba-keenergy-heizkurve.js from src/
+npm run build        # build keba_keenergy_heating_curve_card.js from src/
 ```
 
 Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this order.
@@ -20,17 +20,18 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this
 ## Rules
 
 - **No breaking changes** for installations: nothing a user notices later and has to fix by hand
-  (element names `keba-keenergy-heizkurve-card` / `-editor`, the file name `keba-keenergy-heizkurve.js`, config
-  options and their defaults, `entities` keys, the `edit_password_hash` format)
+  (element names `keba-keenergy-heating-curve-card` / `-editor`, the file name `keba_keenergy_heating_curve_card.js`,
+  config options and their defaults, `entities` keys, the `edit_password_hash` format)
   - only when asked, then as a major release
-- `keba-keenergy-heizkurve.js` is the committed build, only changed by `npm run build` in a release
+  - exception: the English renaming of #1 in v1.x, with upgrade steps in both README files
+- `keba_keenergy_heating_curve_card.js` is the committed build, only changed by `npm run build`, never by hand
 - Every interpolated value in an HTML template goes through `esc()`
 - Writes only from explicit user actions (save buttons, curve table selection, enabling entities), switching the
   view never writes
   - only through Home Assistant: `keba_keenergy.set_heating_curve_points`, `select.select_option`,
     `number.set_value`, `config/entity_registry/update`
 - Temperatures internally in °C, converted from and to the unit of the entity only when reading and writing
-- Texts: German source text in `_t()`, English in `EN` of `src/i18n.js`, placeholders as `{name}`
+- Texts: English source text in `_t()`, German in `DE` of `src/i18n.js`, placeholders as `{name}`
   - never pass data through `_t()` (entity IDs, table names, device names, user labels, error texts of
     Home Assistant)
 - Password: only the salted PBKDF2-SHA256 verifier in the card config, never the password or the unlock state in
@@ -73,8 +74,8 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this
   or requirements change
   - UI labels as the card shows them in the language
   - short sentences, prefer lists
-- Card examples in `karte.yaml`, `dashboard.yaml` and `beispiele/`, keep them working
-- Screenshots `vorschau.png` and `preview-english.png`, only with example data
+- Card examples in `card.yaml`, `dashboard.yaml` and `examples/`, keep them working
+- Images in `assets/`, only with example data
 
 ## Changelog, versions and git
 

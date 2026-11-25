@@ -1,0 +1,4 @@
+# Resource: /local/keba_keenergy_heating_curve_card.js
+# Resource type: JavaScript module
+type: custom:keba-keenergy-heating-curve-card
+# Language from the Home Assistant profile, optional: language: de or language: en

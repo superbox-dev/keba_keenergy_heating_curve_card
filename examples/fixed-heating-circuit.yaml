@@ -1,0 +1,15 @@
+type: custom:keba-keenergy-heating-curve-card
+title: Heating curve ground floor
+
+# Enter YOUR serial number; the visual editor can select the integration entry instead.
+# Never copy example values from someone else.
+serial: YOUR_SERIAL_NUMBER
+circuit: '1'
+
+# Optional: limits ONLY for the chart, not controller parameters.
+# Without these lines the saved table is shown unchanged.
+flow_min: 25
+flow_max: 50
+
+# Set up your own password in the visual card editor.
+auto_lock_minutes: 5
