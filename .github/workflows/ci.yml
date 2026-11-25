@@ -88,10 +88,10 @@ jobs:
     name: Release on GitHub
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
+    # Not after the HACS validation: it only passes once a release has the new file.
     needs:
       - code-analysis
       - build
-      - validation
     permissions:
       contents: write
     steps:
