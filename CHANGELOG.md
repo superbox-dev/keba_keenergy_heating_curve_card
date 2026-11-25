@@ -1,6 +1,8 @@
 # Änderungen
 
-## Unveröffentlicht
+## [Unreleased]
+
+## [1.1.0] - 2026-11-26
 
 - Abstand der Zwischenwerte entlang der Außentemperatur im Karteneditor oder
   per `intermediate_step` in YAML einstellen. Standard sind weiterhin 5 °C.
