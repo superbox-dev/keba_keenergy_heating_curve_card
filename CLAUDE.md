@@ -24,8 +24,7 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm test`, in this
   config options and their defaults, `entities` keys, the `edit_password_hash` format)
   - only when asked, then as a major release
   - exception: the English renaming of #1 in v1.x, with upgrade steps in both README files
-- `keba_keenergy_heating_curve_card.js` is the committed build, only changed by `npm run build` in a release
-  - the old build `keba-keenergy-heizkurve.js` is removed in the next release
+- `keba_keenergy_heating_curve_card.js` is the committed build, only changed by `npm run build`, never by hand
 - Every interpolated value in an HTML template goes through `esc()`
 - Writes only from explicit user actions (save buttons, curve table selection, enabling entities), switching the
   view never writes
