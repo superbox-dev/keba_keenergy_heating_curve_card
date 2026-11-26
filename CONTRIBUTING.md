@@ -13,9 +13,9 @@ Contributing to this project should be as easy and transparent as possible, whet
 
 The project needs [Node.js](https://nodejs.org) (see `engines` in `package.json`).
 
-1. Set up the project with `./scripts/setup.sh` or `npm ci`. This installs the dependencies and the git hooks of
-   [prek](https://prek.j178.dev) and `scripts/pre-push.sh`.
-   - Windows: use Git Bash for the scripts, or `npm ci` in any terminal.
+1. Set up the project with `./scripts/setup.sh`. This installs the dependencies, the git hooks of
+   [prek](https://prek.j178.dev) and `scripts/pre-push.sh` and Chromium for the end-to-end tests.
+   - Windows: use Git Bash for the scripts, or `npm ci` and `npx playwright install chromium` in any terminal.
 2. Change the sources in `src/` and build the card with `npm run build`. This creates
    `dist/keba_keenergy_heating_curve_card.js`.
 3. Copy this file to the `www/` folder of your Home Assistant configuration and add it as a dashboard resource
@@ -46,14 +46,14 @@ Never use real credentials, serial numbers or IP addresses of your heat pump in 
 ## Coding style
 
 `./scripts/lint.sh` runs all [prek](https://prek.j178.dev) hooks: [eslint](https://eslint.org) (lint and format),
-the tests, yamllint, [rumdl](https://github.com/rvben/rumdl) and
+the type check, the tests, yamllint, [rumdl](https://github.com/rvben/rumdl) and
 [editorconfig-checker](https://editorconfig-checker.github.io). Fix and format the JavaScript files with
 `npx eslint --fix .`. See [CLAUDE.md](CLAUDE.md) for the project rules.
 
 ## AI assistant
 
 The project only uses [Claude Code](https://claude.com/claude-code) as AI assistant. Its rules are in
-[CLAUDE.md](CLAUDE.md), [tests/CLAUDE.md](tests/CLAUDE.md) and the skills in `.claude/skills/`.
+[CLAUDE.md](CLAUDE.md), [test/CLAUDE.md](test/CLAUDE.md) and the skills in `.claude/skills/`.
 
 ## Documentation
 
@@ -62,11 +62,26 @@ are in [card.yaml](card.yaml), [dashboard.yaml](dashboard.yaml) and `examples/`,
 
 ## Tests
 
-The tests in `tests/` run with Node.js, without a browser.
+The tests in `test/` are written in JavaScript with JSDoc types and use [vitest](https://vitest.dev), like the
+[Home Assistant frontend](https://github.com/home-assistant/frontend). `npm run typecheck` checks the types with
+TypeScript. **100% test coverage is enforced**, so every
+new code path needs a test.
+
+- Unit tests in `test/unit/` with [jsdom](https://github.com/jsdom/jsdom) as browser, against `src/`
+- Smoke tests in `test/dist/` against the built `dist/keba_keenergy_heating_curve_card.js`
+- End-to-end tests in `test/e2e/` in a real Chromium with [Playwright](https://playwright.dev): layout, focus,
+  keyboard and the password check of the browser
 
 ```bash
-npm test
+npm test                # unit tests
+npm run test:coverage   # unit tests and coverage, fails below 100%
+npm run test:dist       # build the card and run the smoke tests of the bundle
+npm run test:e2e        # end-to-end tests in Chromium
+npm run typecheck       # JSDoc types of the tests
 ```
+
+The coverage report is in `test/coverage/index.html`. The CI uploads the coverage to
+[Codecov](https://codecov.io/gh/superbox-dev/keba_keenergy_heating_curve_card), which comments on pull requests.
 
 ## Releases
 

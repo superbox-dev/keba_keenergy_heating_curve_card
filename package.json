@@ -7,11 +7,15 @@
   "license": "MIT",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node tests/run.mjs",
+    "test": "vitest run --config test/vitest.config.js",
+    "test:coverage": "vitest run --config test/vitest.config.js --coverage",
+    "test:dist": "npm run build && vitest run --config test/vitest.dist.config.js",
+    "test:e2e": "vitest run --config test/vitest.e2e.config.js",
+    "typecheck": "tsc",
     "prepare": "prek install && node scripts/install-hooks.mjs"
   },
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=26.0.0"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0"
@@ -20,9 +24,16 @@
     "@eslint/js": "10.0.1",
     "@j178/prek": "0.5.11",
     "@stylistic/eslint-plugin": "6.0.1",
+    "@vitest/browser-playwright": "5.1.1",
+    "@vitest/coverage-v8": "5.1.1",
     "esbuild": "0.28.2",
     "eslint": "10.15.0",
-    "globals": "17.14.0"
+    "globals": "17.14.0",
+    "home-assistant-js-websocket": "9.9.0",
+    "jsdom": "31.0.1",
+    "playwright": "1.65.1",
+    "typescript": "6.0.3",
+    "vitest": "5.1.1"
   },
   "allowScripts": {
     "esbuild": true

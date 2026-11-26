@@ -4,7 +4,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['dist/', 'node_modules/'],
+    ignores: ['dist/', 'node_modules/', 'test/coverage/'],
   },
   js.configs.recommended,
   stylistic.configs.customize({
@@ -38,9 +38,15 @@ export default [
     },
   },
   {
-    files: ['*.mjs', 'scripts/**/*.mjs', 'tests/**/*.mjs'],
+    files: ['*.mjs', 'scripts/**/*.mjs', 'test/*.mjs'],
     languageOptions: {
       globals: globals.node,
+    },
+  },
+  {
+    files: ['test/**/*.js'],
+    languageOptions: {
+      globals: globals.browser,
     },
   },
 ];
