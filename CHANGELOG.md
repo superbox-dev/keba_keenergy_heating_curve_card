@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed the example files to English ([Issue #1][issue-1]).
 - Wrote the documentation in English, German in `README.de.md` ([Issue #2][issue-2]).
 - Moved the card file from the repository to the GitHub release ([Issue #6][issue-6]).
+- Required Home Assistant 2026.11.0 or newer ([Issue #3][issue-3]).
 
 ### Removed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [pr-10]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/pull/10
 [issue-1]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/1
 [issue-2]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/2
+[issue-3]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/3
 [issue-6]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/6
 
 ## [1.0.2] - 2026-11-24

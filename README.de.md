@@ -18,7 +18,7 @@ Eine Home-Assistant-Dashboard-Karte für die Heizkurven von KEBA-KeEnergy-Wärme
 
 ## Voraussetzungen
 
-- Home Assistant mit der Integration [KEBA KeEnergy](https://github.com/superbox-dev/keba_keenergy).
+- Home Assistant 2026.11.0 oder neuer mit der Integration [KEBA KeEnergy](https://github.com/superbox-dev/keba_keenergy).
 - Zum Speichern der Punkte: die Aktion `keba_keenergy.set_heating_curve_points` (Integration 1.12.2 oder neuer).
 
 ## Installation

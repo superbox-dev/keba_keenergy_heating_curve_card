@@ -18,7 +18,7 @@ A Home Assistant dashboard card for the heating curves of KEBA KeEnergy heat pum
 
 ## Requirements
 
-- Home Assistant with the [KEBA KeEnergy](https://github.com/superbox-dev/keba_keenergy) integration.
+- Home Assistant 2026.11.0 or newer with the [KEBA KeEnergy](https://github.com/superbox-dev/keba_keenergy) integration.
 - To save points: the action `keba_keenergy.set_heating_curve_points` (integration 1.12.2 or newer).
 
 ## Installation
