@@ -7,13 +7,12 @@ import './editor.js';
 /* KEBA KeEnergy Heating Curve Card. Independent name allows the personal card to coexist. */
 (() => {
   'use strict';
-  const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c]));
+  const esc = v => String(v).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c]));
   const numeric = v => v == null || String(v).trim() === '' ? NaN : Number(String(v).replace(',', '.'));
   const good = s => !!s && !['unknown', 'unavailable', ''].includes(s.state);
   const FIELDS = { limitDay: ['heating_limit_day', 'Day heating limit', '°C'], limitNight: ['heating_limit_night', 'Night heating limit', '°C'] };
   let cardSequence = 0;
   const interpolate = (outdoor, points) => {
-    if (!points.length) return NaN;
     if (points.length === 1) return points[0].flow;
     let i = points.findIndex((p, index) => index < points.length - 1 && outdoor <= points[index + 1].outdoor);
     if (i < 0)i = points.length - 2;
@@ -140,7 +139,7 @@ import './editor.js';
         this._message = '';
         this._unlockError = '';
         if (this._registry.length) {
-          this._controllers = discoverControllers(this._registry, this._devices || [], text => this._t(text));
+          this._controllers = discoverControllers(this._registry, this._devices, text => this._t(text));
           this._applySelection();
         }
       }
@@ -224,12 +223,11 @@ import './editor.js';
         queueMicrotask(() => this.shadowRoot.querySelector('#edit-password')?.focus());
         return;
       }
-      if (input)input.value = '';
+      input.value = '';
       return this._unlock(password);
     }
 
     async _unlock(password) {
-      if (this._verifying || !this._passwordCheck) return false;
       const revision = this._lockRevision, check = this._passwordCheck;
       const bytes = new TextEncoder().encode(String(password));
       this._verifying = true;
@@ -395,7 +393,7 @@ import './editor.js';
       if (this._busy || this._draft || Object.keys(this._edits).length) {
         this._notice(this._t('Save changes or discard the draft before switching controller or heating circuit.'));
         const el = this.shadowRoot.querySelector(kind === 'controller' ? '#controller-select' : '#circuit-select');
-        if (el)el.value = kind === 'controller' ? this._controllerId : this._circuitId;
+        el.value = kind === 'controller' ? this._controllerId : this._circuitId;
         return;
       }
       if (kind === 'controller') {
@@ -453,18 +451,7 @@ import './editor.js';
         this._notice(this._t('Sign in as an administrator to enable disabled entities.'));
         return;
       }
-      if (!this._discovered) {
-        await this._discover();
-      }
-      if (!this._requireEdit()) return;
       const disabled = this._disabledEditors();
-      if (!disabled.length) {
-        this._discovered = false;
-        await this._discover();
-        this._message = this._t('Entities reloaded. Missing values must be supported by the controller.');
-        this._render();
-        return;
-      }
       this._busy = true;
       this._message = this._t('Enabling required entities …');
       this._render();
@@ -489,7 +476,7 @@ import './editor.js';
     _input(key) {
       const [, label, unit] = FIELDS[key], id = this._ids()[key], s = this._state(id), v = this._fieldValue(key);
       const { min, max, step } = this._numberMeta(id);
-      return `<label class="field">${esc(this._t(label))}${unit ? ' (' + unit + ')' : ''}<input data-setting="${key}" type="number" step="${Number.isFinite(step) && step > 0 ? step : 'any'}" ${Number.isFinite(min) ? 'min="' + min + '"' : ''} ${Number.isFinite(max) ? 'max="' + max + '"' : ''} value="${Number.isFinite(v) ? v : ''}" ${!good(s) || this._busy || !!this._bindingError || !this._canEdit() ? 'disabled' : ''}></label>`;
+      return `<label class="field">${esc(this._t(label))} (${unit})<input data-setting="${key}" type="number" step="${Number.isFinite(step) && step > 0 ? step : 'any'}" ${Number.isFinite(min) ? 'min="' + min + '"' : ''} ${Number.isFinite(max) ? 'max="' + max + '"' : ''} value="${Number.isFinite(v) ? v : ''}" ${!good(s) || this._busy || !!this._bindingError || !this._canEdit() ? 'disabled' : ''}></label>`;
     }
 
     _chart() {
@@ -593,8 +580,7 @@ import './editor.js';
     }
 
     _preview() {
-      const el = this.shadowRoot.querySelector('#chart');
-      if (el)el.innerHTML = this._chart();
+      this.shadowRoot.querySelector('#chart').innerHTML = this._chart();
     }
 
     _refreshLive() {
@@ -607,16 +593,13 @@ import './editor.js';
         points: this._points().length,
       };
       for (const [key, value] of Object.entries(values)) {
-        const el = this.shadowRoot.querySelector('[data-live="' + key + '"]');
-        if (el)el.textContent = String(value);
+        this.shadowRoot.querySelector('[data-live="' + key + '"]').textContent = String(value);
       }
-      const message = this.shadowRoot.querySelector('#message');
-      if (message)message.textContent = this._message || (this._loadingCurve ? this._t('Loading curve {name} …', { name: this._loadingCurve }) : '');
+      this.shadowRoot.querySelector('#message').textContent = this._message || (this._loadingCurve ? this._t('Loading curve {name} …', { name: this._loadingCurve }) : '');
     }
 
     _patchPoints(rows, ready, count, dirty) {
-      const root = this.shadowRoot, table = root.querySelector('.table-wrap'), body = table?.querySelector('tbody');
-      if (!body) return false;
+      const root = this.shadowRoot, table = root.querySelector('.table-wrap'), body = table.querySelector('tbody');
       const top = table.scrollTop, left = table.scrollLeft;
       // The surrounding ha-card, editor buttons and scroll container stay connected.
       // Replacing the entire card here can reset the dashboard's outer scroll area.
@@ -625,14 +608,12 @@ import './editor.js';
       table.scrollLeft = left;
       root.querySelector('#add-point').disabled = !ready || count >= 16;
       root.querySelector('#save-points').disabled = !ready;
-      const label = root.querySelector('#curve-label');
-      if (label)label.textContent = this._t('Point table') + (dirty ? this._t(' · Draft') : '');
+      root.querySelector('#curve-label').textContent = this._t('Point table') + (dirty ? this._t(' · Draft') : '');
       for (const key of Object.keys(FIELDS)) {
-        const input = root.querySelector('[data-setting="' + key + '"]'), value = this._fieldValue(key);
-        if (input)input.value = Number.isFinite(value) ? String(value) : '';
+        const value = this._fieldValue(key);
+        root.querySelector('[data-setting="' + key + '"]').value = Number.isFinite(value) ? String(value) : '';
       }
       this._bindPointRows();
-      return true;
     }
 
     _render(force = false) {
@@ -697,7 +678,8 @@ import './editor.js';
       const previousTable = this.shadowRoot.querySelector('.table-wrap');
       const tableScroll = previousTable ? { top: previousTable.scrollTop, left: previousTable.scrollLeft } : null;
       const rows = points.map((p, i) => `<tr><td>${i + 1}</td><td><input data-point="${i}" data-axis="outdoor" type="number" step="any" min="-40" max="40" value="${Number.isFinite(p.outdoor) ? p.outdoor : ''}" ${!ready ? 'disabled' : ''} aria-label="${esc(this._t('Point {index} outdoor temperature', { index: i + 1 }))}"></td><td><input data-point="${i}" data-axis="flow" type="number" step="any" min="10" max="90" value="${Number.isFinite(p.flow) ? p.flow : ''}" ${!ready ? 'disabled' : ''} aria-label="${esc(this._t('Point {index} flow temperature', { index: i + 1 }))}"></td><td><button type="button" data-remove="${i}" ${!ready || points.length <= 1 ? 'disabled' : ''} aria-label="${esc(this._t('Remove point {index}', { index: i + 1 }))}">×</button></td></tr>`).join('');
-      if (!force && this._shellKey === shellKey && this._patchPoints(rows, ready, points.length, dirty)) {
+      if (!force && this._shellKey === shellKey) {
+        this._patchPoints(rows, ready, points.length, dirty);
         this._viewKey = viewKey;
         this._refreshLive();
         return;
@@ -716,8 +698,7 @@ import './editor.js';
 
     _notice(message) {
       this._message = message;
-      const el = this.shadowRoot.querySelector('#message');
-      if (el)el.textContent = message;
+      this.shadowRoot.querySelector('#message').textContent = message;
     }
 
     _bindPointRows() {
@@ -826,7 +807,6 @@ import './editor.js';
           outdoor = -5;
           while (p.some(v => v.outdoor === outdoor) && outdoor >= -40)outdoor -= 5;
         }
-        if (outdoor < -40)outdoor = 1;
         p.push({ outdoor, flow: 30 });
         this._draft = { name: this._selected(), points: p };
         this._message = this._t('Point added · not saved yet');
@@ -866,15 +846,6 @@ import './editor.js';
     async _savePoints() {
       if (!this._requireEdit() || !this._ready()) return;
       this._touchEdit();
-      if (!this._entryId) {
-        this._discovered = false;
-        await this._discover();
-        if (!this._entryId) {
-          this._notice(this._t('Cannot determine the integration entry. Set config_entry in the card configuration.'));
-          return;
-        }
-      }
-      if (!this._requireEdit()) return;
       const name = this._selected();
       const points = this._points()
         .map(p => ({ outdoor: Math.round(p.outdoor * 100) / 100, flow: Math.round(p.flow * 100) / 100 }))

@@ -9,7 +9,7 @@ indent_style = space
 indent_size = 4
 max_line_length = 120
 
-[{*.js,*.mjs,*.md,*.json,*.toml,*.yml,*.yaml,*.sh}]
+[{*.js,*.mjs,*.ts,*.md,*.json,*.toml,*.yml,*.yaml,*.sh}]
 indent_size = 2
 
 # Continuation lines of numbered lists need 3 spaces.
