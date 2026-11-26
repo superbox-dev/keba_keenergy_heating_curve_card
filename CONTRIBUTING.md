@@ -13,8 +13,9 @@ Contributing to this project should be as easy and transparent as possible, whet
 
 The project needs [Node.js](https://nodejs.org) (see `engines` in `package.json`).
 
-1. Set up the project with `./scripts/setup.sh`. This installs the dependencies and the [prek](https://prek.j178.dev)
-   hooks.
+1. Set up the project with `./scripts/setup.sh` or `npm ci`. This installs the dependencies and the git hooks of
+   [prek](https://prek.j178.dev) and `scripts/pre-push.sh`.
+   - Windows: use Git Bash for the scripts, or `npm ci` in any terminal.
 2. Change the sources in `src/` and build the card with `npm run build`. This creates
    `dist/keba_keenergy_heating_curve_card.js`.
 3. Copy this file to the `www/` folder of your Home Assistant configuration and add it as a dashboard resource
