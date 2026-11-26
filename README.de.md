@@ -257,11 +257,13 @@ Der [Changelog](CHANGELOG.md) listet die Änderungen jedes Releases.
 ## Mitmachen
 
 [![CI](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/actions/workflows/ci.yml/badge.svg?branch=main)][workflow-ci]
+[![codecov](https://codecov.io/gh/superbox-dev/keba_keenergy_heating_curve_card/graph/badge.svg)][codecov]
 
 - Fehler gefunden oder eine Idee? [Erstelle ein Issue](https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/new/choose).
 - Du willst am Code mithelfen? Lies die [Anleitung für Beiträge](CONTRIBUTING.md) (auf Englisch).
 
 [workflow-ci]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/actions/workflows/ci.yml
+[codecov]: https://codecov.io/gh/superbox-dev/keba_keenergy_heating_curve_card
 
 ## Lizenz
 

@@ -28,6 +28,8 @@ jobs:
         uses: ./.github/actions/setup-project
       - name: Lint JavaScript files with eslint
         run: npx eslint .
+      - name: Check JSDoc types
+        run: npm run typecheck
       - name: Lint YAML files
         run: npx prek run yamllint --all-files
       - name: Lint Markdown files
@@ -39,6 +41,10 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
+    permissions:
+      contents: read
+      # OIDC token for the Codecov upload, no secret needed.
+      id-token: write
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -46,16 +52,40 @@ jobs:
           persist-credentials: False
       - name: Set up project
         uses: ./.github/actions/setup-project
-      - name: Build card
-        run: npm run build
-      - name: Run tests
-        run: npm test
+      - name: Build card and run smoke tests of the bundle
+        run: npm run test:dist
+      - name: Run tests with coverage
+        run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5  # v7.1.1
+        with:
+          files: test/coverage/lcov.info
+          disable_search: true
+          # Pull requests from forks and Dependabot get no OIDC token and upload without one.
+          use_oidc: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+          fail_ci_if_error: true
       - name: Upload card
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: card
           path: dist
           if-no-files-found: error
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: False
+      - name: Set up project
+        uses: ./.github/actions/setup-project
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run end-to-end tests
+        run: npm run test:e2e
 
   validation:
     name: Validation
@@ -166,3 +196,25 @@ jobs:
                 gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}"
               fi
             done
+
+  release-check:
+    name: Check the release file
+    runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
+    needs:
+      - release
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: False
+      - name: Set up project
+        uses: ./.github/actions/setup-project
+      - name: Download the file like HACS
+        run: |
+          URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/keba_keenergy_heating_curve_card.js"
+          mkdir -p dist
+          curl --fail --silent --show-error --location --retry 5 --retry-all-errors \
+            --output dist/keba_keenergy_heating_curve_card.js "$URL"
+      - name: Run smoke tests of the release file
+        run: npx vitest run --config test/vitest.dist.config.js
