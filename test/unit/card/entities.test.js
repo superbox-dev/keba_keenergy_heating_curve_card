@@ -1,27 +1,49 @@
+// @ts-check
 import { describe, expect, it } from 'vitest';
 import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
 import { answerRegistry, createHass, wsMessages } from '../../fixtures/hass';
 import { PASSWORD_HASH } from '../../fixtures/password';
 import { controllerEntities, entityId } from '../../fixtures/registry';
-import type { FieldKey } from '../../fixtures/registry';
-import type { CallWS, EntityRegistryEntry, FakeHass } from '../../fixtures/types';
+/** @import { FieldKey } from '../../fixtures/registry' */
+/** @import { CallWS, EntityRegistryEntry, FakeHass } from '../../fixtures/types' */
 
-const id = (key: FieldKey): string => entityId('111', 1, key);
+/**
+ * @param {FieldKey} key
+ * @returns {string}
+ */
+const id = key => entityId('111', 1, key);
 
-/** The registry of controller `111` with the given fields disabled by the integration. */
-const disabled = (...keys: FieldKey[]): EntityRegistryEntry[] => controllerEntities('entry-1', '111').map(entry =>
+/**
+ * The registry of controller `111` with the given fields disabled by the integration.
+ *
+ * @param {...FieldKey} keys
+ * @returns {EntityRegistryEntry[]}
+ */
+const disabled = (...keys) => controllerEntities('entry-1', '111').map(entry =>
   (keys.some(key => entry.entity_id === id(key)) ? { ...entry, disabled_by: 'integration' } : entry));
 
-const updates = (hass: FakeHass) => wsMessages(hass, 'config/entity_registry/update');
+/** @param {FakeHass} hass */
+const updates = hass => wsMessages(hass, 'config/entity_registry/update');
 
-/** Answers `config/entity_registry/update` with `update`, all other messages like before. */
-function answerUpdates(hass: FakeHass, update: CallWS): void {
-  const answer = hass.callWS.getMockImplementation()!;
+/**
+ * Answers `config/entity_registry/update` with `update`, all other messages like before.
+ *
+ * @param {FakeHass} hass
+ * @param {CallWS} update
+ * @returns {void}
+ */
+function answerUpdates(hass, update) {
+  const answer = /** @type {CallWS} */ (hass.callWS.getMockImplementation());
   hass.callWS.mockImplementation(message => (message.type === 'config/entity_registry/update' ? update : answer)(message));
 }
 
-const stopped = (count: number, error: string): string => `Enabling stopped after ${count} entities: ${error}. `
+/**
+ * @param {number} count
+ * @param {string} error
+ * @returns {string}
+ */
+const stopped = (count, error) => `Enabling stopped after ${count} entities: ${error}. `
   + 'Sign in as an administrator or enable entities in the KeEnergy settings.';
 
 describe('disabled entities', () => {

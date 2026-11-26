@@ -1,9 +1,11 @@
+// @ts-check
 import { afterEach, vi } from 'vitest';
 
-interface Pbkdf2Options {
-  c: number;
-  dkLen: number;
-}
+/**
+ * @typedef {object} Pbkdf2Options
+ * @property {number} c
+ * @property {number} dkLen
+ */
 
 // Bundler-defined globals the sources read, set by esbuild in the build.
 Object.assign(globalThis, { __VERSION__: '0.0.0-test' });
@@ -12,10 +14,16 @@ Object.assign(globalThis, { __VERSION__: '0.0.0-test' });
 vi.mock('@noble/hashes/pbkdf2.js', async (importOriginal) => {
   const { pbkdf2 } = await import('../fixtures/password');
   return {
-    ...await importOriginal<object>(),
+    .../** @type {object} */ (await importOriginal()),
     pbkdf2Async: vi.fn(
-      (_hash: unknown, password: Uint8Array<ArrayBuffer>, salt: Uint8Array<ArrayBuffer>, options: Pbkdf2Options) =>
-        pbkdf2(password, salt, options.c, options.dkLen),
+      /**
+       * @param {unknown} _hash
+       * @param {Uint8Array<ArrayBuffer>} password
+       * @param {Uint8Array<ArrayBuffer>} salt
+       * @param {Pbkdf2Options} options
+       * @returns {Promise<Uint8Array>}
+       */
+      (_hash, password, salt, options) => pbkdf2(password, salt, options.c, options.dkLen),
     ),
   };
 });

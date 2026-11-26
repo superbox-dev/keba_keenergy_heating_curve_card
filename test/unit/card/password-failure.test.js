@@ -1,3 +1,4 @@
+// @ts-check
 import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { describe, expect, it, vi } from 'vitest';
 import '../../../src/card';
@@ -8,7 +9,7 @@ import { settle } from '../../test_helper/shadow-view';
 
 // The check fails only when the browser cannot compute the hash.
 vi.mock('@noble/hashes/pbkdf2.js', async importOriginal => ({
-  ...await importOriginal<object>(),
+  .../** @type {object} */ (await importOriginal()),
   pbkdf2Async: vi.fn(),
 }));
 
@@ -23,7 +24,8 @@ describe('failed password check', () => {
   });
 
   it('ignores a failure after the form was closed', async () => {
-    let fail: (error: Error) => void = () => {};
+    /** @type {(error: Error) => void} */
+    let fail = () => {};
     vi.mocked(pbkdf2Async).mockReturnValue(new Promise((_, reject) => {
       fail = reject;
     }));

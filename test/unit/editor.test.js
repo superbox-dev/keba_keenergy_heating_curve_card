@@ -1,13 +1,19 @@
+// @ts-check
 import { describe, expect, it, vi } from 'vitest';
 import '../../src/card';
-import { EditorView } from '../test_helper/editor-view';
+import { createCard } from '../test_helper/card-view';
+import { createEditor, EditorView } from '../test_helper/editor-view';
 import { createHass, withLanguage } from '../fixtures/hass';
 import { controllerEntities, devices } from '../fixtures/registry';
 import { settle } from '../test_helper/shadow-view';
-import type { FakeHass } from '../fixtures/types';
+/** @import { CallWS, FakeHass } from '../fixtures/types' */
 
-/** Two controllers, `111` with two heating circuits and `222` with one. */
-const twoControllers = (): FakeHass => createHass({
+/**
+ * Two controllers, `111` with two heating circuits and `222` with one.
+ *
+ * @returns {FakeHass}
+ */
+const twoControllers = () => createHass({
   registry: [...controllerEntities('entry-1', '111', 2), ...controllerEntities('entry-2', '222')],
   deviceList: [...devices('111', 2), ...devices('222')],
 });
@@ -16,7 +22,7 @@ const AUTOMATIC = { value: '', label: 'Automatic · selectable in the dashboard'
 
 describe('fields', () => {
   it('renders nothing without config', () => {
-    const editor = new EditorView(document.createElement('keba-keenergy-heating-curve-card-editor'));
+    const editor = new EditorView(createEditor());
 
     editor.hass = createHass();
 
@@ -164,9 +170,10 @@ describe('controllers', () => {
   });
 
   it('keeps a focused field when the registry arrives', async () => {
-    const pending: (() => void)[] = [];
+    /** @type {(() => void)[]} */
+    const pending = [];
     const hass = twoControllers();
-    const answer = hass.callWS.getMockImplementation()!;
+    const answer = /** @type {CallWS} */ (hass.callWS.getMockImplementation());
     hass.callWS.mockImplementation(message => new Promise((resolve) => {
       pending.push(() => resolve(answer(message)));
     }));
@@ -248,7 +255,7 @@ describe('password', () => {
 
     await editor.setPassword('secret');
 
-    const card = document.createElement('keba-keenergy-heating-curve-card');
+    const card = createCard();
     expect(() => card.setConfig(configs[0])).not.toThrow();
   });
 

@@ -1,3 +1,4 @@
+// @ts-check
 import { describe, expect, it } from 'vitest';
 import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
@@ -11,14 +12,23 @@ import {
   plain,
   temperature,
 } from '../../fixtures/registry';
-import type { FieldKey } from '../../fixtures/registry';
+/** @import { FieldKey } from '../../fixtures/registry' */
 import { settle } from '../../test_helper/shadow-view';
-import type { FakeHass } from '../../fixtures/types';
+/** @import { FakeHass } from '../../fixtures/types' */
 
-const id = (key: FieldKey): string => entityId('111', 1, key);
+/**
+ * @param {FieldKey} key
+ * @returns {string}
+ */
+const id = key => entityId('111', 1, key);
 
-/** A state change that needs a full redraw: the heating circuit uses another curve table. */
-const otherTable = (hass: FakeHass): FakeHass => withStates(hass, { [id('select')]: curveSelect('HC2', ['HC1', 'HC2']) });
+/**
+ * A state change that needs a full redraw: the heating circuit uses another curve table.
+ *
+ * @param {FakeHass} hass
+ * @returns {FakeHass}
+ */
+const otherTable = hass => withStates(hass, { [id('select')]: curveSelect('HC2', ['HC1', 'HC2']) });
 
 describe('readings', () => {
   it('shows the readings', async () => {

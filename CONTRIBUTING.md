@@ -46,8 +46,8 @@ Never use real credentials, serial numbers or IP addresses of your heat pump in 
 ## Coding style
 
 `./scripts/lint.sh` runs all [prek](https://prek.j178.dev) hooks: [eslint](https://eslint.org) (lint and format),
-the TypeScript check, the tests, yamllint, [rumdl](https://github.com/rvben/rumdl) and
-[editorconfig-checker](https://editorconfig-checker.github.io). Fix and format the JavaScript and TypeScript files with
+the type check, the tests, yamllint, [rumdl](https://github.com/rvben/rumdl) and
+[editorconfig-checker](https://editorconfig-checker.github.io). Fix and format the JavaScript files with
 `npx eslint --fix .`. See [CLAUDE.md](CLAUDE.md) for the project rules.
 
 ## AI assistant
@@ -62,8 +62,9 @@ are in [card.yaml](card.yaml), [dashboard.yaml](dashboard.yaml) and `examples/`,
 
 ## Tests
 
-The tests in `test/` are written in TypeScript and use [vitest](https://vitest.dev), like the
-[Home Assistant frontend](https://github.com/home-assistant/frontend). **100% test coverage is enforced**, so every
+The tests in `test/` are written in JavaScript with JSDoc types and use [vitest](https://vitest.dev), like the
+[Home Assistant frontend](https://github.com/home-assistant/frontend). `npm run typecheck` checks the types with
+TypeScript. **100% test coverage is enforced**, so every
 new code path needs a test.
 
 - Unit tests in `test/unit/` with [jsdom](https://github.com/jsdom/jsdom) as browser, against `src/`
@@ -76,7 +77,7 @@ npm test                # unit tests
 npm run test:coverage   # unit tests and coverage, fails below 100%
 npm run test:dist       # build the card and run the smoke tests of the bundle
 npm run test:e2e        # end-to-end tests in Chromium
-npm run typecheck       # TypeScript types of the tests
+npm run typecheck       # JSDoc types of the tests
 ```
 
 The coverage report is in `test/coverage/index.html`. The CI uploads the coverage to

@@ -1,3 +1,4 @@
+// @ts-check
 import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { describe, expect, it, vi } from 'vitest';
 import '../../../src/card';
@@ -5,14 +6,25 @@ import { CardView } from '../../test_helper/card-view';
 import { createHass } from '../../fixtures/hass';
 import { PASSWORD, PASSWORD_HASH } from '../../fixtures/password';
 import { settle } from '../../test_helper/shadow-view';
-import type { CardConfig, FakeHass } from '../../fixtures/types';
+/** @import { CardConfig, FakeHass } from '../../fixtures/types' */
 
-/** A card with `PASSWORD_HASH`, locked like after loading the dashboard. */
-const lockedCard = (config: CardConfig = {}, hass: FakeHass = createHass()) =>
+/**
+ * A card with `PASSWORD_HASH`, locked like after loading the dashboard.
+ *
+ * @param {CardConfig} config
+ * @param {FakeHass} hass
+ */
+const lockedCard = (config = {}, hass = createHass()) =>
   CardView.create({ edit_password_hash: PASSWORD_HASH, ...config }, hass);
 
-/** Presses a key in the password field and returns the event, to check `defaultPrevented`. */
-async function pressKey(view: CardView, key: string): Promise<KeyboardEvent> {
+/**
+ * Presses a key in the password field and returns the event, to check `defaultPrevented`.
+ *
+ * @param {CardView} view
+ * @param {string} key
+ * @returns {Promise<KeyboardEvent>}
+ */
+async function pressKey(view, key) {
   const event = new KeyboardEvent('keydown', { key, cancelable: true });
   await view.dispatch(view.get('#edit-password'), event);
   return event;
@@ -127,7 +139,7 @@ describe('unlocking', () => {
   it('unlocks by submitting the form', async () => {
     const view = await lockedCard();
     await view.enterPassword(PASSWORD);
-    const form = view.get<HTMLFormElement>('#unlock-form');
+    const form = /** @type {HTMLFormElement} */ (view.get('#unlock-form'));
 
     const submit = new Event('submit', { cancelable: true });
     form.dispatchEvent(submit);

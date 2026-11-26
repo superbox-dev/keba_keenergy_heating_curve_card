@@ -1,3 +1,4 @@
+// @ts-check
 import { afterEach } from 'vitest';
 
 // Bundler-defined globals the sources read, set by esbuild in the build.

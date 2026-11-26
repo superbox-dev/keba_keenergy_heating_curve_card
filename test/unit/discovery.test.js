@@ -1,27 +1,40 @@
+// @ts-check
 import { describe, expect, it, vi } from 'vitest';
 import { discoverControllers, loadRegistry, parseEntity } from '../../src/discovery';
 import { controllerEntities, devices, registryEntry } from '../fixtures/registry';
-import type { EntityRegistryEntry } from '../fixtures/types';
+/** @import { EntityRegistryEntry } from '../fixtures/types' */
 
-interface Circuit {
-  id: string;
-  label: string;
-  map: Record<string, string>;
-  ambiguous: string[];
-}
+/**
+ * @typedef {object} Circuit
+ * @property {string} id
+ * @property {string} label
+ * @property {Record<string, string>} map
+ * @property {string[]} ambiguous
+ */
 
-interface Controller {
-  id: string;
-  serial: string;
-  label: string;
-  outdoor: string;
-  circuits: Circuit[];
-}
+/**
+ * @typedef {object} Controller
+ * @property {string} id
+ * @property {string} serial
+ * @property {string} label
+ * @property {string} outdoor
+ * @property {Circuit[]} circuits
+ */
 
-const discover = (...args: Parameters<typeof discoverControllers>): Controller[] => discoverControllers(...args);
+/**
+ * @param {Parameters<typeof discoverControllers>} args
+ * @returns {Controller[]}
+ */
+const discover = (...args) => discoverControllers(...args);
 
-/** A registry entry of the integration with a renamed entity ID, discovery reads only the unique ID. */
-const entity = (uniqueId: string, domain = 'sensor', extra: Partial<EntityRegistryEntry> = {}): EntityRegistryEntry => ({
+/**
+ * A registry entry of the integration with a renamed entity ID, discovery reads only the unique ID.
+ *
+ * @param {string} uniqueId
+ * @param {Partial<EntityRegistryEntry>} extra
+ * @returns {EntityRegistryEntry}
+ */
+const entity = (uniqueId, domain = 'sensor', extra = {}) => ({
   entity_id: `${domain}.renamed_by_user`,
   unique_id: uniqueId,
   platform: 'keba_keenergy',
@@ -29,7 +42,11 @@ const entity = (uniqueId: string, domain = 'sensor', extra: Partial<EntityRegist
   ...extra,
 });
 
-const brackets = (text: string): string => `<${text}>`;
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+const brackets = text => `<${text}>`;
 
 describe('parseEntity', () => {
   it('reads circuit 1 without a number', () => {
@@ -183,9 +200,14 @@ describe('discoverControllers', () => {
 });
 
 describe('loadRegistry', () => {
-  /** A connection that answers the entity and the device registry, an `Error` is thrown. */
-  const connection = (entities: unknown, deviceList: unknown) => ({
-    callWS: vi.fn(async ({ type }: { type: string }) => {
+  /**
+   * A connection that answers the entity and the device registry, an `Error` is thrown.
+   *
+   * @param {unknown} entities
+   * @param {unknown} deviceList
+   */
+  const connection = (entities, deviceList) => ({
+    callWS: vi.fn(async (/** @type {{ type: string }} */ { type }) => {
       const result = type === 'config/entity_registry/list' ? entities : deviceList;
       if (result instanceof Error) throw result;
       return result;

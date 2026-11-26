@@ -1,16 +1,22 @@
+// @ts-check
 import { describe, expect, it } from 'vitest';
 import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
 import { createHass, holdServiceCalls, serviceCalls, withStates } from '../../fixtures/hass';
 import { PASSWORD_HASH } from '../../fixtures/password';
 import { circuitStates, entityId, heatingLimit, plain } from '../../fixtures/registry';
-import type { FieldKey } from '../../fixtures/registry';
+/** @import { FieldKey } from '../../fixtures/registry' */
 import { settle } from '../../test_helper/shadow-view';
-import type { FakeHass } from '../../fixtures/types';
+/** @import { FakeHass } from '../../fixtures/types' */
 
-const id = (key: FieldKey): string => entityId('111', 1, key);
+/**
+ * @param {FieldKey} key
+ * @returns {string}
+ */
+const id = key => entityId('111', 1, key);
 
-const numbers = (hass: FakeHass) => serviceCalls(hass, 'number');
+/** @param {FakeHass} hass */
+const numbers = hass => serviceCalls(hass, 'number');
 
 const INVALID_DAY = 'Invalid value for Day heating limit. Observe the entity’s range and step size.';
 

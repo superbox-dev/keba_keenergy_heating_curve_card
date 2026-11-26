@@ -1,15 +1,26 @@
+// @ts-check
 import { describe, expect, it, vi } from 'vitest';
 import { DE, formatNumber, languageCode, translate } from '../../src/i18n';
 import cardSource from '../../src/card.js?raw';
 import editorSource from '../../src/editor.js?raw';
 
-const placeholders = (text: string): string[] => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
+/**
+ * @param {string} text
+ * @returns {string[]}
+ */
+const placeholders = text => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
 
-/** The texts of the `_t()` calls in a source file. */
-const sourceTexts = (source: string): string[] =>
+/**
+ * The texts of the `_t()` calls in a source file.
+ *
+ * @param {string} source
+ * @returns {string[]}
+ */
+const sourceTexts = source =>
   [...source.matchAll(/_t\((['"])([^'"\n]*)\1/g)].map(match => match[2]);
 
-const browserLanguage = (language: string) => vi.spyOn(navigator, 'language', 'get').mockReturnValue(language);
+/** @param {string} language */
+const browserLanguage = language => vi.spyOn(navigator, 'language', 'get').mockReturnValue(language);
 
 describe('languageCode', () => {
   it.each([
@@ -92,7 +103,7 @@ describe('formatNumber', () => {
 });
 
 describe('DE', () => {
-  it.each(Object.entries(DE as Record<string, string>))('translates %s with the same placeholders', (english, german) => {
+  it.each(Object.entries(/** @type {Record<string, string>} */ (DE)))('translates %s with the same placeholders', (english, german) => {
     expect(german.trim()).not.toBe('');
     expect(placeholders(german)).toEqual(placeholders(english));
   });
