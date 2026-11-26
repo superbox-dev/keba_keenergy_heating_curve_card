@@ -45,7 +45,7 @@ id = "eslint"
 name = "eslint"
 entry = "npx eslint --no-warn-ignored"
 language = "system"
-types_or = ["javascript", "ts"]
+types = ["javascript"]
 
 [[repos.hooks]]
 id = "typecheck"
