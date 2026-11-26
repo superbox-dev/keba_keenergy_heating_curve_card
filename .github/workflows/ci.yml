@@ -52,6 +52,29 @@ jobs:
           persist-credentials: False
       - name: Set up project
         uses: ./.github/actions/setup-project
+      - name: Build card and run smoke tests of the bundle
+        run: npm run test:dist
+      - name: Check HACS file name
+        run: |
+          # HACS looks for the file named after the repository.
+          FILE="dist/${GITHUB_REPOSITORY#*/}.js"
+
+          if [[ ! -s "$FILE" ]]; then
+            echo "::error::$FILE is missing or empty, HACS will not find the card"
+            exit 1
+          fi
+
+          echo "Found $FILE"
+      - name: Run tests with coverage
+        run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5  # v7.1.1
+        with:
+          files: test/coverage/lcov.info
+          disable_search: true
+          # Pull requests from forks and Dependabot get no OIDC token and upload without one.
+          use_oidc: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+          fail_ci_if_error: true
       - name: Upload card
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
