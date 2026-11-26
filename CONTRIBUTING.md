@@ -50,6 +50,10 @@ the TypeScript check, the tests, yamllint, [rumdl](https://github.com/rvben/rumd
 [editorconfig-checker](https://editorconfig-checker.github.io). Fix and format the JavaScript and TypeScript files with
 `npx eslint --fix .`. See [CLAUDE.md](CLAUDE.md) for the project rules.
 
+The sources in `src/` are plain JavaScript with [JSDoc](https://jsdoc.app) comments. `npm run typecheck` checks their
+types with TypeScript, the bundle stays JavaScript. The card is split by topic in `src/card/`, like its tests in
+`test/unit/card/`.
+
 ## AI assistant
 
 The project only uses [Claude Code](https://claude.com/claude-code) as AI assistant. Its rules are in
@@ -76,7 +80,7 @@ npm test                # unit tests
 npm run test:coverage   # unit tests and coverage, fails below 100%
 npm run test:dist       # build the card and run the smoke tests of the bundle
 npm run test:e2e        # end-to-end tests in Chromium
-npm run typecheck       # TypeScript types of the tests
+npm run typecheck       # types of the sources (JSDoc) and the tests
 ```
 
 The coverage report is in `test/coverage/index.html`. The CI uploads the coverage to

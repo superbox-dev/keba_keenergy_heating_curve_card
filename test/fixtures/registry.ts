@@ -21,7 +21,7 @@ export type FieldKey =
   | 'limitDay'
   | 'limitNight';
 
-const FIELD_INFO = FIELDS as Record<FieldKey, [domain: string, uniqueId: string]>;
+const FIELD_INFO: Record<FieldKey, { domain: string; uniqueId: string }> = FIELDS;
 
 export const CURVE_TABLES = ['HC1', 'HC2', 'HC3'];
 
@@ -39,7 +39,7 @@ export const POINTS: CurvePoint[] = [
  */
 export function entityId(serial: string, circuit: number, key: FieldKey): string {
   const name = key === 'outdoor' ? 'outdoor' : `hc${circuit}_${key}`;
-  return `${FIELD_INFO[key][0]}.c${serial}_${name}`;
+  return `${FIELD_INFO[key].domain}.c${serial}_${name}`;
 }
 
 /**
@@ -60,7 +60,7 @@ export function registryEntry(
 ): EntityRegistryEntry {
   const uniqueId = key === 'outdoor'
     ? `${serial}_outdoor_temperature`
-    : `${serial}_heat_circuit_${FIELD_INFO[key][1]}${circuit === 1 ? '' : `_${circuit}`}`;
+    : `${serial}_heat_circuit_${FIELD_INFO[key].uniqueId}${circuit === 1 ? '' : `_${circuit}`}`;
 
   return {
     entity_id: entityId(serial, circuit, key),

@@ -3,7 +3,8 @@
 - TypeScript with vitest and jsdom, like the Home Assistant frontend, config in `test/vitest.config.ts`
   - strict types, checked by `npm run typecheck` (`tsconfig.json`), no `any`, no `@ts-` comments
   - `src/` stays JavaScript, import it without extension (`../src/discovery`)
-- `test/unit/` mirrors `src/`: `<module>.test.ts` per source module, the card split by topic in `test/unit/card/`
+- `test/unit/` mirrors `src/`: `<module>.test.ts` per source module, the card and `src/card/` by topic in
+  `test/unit/card/`
   - `describe` per feature, `it` with a sentence of the behavior, `it.each` for variants
   - Arrange, act, assert: separated by a blank line, the action alone in the middle block
 - Fakes and test data in `test/fixtures/`, like the Home Assistant frontend, every export with a JSDoc comment
@@ -29,6 +30,6 @@
   - a failing check with `vi.mock` of `@noble/hashes/pbkdf2.js` in its own file
 - Time with `vi.useFakeTimers()`, never wait in real time
 - Every bug fix gets a regression test that fails without the fix
-- Every `_t()` text needs a `DE` entry with the same placeholders, `i18n.test.ts` checks this
+- Every `_t()` and `t()` text in `src/` needs a `DE` entry with the same placeholders, `i18n.test.ts` checks this
 - Registry entries built in the test with fake serial numbers and entity IDs, never real data
 - No network, tests are independent of each other

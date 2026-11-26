@@ -45,7 +45,7 @@ export default [
     },
   },
   // The tests are TypeScript, like in the Home Assistant frontend.
-  ...tseslint.configs.recommended.map(config => ({ ...config, files: ['test/**/*.ts'] })),
+  ...tseslint.configs.recommended.map(config => ({ ...config, files: ['test/**/*.ts', 'src/**/*.d.ts'] })),
   {
     files: ['test/**/*.ts'],
     languageOptions: {
