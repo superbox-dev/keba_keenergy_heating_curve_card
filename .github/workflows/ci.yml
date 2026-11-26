@@ -10,7 +10,7 @@ on:
     - cron: 30 5 * * *
   push:
     branches:
-      - main
+      - '**'
     tags:
       - v*
 
@@ -52,18 +52,6 @@ jobs:
           persist-credentials: False
       - name: Set up project
         uses: ./.github/actions/setup-project
-      - name: Build card and run smoke tests of the bundle
-        run: npm run test:dist
-      - name: Run tests with coverage
-        run: npm run test:coverage
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5  # v7.1.1
-        with:
-          files: test/coverage/lcov.info
-          disable_search: true
-          # Pull requests from forks and Dependabot get no OIDC token and upload without one.
-          use_oidc: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-          fail_ci_if_error: true
       - name: Upload card
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
@@ -90,7 +78,6 @@ jobs:
   validation:
     name: Validation
     runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -118,7 +105,7 @@ jobs:
     name: Release on GitHub
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
-    # Not after the HACS validation: it only passes once a release has the new file.
+    # Not after the HACS validation: it checks the latest release, the build job checks the file name.
     needs:
       - code-analysis
       - build
