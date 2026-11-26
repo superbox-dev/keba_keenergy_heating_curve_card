@@ -3,12 +3,14 @@ import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
 import { createHass } from '../../fixtures/hass';
 import { PASSWORD_HASH } from '../../fixtures/password';
-import type { CardConfig, HeatingCurveCardClass } from '../../fixtures/types';
+/** @import { CardConfig, HeatingCurveCardClass } from '../../fixtures/types' */
 
-const Card = (): HeatingCurveCardClass =>
-  customElements.get('keba-keenergy-heating-curve-card') as unknown as HeatingCurveCardClass;
+/** @returns {HeatingCurveCardClass} */
+const Card = () =>
+  /** @type {HeatingCurveCardClass} */ (/** @type {unknown} */ (customElements.get('keba-keenergy-heating-curve-card')));
 
-const configure = (config: CardConfig) => () => new (Card())().setConfig(config);
+/** @param {CardConfig} config */
+const configure = config => () => new (Card())().setConfig(config);
 
 describe('setConfig', () => {
   it('accepts an empty config', async () => {
@@ -44,7 +46,7 @@ describe('setConfig', () => {
     })).not.toThrow();
   });
 
-  it.each<[CardConfig, string]>([
+  it.each(/** @type {[CardConfig, string][]} */ ([
     [{ entities: [] }, 'entities must be a mapping.'],
     [{ entities: 'sensor.curve' }, 'entities must be a mapping.'],
     [{ language: 'fr' }, 'language must be auto, de or en.'],
@@ -72,7 +74,7 @@ describe('setConfig', () => {
     [{ x_min: 10, x_max: 10 }, 'x_min must be less than x_max.'],
     [{ y_min: 50, y_max: 20 }, 'y_min must be less than y_max.'],
     [{ intermediate_step: 0 }, 'intermediate_step must be between 0.01 and 200 °C'],
-  ])('rejects %o', (config, error) => {
+  ]))('rejects %o', (config, error) => {
     expect(configure(config)).toThrow(error);
   });
 

@@ -4,8 +4,8 @@ import { defineConfig } from 'vitest/config';
 // Tests of the card in a real Chromium, run `npx playwright install chromium` once.
 export default defineConfig({
   test: {
-    include: ['test/e2e/**/*.test.ts'],
-    setupFiles: ['./test/e2e/setup.ts'],
+    include: ['test/e2e/**/*.test.js'],
+    setupFiles: ['./test/e2e/setup.js'],
     browser: {
       enabled: true,
       provider: playwright(),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import '../../../src/card';
-import { CardView } from '../../test_helper/card-view';
+import { CardView, createCard } from '../../test_helper/card-view';
 import { answerRegistry, createHass, withLanguage } from '../../fixtures/hass';
 import { PASSWORD_HASH } from '../../fixtures/password';
 import {
@@ -13,10 +13,14 @@ import {
   registryEntry,
 } from '../../fixtures/registry';
 import { settle } from '../../test_helper/shadow-view';
-import type { CardConfig, FakeHass } from '../../fixtures/types';
+/** @import { CallWS, CardConfig, FakeHass } from '../../fixtures/types' */
 
-/** Two controllers, `111` with two heating circuits on HC1 and HC2, `222` with one on HC3. */
-const twoControllers = (): FakeHass => createHass({
+/**
+ * Two controllers, `111` with two heating circuits on HC1 and HC2, `222` with one on HC3.
+ *
+ * @returns {FakeHass}
+ */
+const twoControllers = () => createHass({
   registry: [...controllerEntities('entry-1', '111', 2), ...controllerEntities('entry-2', '222')],
   deviceList: [...devices('111', 2), ...devices('222')],
   states: {
@@ -199,7 +203,7 @@ describe('pinned selection', () => {
 });
 
 describe('mapping errors', () => {
-  it.each<[string, CardConfig, string]>([
+  it.each(/** @type {[string, CardConfig, string][]} */ ([
     [
       'entities of two controllers',
       { entities: { curve_sensor: entityId('111', 1, 'curve'), curve_select: entityId('222', 1, 'select') } },
@@ -222,7 +226,7 @@ describe('mapping errors', () => {
       'circuit and the entity mapping belong to different heating circuits.',
     ],
     ['an unknown heating circuit', { circuit: '5' }, CIRCUIT_MISSING],
-  ])('shows %s', async (_, config, expected) => {
+  ]))('shows %s', async (_, config, expected) => {
     const view = await CardView.create(config, twoControllers());
 
     expect(view.mappingError).toBe(expected);
@@ -369,7 +373,7 @@ describe('registry access', () => {
       finish = () => resolve(answer());
     }));
     const view = await CardView.create({ title: 'Old' }, hass);
-    hass.callWS.mockImplementation(list!);
+    hass.callWS.mockImplementation(/** @type {CallWS} */ (list));
 
     view.setConfig({ title: 'New' });
     await settle();
@@ -402,7 +406,7 @@ describe('registry access', () => {
 
   it('does not read the registry without config', () => {
     const hass = createHass();
-    const view = new CardView(document.createElement('keba-keenergy-heating-curve-card'));
+    const view = new CardView(createCard());
 
     view.hass = hass;
 

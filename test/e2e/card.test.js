@@ -8,10 +8,16 @@ import { entityId, temperature } from '../fixtures/registry';
 import { CardView } from '../test_helper/card-view';
 import { EditorView } from '../test_helper/editor-view';
 import { settle } from '../test_helper/shadow-view';
-import type { CardConfig } from '../fixtures/types';
+/** @import { CardConfig } from '../fixtures/types' */
 
-/** Creates the card in a container of the given width, like a dashboard column. */
-async function cardWithWidth(width: number, config: CardConfig = {}, hass = createHass()): Promise<CardView> {
+/**
+ * Creates the card in a container of the given width, like a dashboard column.
+ *
+ * @param {number} width
+ * @param {CardConfig} config
+ * @returns {Promise<CardView>}
+ */
+async function cardWithWidth(width, config = {}, hass = createHass()) {
   const column = document.createElement('div');
   column.style.width = `${width}px`;
   document.body.append(column);
@@ -21,7 +27,11 @@ async function cardWithWidth(width: number, config: CardConfig = {}, hass = crea
   return view;
 }
 
-const columns = (view: CardView): number =>
+/**
+ * @param {CardView} view
+ * @returns {number}
+ */
+const columns = view =>
   getComputedStyle(view.get('.layout')).gridTemplateColumns.split(' ').length;
 
 describe('layout', () => {

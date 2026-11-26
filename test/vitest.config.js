@@ -2,12 +2,12 @@ import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['test/unit/**/*.test.ts'],
+    include: ['test/unit/**/*.test.js'],
     exclude: [...configDefaults.exclude],
     // Browser-like environment, like the Home Assistant frontend.
     environment: 'jsdom',
     env: { TZ: 'Etc/UTC' },
-    setupFiles: ['./test/unit/setup.ts'],
+    setupFiles: ['./test/unit/setup.js'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.js'],

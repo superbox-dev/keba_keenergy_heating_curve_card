@@ -3,14 +3,21 @@ import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
 import { createHass } from '../../fixtures/hass';
 import { circuitStates, curveSensor, plain } from '../../fixtures/registry';
-import type { FieldKey } from '../../fixtures/registry';
-import type { CardConfig, EntityState, FakeHass } from '../../fixtures/types';
+/** @import { FieldKey } from '../../fixtures/registry' */
+/** @import { CardConfig, EntityState, FakeHass } from '../../fixtures/types' */
 
-/** Home Assistant whose curve table HC1 has the given points. */
-const withPoints = (points: unknown, overrides: Partial<Record<FieldKey, EntityState>> = {}): FakeHass =>
+/**
+ * Home Assistant whose curve table HC1 has the given points.
+ *
+ * @param {unknown} points
+ * @param {Partial<Record<FieldKey, EntityState>>} overrides
+ * @returns {FakeHass}
+ */
+const withPoints = (points, overrides = {}) =>
   createHass({ states: circuitStates('111', 1, { curve: curveSensor('HC1', points), ...overrides }) });
 
-const chart = async (config: CardConfig = {}, hass = createHass()) => (await CardView.create(config, hass)).chart;
+/** @param {CardConfig} config */
+const chart = async (config = {}, hass = createHass()) => (await CardView.create(config, hass)).chart;
 
 describe('points', () => {
   it('draws and labels the saved points', async () => {

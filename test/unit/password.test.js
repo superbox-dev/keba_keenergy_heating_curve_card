@@ -2,9 +2,14 @@ import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { describe, expect, it, vi } from 'vitest';
 import { ITERATIONS, createVerifier, parseVerifier, verifyPassword } from '../../src/password';
 import { PASSWORD, PASSWORD_HASH } from '../fixtures/password';
+/** @import { PasswordVerifier } from '../../src/password' */
 
-/** The bytes that the last PBKDF2 calculation got as password. */
-const lastPasswordBytes = (): Uint8Array => vi.mocked(pbkdf2Async).mock.calls.at(-1)?.[1] as Uint8Array;
+/**
+ * The bytes that the last PBKDF2 calculation got as password.
+ *
+ * @returns {Uint8Array}
+ */
+const lastPasswordBytes = () => /** @type {Uint8Array} */ (vi.mocked(pbkdf2Async).mock.calls.at(-1)?.[1]);
 
 describe('parseVerifier', () => {
   it('parses a verifier in any case and lowercases the hash', () => {
@@ -14,19 +19,19 @@ describe('parseVerifier', () => {
       .toEqual({ iterations: Number(iterations), salt: salt.toUpperCase(), hash });
   });
 
-  it.each<[string | undefined, string]>([
+  it.each(/** @type {[string | undefined, string][]} */ ([
     ['', 'empty'],
     [undefined, 'missing'],
     ['secret', 'no verifier'],
     [PASSWORD_HASH.replace('$100000$', '$99999$'), 'too few iterations'],
     [PASSWORD_HASH.replace('$100000$', '$1000001$'), 'too many iterations'],
-  ])('rejects %o (%s)', (value) => {
+  ]))('rejects %o (%s)', (value) => {
     expect(parseVerifier(value)).toBeNull();
   });
 });
 
 describe('verifyPassword', () => {
-  const verifier = parseVerifier(PASSWORD_HASH)!;
+  const verifier = /** @type {PasswordVerifier} */ (parseVerifier(PASSWORD_HASH));
 
   it('accepts the password', async () => {
     await expect(verifyPassword(PASSWORD, verifier)).resolves.toBe(true);
@@ -50,7 +55,7 @@ describe('createVerifier', () => {
 
     expect(first).toMatch(new RegExp(`^pbkdf2-sha256\\$${ITERATIONS}\\$[0-9a-f]{32}\\$[0-9a-f]{64}$`));
     expect(second.split('$')[2]).not.toBe(first.split('$')[2]);
-    await expect(verifyPassword(PASSWORD, parseVerifier(first)!)).resolves.toBe(true);
+    await expect(verifyPassword(PASSWORD, /** @type {PasswordVerifier} */ (parseVerifier(first)))).resolves.toBe(true);
   });
 
   it('wipes the password bytes', async () => {

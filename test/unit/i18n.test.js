@@ -2,15 +2,27 @@ import { describe, expect, it, vi } from 'vitest';
 import { DE, errorText, formatNumber, languageCode, translate } from '../../src/i18n';
 
 /** The sources of `src/` by path, to find the texts of the `_t()` and `t()` calls. */
-const SOURCES = import.meta.glob<string>('../../src/**/*.js', { query: '?raw', import: 'default', eager: true });
+const SOURCES = /** @type {Record<string, string>} */ (
+  import.meta.glob('../../src/**/*.js', { query: '?raw', import: 'default', eager: true })
+);
 
-const placeholders = (text: string): string[] => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
+/**
+ * @param {string} text
+ * @returns {string[]}
+ */
+const placeholders = text => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
 
-/** The texts of the `_t()` and `t()` calls in a source file. */
-const sourceTexts = (source: string): string[] =>
+/**
+ * The texts of the `_t()` and `t()` calls in a source file.
+ *
+ * @param {string} source
+ * @returns {string[]}
+ */
+const sourceTexts = source =>
   [...source.matchAll(/(?<![\w$])_?t\((['"])([^'"\n]*)\1/g)].map(match => match[2]);
 
-const browserLanguage = (language: string) => vi.spyOn(navigator, 'language', 'get').mockReturnValue(language);
+/** @param {string} language */
+const browserLanguage = language => vi.spyOn(navigator, 'language', 'get').mockReturnValue(language);
 
 describe('languageCode', () => {
   it.each([
@@ -93,7 +105,7 @@ describe('formatNumber', () => {
 });
 
 describe('DE', () => {
-  it.each(Object.entries(DE as Record<string, string>))('translates %s with the same placeholders', (english, german) => {
+  it.each(Object.entries(/** @type {Record<string, string>} */ (DE)))('translates %s with the same placeholders', (english, german) => {
     expect(german.trim()).not.toBe('');
     expect(placeholders(german)).toEqual(placeholders(english));
   });

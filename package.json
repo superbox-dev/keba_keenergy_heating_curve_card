@@ -7,10 +7,10 @@
   "license": "MIT",
   "scripts": {
     "build": "node build.mjs",
-    "test": "vitest run --config test/vitest.config.ts",
-    "test:coverage": "vitest run --config test/vitest.config.ts --coverage",
-    "test:dist": "npm run build && vitest run --config test/vitest.dist.config.ts",
-    "test:e2e": "vitest run --config test/vitest.e2e.config.ts",
+    "test": "vitest run --config test/vitest.config.js",
+    "test:coverage": "vitest run --config test/vitest.config.js --coverage",
+    "test:dist": "npm run build && vitest run --config test/vitest.dist.config.js",
+    "test:e2e": "vitest run --config test/vitest.e2e.config.js",
     "typecheck": "tsc",
     "prepare": "prek install && node scripts/install-hooks.mjs"
   },
@@ -33,7 +33,6 @@
     "jsdom": "31.0.1",
     "playwright": "1.65.1",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.74.0",
     "vitest": "5.1.1"
   },
   "allowScripts": {

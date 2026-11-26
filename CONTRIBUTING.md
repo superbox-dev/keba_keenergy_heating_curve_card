@@ -46,8 +46,8 @@ Never use real credentials, serial numbers or IP addresses of your heat pump in 
 ## Coding style
 
 `./scripts/lint.sh` runs all [prek](https://prek.j178.dev) hooks: [eslint](https://eslint.org) (lint and format),
-the TypeScript check, the tests, yamllint, [rumdl](https://github.com/rvben/rumdl) and
-[editorconfig-checker](https://editorconfig-checker.github.io). Fix and format the JavaScript and TypeScript files with
+the type check, the tests, yamllint, [rumdl](https://github.com/rvben/rumdl) and
+[editorconfig-checker](https://editorconfig-checker.github.io). Fix and format the JavaScript files with
 `npx eslint --fix .`. See [CLAUDE.md](CLAUDE.md) for the project rules.
 
 The sources in `src/` are plain JavaScript with [JSDoc](https://jsdoc.app) comments. `npm run typecheck` checks their
@@ -66,8 +66,9 @@ are in [card.yaml](card.yaml), [dashboard.yaml](dashboard.yaml) and `examples/`,
 
 ## Tests
 
-The tests in `test/` are written in TypeScript and use [vitest](https://vitest.dev), like the
-[Home Assistant frontend](https://github.com/home-assistant/frontend). **100% test coverage is enforced**, so every
+The tests in `test/` are written in JavaScript with JSDoc types and use [vitest](https://vitest.dev), like the
+[Home Assistant frontend](https://github.com/home-assistant/frontend). `npm run typecheck` checks the types with
+TypeScript. **100% test coverage is enforced**, so every
 new code path needs a test.
 
 - Unit tests in `test/unit/` with [jsdom](https://github.com/jsdom/jsdom) as browser, against `src/`

@@ -1,29 +1,50 @@
 import { describe, expect, it } from 'vitest';
 import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
-import type { PointAxis } from '../../test_helper/card-view';
+/** @import { PointAxis } from '../../test_helper/card-view' */
 import { createHass, holdServiceCalls, serviceCalls, withStates } from '../../fixtures/hass';
-import type { HassOptions } from '../../fixtures/hass';
+/** @import { HassOptions } from '../../fixtures/hass' */
 import { PASSWORD_HASH } from '../../fixtures/password';
 import { circuitStates, curveSelect, curveSensor, entityId, plain, POINTS } from '../../fixtures/registry';
-import type { FieldKey } from '../../fixtures/registry';
+/** @import { FieldKey } from '../../fixtures/registry' */
 import { settle } from '../../test_helper/shadow-view';
-import type { FakeHass, StateChanges } from '../../fixtures/types';
+/** @import { FakeHass, StateChanges } from '../../fixtures/types' */
 
-const id = (key: FieldKey): string => entityId('111', 1, key);
+/**
+ * @param {FieldKey} key
+ * @returns {string}
+ */
+const id = key => entityId('111', 1, key);
 
-/** The states after the controller saved the points in HC1. */
-const savedPoints = (points: unknown): StateChanges => ({ [id('curve')]: curveSensor('HC1', points) });
+/**
+ * The states after the controller saved the points in HC1.
+ *
+ * @param {unknown} points
+ * @returns {StateChanges}
+ */
+const savedPoints = points => ({ [id('curve')]: curveSensor('HC1', points) });
 
-/** Home Assistant whose curve table HC1 has the given points. */
-const withPoints = (points: unknown): FakeHass =>
+/**
+ * Home Assistant whose curve table HC1 has the given points.
+ *
+ * @param {unknown} points
+ * @returns {FakeHass}
+ */
+const withPoints = points =>
   createHass({ states: circuitStates('111', 1, { curve: curveSensor('HC1', points) }) });
 
-/** Points with the outdoor temperatures `start`, `start + step`, … and the same flow. */
-const series = (length: number, start: number, step: number) =>
+/**
+ * Points with the outdoor temperatures `start`, `start + step`, … and the same flow.
+ *
+ * @param {number} length
+ * @param {number} start
+ * @param {number} step
+ */
+const series = (length, start, step) =>
   Array.from({ length }, (_, index) => ({ outdoor: start + index * step, flow: 30 }));
 
-const saved = (hass: FakeHass) => serviceCalls(hass, 'keba_keenergy');
+/** @param {FakeHass} hass */
+const saved = hass => serviceCalls(hass, 'keba_keenergy');
 
 const INVALID_POINTS = 'Invalid points: outdoor −40 to 40 °C, flow 10 to 90 °C; outdoor temperatures must be unique.';
 
@@ -42,7 +63,7 @@ describe('point table', () => {
     expect(view.pointValues).toEqual([['', '']]);
   });
 
-  it.each<[string, HassOptions]>([
+  it.each(/** @type {[string, HassOptions][]} */ ([
     ['without the action of the integration', { pointService: false }],
     ['with an unavailable curve', { states: circuitStates('111', 1, { curve: plain('unavailable') }) }],
     ['without points', { states: circuitStates('111', 1, { curve: { state: 'HC1', attributes: {} } }) }],
@@ -50,12 +71,12 @@ describe('point table', () => {
     ['with a table that is no heating table', {
       states: circuitStates('111', 1, { select: curveSelect('Off', ['Off']), curve: curveSensor('Off') }),
     }],
-  ])('is read-only %s', async (_, options) => {
+  ]))('is read-only %s', async (_, options) => {
     const view = await CardView.create({}, createHass(options));
 
     expect(view.savePointsButton.disabled).toBe(true);
     expect(view.addPointButton.disabled).toBe(true);
-    expect(view.query<HTMLInputElement>('[data-point="0"][data-axis="outdoor"]')?.disabled ?? true).toBe(true);
+    expect(/** @type {HTMLInputElement | null} */ (view.query('[data-point="0"][data-axis="outdoor"]'))?.disabled ?? true).toBe(true);
   });
 
   it('uses the curve sensor without select', async () => {
@@ -241,14 +262,14 @@ describe('saving points', () => {
     expect(view.message).toBe('No changes to the points.');
   });
 
-  it.each<[string, number, PointAxis, number | string]>([
+  it.each(/** @type {[string, number, PointAxis, number | string][]} */ ([
     ['an outdoor temperature below -40 °C', 0, 'outdoor', -41],
     ['an outdoor temperature above 40 °C', 2, 'outdoor', 41],
     ['a flow temperature below 10 °C', 0, 'flow', 9],
     ['a flow temperature above 90 °C', 0, 'flow', 91],
     ['an empty field', 0, 'flow', ''],
     ['a duplicate outdoor temperature', 1, 'outdoor', -20.001],
-  ])('rejects %s', async (_, index, axis, value) => {
+  ]))('rejects %s', async (_, index, axis, value) => {
     const hass = createHass();
     const view = await CardView.create({}, hass);
     await view.setPoint(index, axis, value);

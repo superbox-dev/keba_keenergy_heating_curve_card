@@ -15,5 +15,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.js", "src/**/*.d.ts", "test/**/*.ts"]
+  "include": ["src/**/*.js", "src/**/*.d.ts", "test/**/*.js"],
+  "exclude": ["test/coverage"]
 }

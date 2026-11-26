@@ -51,7 +51,7 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm run test:cover
 - No real credentials, serial numbers or IP addresses, also not in examples or screenshots
 - Missing entities or actions belong in `keba_keenergy`, stop and ask how to proceed
 - `git add` new files, the pre-commit hooks only check tracked files
-- 100% coverage (lines, branches, functions, statements), never lower the thresholds in `test/vitest.config.ts` or
+- 100% coverage (lines, branches, functions, statements), never lower the thresholds in `test/vitest.config.js` or
   exclude code, test the code or remove unreachable code
 - **Never edit `CLAUDE.md` files or `.claude/skills/` on your own**, only when asked
   - if a change conflicts with them, stop and ask

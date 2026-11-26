@@ -855,8 +855,12 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
 
 if (!customElements.get(CARD_TYPE)) customElements.define(CARD_TYPE, KeEnergyHeatingCurveCard);
 
-/** Entry of the card picker of Home Assistant. */
-const win = /** @type {Window & { customCards?: { type: string }[] }} */ (window);
+/**
+ * Entry of the card picker of Home Assistant.
+ *
+ * @typedef {{ type: string, name?: string, description?: string, preview?: boolean }} CustomCard
+ */
+const win = /** @type {Window & { customCards?: CustomCard[] }} */ (window);
 win.customCards = win.customCards || [];
 if (!win.customCards.some(c => c.type === CARD_TYPE)) {
   win.customCards.push({

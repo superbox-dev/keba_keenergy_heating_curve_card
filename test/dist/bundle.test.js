@@ -6,9 +6,11 @@ import { createHass } from '../fixtures/hass';
 import { PASSWORD_HASH } from '../fixtures/password';
 import { CardView } from '../test_helper/card-view';
 import { EditorView } from '../test_helper/editor-view';
+/** @import { CardWindow } from '../fixtures/types' */
 
 /** The bundle from `npm run build`, or the file of a release in its place. */
 const BUNDLE = '/dist/keba_keenergy_heating_curve_card.js';
+const cardWindow = /** @type {CardWindow} */ (window);
 
 beforeAll(async () => {
   await import(/* @vite-ignore */ BUNDLE);
@@ -18,7 +20,7 @@ describe('bundle', () => {
   it('registers the card, the editor and the card picker entry', () => {
     expect(customElements.get('keba-keenergy-heating-curve-card')).toBeDefined();
     expect(customElements.get('keba-keenergy-heating-curve-card-editor')).toBeDefined();
-    expect(window.customCards?.map(card => card.type)).toEqual(['keba-keenergy-heating-curve-card']);
+    expect(cardWindow.customCards?.map(card => card.type)).toEqual(['keba-keenergy-heating-curve-card']);
   });
 
   it('shows the version of package.json', async () => {

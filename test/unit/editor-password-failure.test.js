@@ -6,7 +6,7 @@ import { settle } from '../test_helper/shadow-view';
 
 // Setting a password fails only when the browser cannot compute the hash.
 vi.mock('@noble/hashes/pbkdf2.js', async importOriginal => ({
-  ...await importOriginal<object>(),
+  .../** @type {object} */ (await importOriginal()),
   pbkdf2Async: vi.fn(),
 }));
 

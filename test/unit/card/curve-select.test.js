@@ -3,16 +3,26 @@ import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
 import { createHass, holdServiceCalls, serviceCalls, withLanguage, withStates } from '../../fixtures/hass';
 import { circuitStates, curveSelect, curveSensor, entityId, plain } from '../../fixtures/registry';
-import type { FieldKey } from '../../fixtures/registry';
+/** @import { FieldKey } from '../../fixtures/registry' */
 import { settle } from '../../test_helper/shadow-view';
-import type { FakeHass, StateChanges } from '../../fixtures/types';
+/** @import { FakeHass, StateChanges } from '../../fixtures/types' */
 
-const id = (key: FieldKey): string => entityId('111', 1, key);
+/**
+ * @param {FieldKey} key
+ * @returns {string}
+ */
+const id = key => entityId('111', 1, key);
 
-/** The states after the controller switched the heating circuit to another table. */
-const table = (name: string): StateChanges => ({ [id('select')]: curveSelect(name), [id('curve')]: curveSensor(name) });
+/**
+ * The states after the controller switched the heating circuit to another table.
+ *
+ * @param {string} name
+ * @returns {StateChanges}
+ */
+const table = name => ({ [id('select')]: curveSelect(name), [id('curve')]: curveSensor(name) });
 
-const selections = (hass: FakeHass) => serviceCalls(hass, 'select');
+/** @param {FakeHass} hass */
+const selections = hass => serviceCalls(hass, 'select');
 
 describe('curve tables', () => {
   it('offers the heating tables of the controller', async () => {
