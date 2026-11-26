@@ -10,7 +10,7 @@ on:
     - cron: 30 5 * * *
   push:
     branches:
-      - main
+      - '**'
     tags:
       - v*
 
@@ -48,6 +48,17 @@ jobs:
         uses: ./.github/actions/setup-project
       - name: Build card
         run: npm run build
+      - name: Check HACS file name
+        run: |
+          # HACS looks for the file named after the repository.
+          FILE="dist/${GITHUB_REPOSITORY#*/}.js"
+
+          if [[ ! -s "$FILE" ]]; then
+            echo "::error::$FILE is missing or empty, HACS will not find the card"
+            exit 1
+          fi
+
+          echo "Found $FILE"
       - name: Run tests
         run: npm test
       - name: Upload card
@@ -60,7 +71,6 @@ jobs:
   validation:
     name: Validation
     runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -88,7 +98,7 @@ jobs:
     name: Release on GitHub
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
-    # Not after the HACS validation: it only passes once a release has the new file.
+    # Not after the HACS validation: it checks the latest release, the build job checks the file name.
     needs:
       - code-analysis
       - build
