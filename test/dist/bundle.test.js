@@ -1,4 +1,3 @@
-// @ts-check
 // Smoke tests of the built card: the file HACS downloads loads, registers and renders.
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import packageJson from '../../package.json';

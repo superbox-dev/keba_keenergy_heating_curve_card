@@ -1,4 +1,3 @@
-// @ts-check
 // Page object of the card: its elements by name and the actions of the user.
 import { vi } from 'vitest';
 import { PASSWORD } from '../fixtures/password';

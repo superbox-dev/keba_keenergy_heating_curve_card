@@ -1,4 +1,3 @@
-// @ts-check
 import { afterEach, vi } from 'vitest';
 
 /**

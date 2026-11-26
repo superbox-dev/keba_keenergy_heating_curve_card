@@ -1,8 +1,10 @@
-// @ts-check
 import { describe, expect, it, vi } from 'vitest';
-import { DE, formatNumber, languageCode, translate } from '../../src/i18n';
-import cardSource from '../../src/card.js?raw';
-import editorSource from '../../src/editor.js?raw';
+import { DE, errorText, formatNumber, languageCode, translate } from '../../src/i18n';
+
+/** The sources of `src/` by path, to find the texts of the `_t()` and `t()` calls. */
+const SOURCES = /** @type {Record<string, string>} */ (
+  import.meta.glob('../../src/**/*.js', { query: '?raw', import: 'default', eager: true })
+);
 
 /**
  * @param {string} text
@@ -11,13 +13,13 @@ import editorSource from '../../src/editor.js?raw';
 const placeholders = text => [...text.matchAll(/\{(\w+)\}/g)].map(match => match[1]).sort();
 
 /**
- * The texts of the `_t()` calls in a source file.
+ * The texts of the `_t()` and `t()` calls in a source file.
  *
  * @param {string} source
  * @returns {string[]}
  */
 const sourceTexts = source =>
-  [...source.matchAll(/_t\((['"])([^'"\n]*)\1/g)].map(match => match[2]);
+  [...source.matchAll(/(?<![\w$])_?t\((['"])([^'"\n]*)\1/g)].map(match => match[2]);
 
 /** @param {string} language */
 const browserLanguage = language => vi.spyOn(navigator, 'language', 'get').mockReturnValue(language);
@@ -108,13 +110,23 @@ describe('DE', () => {
     expect(placeholders(german)).toEqual(placeholders(english));
   });
 
-  it.each([
-    ['card.js', cardSource],
-    ['editor.js', editorSource],
-  ])('has every text of %s', (_, source) => {
-    const texts = sourceTexts(source);
+  it('finds the texts of the sources', () => {
+    expect(Object.keys(SOURCES)).toContain('../../src/card/templates.js');
+    expect(Object.values(SOURCES).flatMap(sourceTexts)).toContain('Save points');
+  });
 
-    expect(texts.length).toBeGreaterThan(0);
-    expect(texts.filter(text => !Object.hasOwn(DE, text))).toEqual([]);
+  it.each(Object.entries(SOURCES))('has every text of %s', (_, source) => {
+    expect(sourceTexts(source).filter(text => !Object.hasOwn(DE, text))).toEqual([]);
+  });
+});
+
+describe('errorText', () => {
+  it.each([
+    [Error('Forbidden'), 'Forbidden'],
+    [{ message: 'Timeout' }, 'Timeout'],
+    ['busy', 'busy'],
+    [null, 'null'],
+  ])('shows %o as %s', (error, expected) => {
+    expect(errorText(error)).toBe(expected);
   });
 });

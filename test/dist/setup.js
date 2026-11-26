@@ -1,4 +1,3 @@
-// @ts-check
 import { afterEach } from 'vitest';
 
 afterEach(() => {

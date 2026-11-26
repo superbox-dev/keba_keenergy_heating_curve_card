@@ -1,5 +1,11 @@
 // English source messages with a complete German catalog. Entity IDs, table names
 // and user-supplied labels are data and must never be passed through this catalog.
+
+/**
+ * German translations of the English source texts.
+ *
+ * @type {Record<string, string>}
+ */
 export const DE = {
   'KeEnergy heating curve': 'Heizkurve KeEnergy',
   'Heating circuit': 'Heizkreis',
@@ -174,20 +180,89 @@ export const DE = {
   'English': 'Englisch',
 };
 
-export function languageCode(config, hass) {
-  const raw = config?.language && config.language !== 'auto' ? config.language : hass?.locale?.language || hass?.language || 'en';
-  return String(raw).toLowerCase().replaceAll('_', '-').split('-')[0] === 'de' ? 'de' : 'en';
+/**
+ * @typedef {Pick<import('./types.js').Hass, 'locale' | 'language'>} LocaleSource
+ * @typedef {{ language?: string } | undefined} LanguageConfig
+ */
+
+/** @type {Record<string, string>} */
+const NUMBER_FORMATS = {
+  comma_decimal: 'en-US',
+  decimal_comma: 'de-DE',
+  quote_decimal: 'de-CH',
+  space_comma: 'fr-FR',
+  none: 'en-US',
+};
+
+/**
+ * Language that the config or the user profile requests.
+ *
+ * @param {LanguageConfig} config Card config with the option `language`.
+ * @param {LocaleSource | undefined} hass The `hass` object, for the language of the user profile.
+ * @returns {string} The language, for example `de-CH`.
+ */
+function requestedLanguage(config, hass) {
+  if (config?.language && config.language !== 'auto') return config.language;
+  return hass?.locale?.language || hass?.language || 'en';
 }
+
+/**
+ * Language of the card texts, German or English.
+ *
+ * @param {LanguageConfig} config Card config with the option `language`.
+ * @param {LocaleSource | undefined} hass The `hass` object, for the language of the user profile.
+ * @returns {'de' | 'en'} `de` for every German locale, otherwise `en`.
+ */
+export function languageCode(config, hass) {
+  return String(requestedLanguage(config, hass)).toLowerCase().replaceAll('_', '-').split('-')[0] === 'de'
+    ? 'de'
+    : 'en';
+}
+
+/**
+ * Translates an English source text and fills in the placeholders.
+ *
+ * @param {string} language `de` or `en`.
+ * @param {string} text English source text, placeholders as `{name}`.
+ * @param {Record<string, unknown>} [params] Values of the placeholders, unknown placeholders stay.
+ * @returns {string} The text.
+ */
 export function translate(language, text, params = {}) {
   const message = language === 'de' ? DE[text] ?? text : text;
   return message.replace(/\{(\w+)\}/g, (match, key) => Object.hasOwn(params, key) ? String(params[key]) : match);
 }
+
+/**
+ * Formats a number in the number format of the user profile.
+ *
+ * @param {number} value The number.
+ * @param {LanguageConfig} [config] Card config with the option `language`.
+ * @param {LocaleSource} [hass] The `hass` object, for the number format and the language of the user profile.
+ * @param {Intl.NumberFormatOptions} [options] Format options, at most 1 decimal by default.
+ * @returns {string} The formatted number.
+ */
 export function formatNumber(value, config, hass, options = {}) {
   const preference = hass?.locale?.number_format;
-  const formats = { comma_decimal: 'en-US', decimal_comma: 'de-DE', quote_decimal: 'de-CH', space_comma: 'fr-FR', none: 'en-US' };
-  const requested = config?.language && config.language !== 'auto' ? config.language : hass?.locale?.language || hass?.language || 'en';
-  const locale = formats[preference] || (preference === 'system' ? globalThis.navigator?.language : requested) || 'en';
+  const requested = requestedLanguage(config, hass);
+  const locale = NUMBER_FORMATS[String(preference)]
+    || (preference === 'system' ? globalThis.navigator?.language : requested) || 'en';
   try {
-    return new Intl.NumberFormat(locale, { maximumFractionDigits: 1, ...options, ...(preference === 'none' ? { useGrouping: false } : {}) }).format(value);
-  } catch { return new Intl.NumberFormat('en', { maximumFractionDigits: 1, ...options }).format(value); }
+    return new Intl.NumberFormat(locale, {
+      maximumFractionDigits: 1,
+      ...options,
+      ...(preference === 'none' ? { useGrouping: false } : {}),
+    }).format(value);
+  } catch {
+    return new Intl.NumberFormat('en', { maximumFractionDigits: 1, ...options }).format(value);
+  }
+}
+
+/**
+ * Text of an error of Home Assistant or the browser, it is data and never goes through `translate()`.
+ *
+ * @param {unknown} error The error.
+ * @returns {string} Its message, or the value itself.
+ */
+export function errorText(error) {
+  return /** @type {{ message?: string } | null | undefined} */ (error)?.message || String(error);
 }

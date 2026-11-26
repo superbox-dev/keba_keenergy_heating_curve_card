@@ -1,4 +1,3 @@
-// @ts-check
 // Types of the parts of Home Assistant and of the card that the tests use.
 /** @import { HassServices, HassUser, MessageBase } from 'home-assistant-js-websocket' */
 /** @import { Mock } from 'vitest' */

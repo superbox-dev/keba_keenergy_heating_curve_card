@@ -1,4 +1,3 @@
-// @ts-check
 // Page object of the visual card editor: its fields by name and the actions of the user.
 import { expect, vi } from 'vitest';
 import { settle, ShadowView } from './shadow-view';

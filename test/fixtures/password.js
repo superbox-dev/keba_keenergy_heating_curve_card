@@ -1,4 +1,3 @@
-// @ts-check
 // The password of the tests and its verifier for `edit_password_hash`.
 
 export const PASSWORD = 'test-password';

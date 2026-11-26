@@ -1,4 +1,3 @@
-// @ts-check
 // Base of the page objects: finds elements in the shadow DOM and sends user events.
 
 /**

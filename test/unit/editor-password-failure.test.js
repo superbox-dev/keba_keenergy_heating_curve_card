@@ -1,4 +1,3 @@
-// @ts-check
 import { pbkdf2Async } from '@noble/hashes/pbkdf2.js';
 import { describe, expect, it, vi } from 'vitest';
 import '../../src/card';

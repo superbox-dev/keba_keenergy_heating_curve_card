@@ -1,4 +1,3 @@
-// @ts-check
 // The card in a real Chromium: layout, focus, keyboard and the PBKDF2 of the browser, which jsdom can't test.
 import { describe, expect, it, vi } from 'vitest';
 import { userEvent } from 'vitest/browser';

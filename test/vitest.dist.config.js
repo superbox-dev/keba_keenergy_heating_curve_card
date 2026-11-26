@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig } from 'vitest/config';
 
 // Smoke tests of the built bundle in dist/, run `npm run build` first.

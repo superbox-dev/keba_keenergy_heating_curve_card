@@ -1,4 +1,3 @@
-// @ts-check
 import { describe, expect, it, vi } from 'vitest';
 import '../../src/card';
 import { createCard } from '../test_helper/card-view';

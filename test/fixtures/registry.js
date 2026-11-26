@@ -1,4 +1,3 @@
-// @ts-check
 // Entity registry entries and states of the keba_keenergy integration, with fake serial numbers.
 import { FIELDS } from '../../src/discovery';
 /**
@@ -19,7 +18,8 @@ import { FIELDS } from '../../src/discovery';
  * @typedef {'select' | 'curve' | 'outdoor' | 'actual' | 'target' | 'useCurve' | 'limitDay' | 'limitNight'} FieldKey
  */
 
-const FIELD_INFO = /** @type {Record<FieldKey, [domain: string, uniqueId: string]>} */ (FIELDS);
+/** @type {Record<FieldKey, { domain: string, uniqueId: string }>} */
+const FIELD_INFO = FIELDS;
 
 export const CURVE_TABLES = ['HC1', 'HC2', 'HC3'];
 
@@ -42,7 +42,7 @@ export const POINTS = [
  */
 export function entityId(serial, circuit, key) {
   const name = key === 'outdoor' ? 'outdoor' : `hc${circuit}_${key}`;
-  return `${FIELD_INFO[key][0]}.c${serial}_${name}`;
+  return `${FIELD_INFO[key].domain}.c${serial}_${name}`;
 }
 
 /**
@@ -64,7 +64,7 @@ export function registryEntry(
 ) {
   const uniqueId = key === 'outdoor'
     ? `${serial}_outdoor_temperature`
-    : `${serial}_heat_circuit_${FIELD_INFO[key][1]}${circuit === 1 ? '' : `_${circuit}`}`;
+    : `${serial}_heat_circuit_${FIELD_INFO[key].uniqueId}${circuit === 1 ? '' : `_${circuit}`}`;
 
   return {
     entity_id: entityId(serial, circuit, key),

@@ -1,4 +1,3 @@
-// @ts-check
 import { describe, expect, it, vi } from 'vitest';
 import { discoverControllers, loadRegistry, parseEntity } from '../../src/discovery';
 import { controllerEntities, devices, registryEntry } from '../fixtures/registry';

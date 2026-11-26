@@ -15,7 +15,7 @@ npm test                # tests
 npm run test:coverage   # tests and coverage
 npm run test:dist       # build and smoke tests of dist/
 npm run test:e2e        # tests in Chromium
-npm run typecheck       # JSDoc types of the tests
+npm run typecheck       # types of the sources (JSDoc) and the tests
 npm run build           # build dist/keba_keenergy_heating_curve_card.js from src/
 ```
 
@@ -30,6 +30,7 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm run test:cover
   - exception: the English renaming of #1 in v1.x, with upgrade steps in both README files
 - `dist/` is a build output, never commit it, the release workflow builds and attaches the card
 - Every interpolated value in an HTML template goes through `esc()`
+  - the `html` tag of `src/html.js` removes line breaks with their indentation, break lines only between elements
 - Writes only from explicit user actions (save buttons, curve table selection, enabling entities), switching the
   view never writes
   - only through Home Assistant: `keba_keenergy.set_heating_curve_points`, `select.select_option`,
@@ -44,6 +45,7 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm run test:cover
 - No new dependencies (also dev dependencies) without asking first
 - No inline lint suppressions (`eslint-disable`), no new ones in the config, fix the code
 - Comments as complete sentences with a trailing period
+- JSDoc for the functions, methods and exported constants of `src/`, `npm run typecheck` checks the types
 - Every file follows `.editorconfig`, whether a linter checks it or not
 - Style rules apply to new and changed code, existing code only adapted when asked
 - No real credentials, serial numbers or IP addresses, also not in examples or screenshots
@@ -56,7 +58,14 @@ Before finishing a change, run `eslint --fix`, `lint.sh` and `npm run test:cover
 
 ## Architecture
 
-- `src/card.js`: the card, `src/editor.js`: the visual card editor, `src/discovery.js`: controllers and heating
+- `src/card.js`: the card element (state, rendering, events), its parts by topic in `src/card/`:
+  - `config.js` (options and defaults), `binding.js` (controller and heating circuit), `entities.js` (states and
+    units), `points.js` (curve points), `chart.js` (SVG chart), `lock.js` (password lock), `templates.js` and
+    `styles.js` (HTML and CSS)
+  - `actions.js`: every write to Home Assistant
+- `src/password.js`: PBKDF2 verifiers of the card and the editor, `src/html.js`: `esc()` and `html`,
+  `src/types.js`: JSDoc types of Home Assistant
+- `src/editor.js`: the visual card editor, `src/discovery.js`: controllers and heating
   circuits from the entity registry, `src/i18n.js`: translations and number format, `src/chart-axis.js`: chart axes
 - `build.mjs` bundles `src/card.js` as IIFE and sets `__VERSION__` from `package.json`, never hardcode the version
 - Discovery only matches registry `unique_id`s and config entries, never entity IDs or names (users rename them)

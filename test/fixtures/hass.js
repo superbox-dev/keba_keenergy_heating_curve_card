@@ -1,4 +1,3 @@
-// @ts-check
 // A fake Home Assistant with the parts the card and the editor use.
 import { vi } from 'vitest';
 /** @import { Mock } from 'vitest' */

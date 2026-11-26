@@ -1,4 +1,3 @@
-// @ts-check
 import { describe, expect, it } from 'vitest';
 import { axisRange, axisTicks, DEFAULT_AXIS_STEP } from '../../src/chart-axis';
 
