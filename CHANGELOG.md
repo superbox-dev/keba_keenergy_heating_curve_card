@@ -11,15 +11,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added the chart axis options `x_min`, `x_max`, `x_step`, `y_min`, `y_max` and `y_step`.
-- Added the option `intermediate_step` for the interval of the interpolated values.
+- Added the chart axis options `x_min`, `x_max`, `x_step`, `y_min`, `y_max` and `y_step` ([PR #10][pr-10]).
+- Added the option `intermediate_step` for the interval of the interpolated values ([PR #10][pr-10]).
 
 ### Changed
 
-- Renamed the card type to `custom:keba-keenergy-heating-curve-card`.
-- Renamed the card file to `keba_keenergy_heating_curve_card.js`.
-- Renamed the card in HACS to `KEBA KeEnergy Heating Curve Card`.
-- Wrote the documentation in English, German in `README.de.md`.
+- Renamed the card type to `custom:keba-keenergy-heating-curve-card` ([Issue #1][issue-1]).
+- Renamed the card file to `keba_keenergy_heating_curve_card.js` ([Issue #1][issue-1]).
+- Renamed the card in HACS to `KEBA KeEnergy Heating Curve Card` ([Issue #1][issue-1]).
+- Renamed the example files to English ([Issue #1][issue-1]).
+- Wrote the documentation in English, German in `README.de.md` ([Issue #2][issue-2]).
+- Moved the card file from the repository to the GitHub release ([Issue #6][issue-6]).
+
+### Removed
+
+- Removed `SHA256SUMS.txt` ([Issue #6][issue-6]).
+
+[pr-10]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/pull/10
+[issue-1]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/1
+[issue-2]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/2
+[issue-6]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/6
 
 ## [1.0.2] - 2026-11-24
 
@@ -31,5 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added German and English texts, selected by the Home Assistant profile language or `language`.
 - Added the number format of Home Assistant.
 
-[Unreleased]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/releases/tag/v1.0.2
