@@ -1,7 +1,7 @@
 // Visual card editor: options of the card, the edit password and the chart axes.
-import { AXIS_LIMITS, DEFAULT_AXIS_STEP, INTERMEDIATE_STEP, MIN_AXIS_STEP } from './chart-axis.js';
+import { AXIS_LIMITS, INTERMEDIATE_STEP, MIN_AXIS_STEP } from './chart-axis.js';
 import { discoverControllers, loadRegistry } from './discovery.js';
-import { esc } from './html.js';
+import { html } from './html.js';
 import { errorText, languageCode, translate } from './i18n.js';
 import { createVerifier } from './password.js';
 
@@ -21,14 +21,207 @@ const LANGUAGES = [
   { value: 'en', label: 'English' },
 ];
 
+/** Value of the controller and heating circuit selection without pinning, not stored in the config. */
+const AUTOMATIC = 'auto';
+
+/**
+ * Schema item of `ha-form` of the Home Assistant frontend.
+ *
+ * @typedef {object} FormSchema
+ * @property {string} name Option, or a name of the section.
+ * @property {'expandable' | 'grid'} [type] Section with nested items.
+ * @property {boolean} [flatten] Whether the nested items use the options of the config directly.
+ * @property {string} [title] Title of a section.
+ * @property {boolean} [expanded] Whether a section is open.
+ * @property {boolean} [required] Whether the field has no empty value.
+ * @property {Record<string, unknown>} [selector] Selector of the field.
+ * @property {FormSchema[]} [schema] Nested items.
+ */
+
+/**
+ * The `ha-form` element of the Home Assistant frontend.
+ *
+ * @typedef {HTMLElement & {
+ *   hass?: Hass,
+ *   data: Record<string, unknown>,
+ *   schema: FormSchema[],
+ *   computeLabel: (schema: FormSchema) => string,
+ *   computeHelper: (schema: FormSchema) => string | undefined,
+ * }} HaForm
+ */
+
+/**
+ * The `ha-expansion-panel` element of the Home Assistant frontend.
+ *
+ * @typedef {HTMLElement & { header: string }} ExpansionPanel
+ */
+
+/**
+ * Bounds of the chart options, the editor ignores values outside of them like the card.
+ *
+ * @type {Record<string, { min: number, max: number }>}
+ */
+const CHART_BOUNDS = {
+  x_min: AXIS_LIMITS.x,
+  x_max: AXIS_LIMITS.x,
+  x_step: { min: MIN_AXIS_STEP, max: AXIS_LIMITS.x.max - AXIS_LIMITS.x.min },
+  y_min: AXIS_LIMITS.y,
+  y_max: AXIS_LIMITS.y,
+  y_step: { min: MIN_AXIS_STEP, max: AXIS_LIMITS.y.max - AXIS_LIMITS.y.min },
+  intermediate_step: { min: INTERMEDIATE_STEP.min, max: INTERMEDIATE_STEP.max },
+};
+
+/**
+ * Labels of the options in English, translated by `_t()`, empty for the sections, they have a title or no label.
+ *
+ * @type {Record<string, string>}
+ */
+const LABELS = {
+  x_axis: '',
+  y_axis: '',
+  interpolated: '',
+  x_grid: '',
+  y_grid: '',
+  flow_grid: '',
+  title: 'Title',
+  language: 'Language',
+  config_entry: 'Pin controller',
+  circuit: 'Pin heating circuit',
+  x_min: 'Minimum (°C)',
+  x_max: 'Maximum (°C)',
+  x_step: 'Grid interval (°C)',
+  y_min: 'Minimum (°C)',
+  y_max: 'Maximum (°C)',
+  y_step: 'Grid interval (°C)',
+  intermediate_step: 'Interpolated value interval on the X-axis (°C)',
+  flow_min: 'Display minimum (°C)',
+  flow_max: 'Display maximum (°C)',
+  auto_lock_minutes: 'Auto-lock after minutes',
+};
+
+/** Options shown as numbers. */
+const NUMBERS = new Set([...Object.keys(CHART_BOUNDS), 'flow_min', 'flow_max', 'auto_lock_minutes']);
+
+/**
+ * Selector of a number field, a box like the other fields of the editor.
+ *
+ * @param {number} min Minimum.
+ * @param {number} max Maximum.
+ * @param {number | 'any'} step Step of the arrows.
+ * @returns {Record<string, unknown>} The selector.
+ */
+const numberSelector = (min, max, step) => ({ number: { min, max, step, mode: 'box' } });
+
+/**
+ * Card helpers of Home Assistant, `window.loadCardHelpers()` loads them.
+ *
+ * @typedef {{ createCardElement: (config: object) => HTMLElement }} CardHelpers
+ */
+
+/**
+ * Loads `ha-form` of Home Assistant when no editor of the dashboard has loaded it yet.
+ *
+ * The editor of the button card uses `ha-form`, loading it defines the element.
+ *
+ * @returns {Promise<void>}
+ */
+export async function loadHaForm() {
+  if (customElements.get('ha-form')) return;
+  const win = /** @type {{ loadCardHelpers?: () => Promise<CardHelpers> }} */ (globalThis);
+  const card = (await win.loadCardHelpers?.())?.createCardElement({ type: 'button' });
+  const cardClass = /** @type {{ getConfigElement?: () => Promise<unknown> } | undefined} */ (card?.constructor);
+  await cardClass?.getConfigElement?.();
+}
+
+/** CSS of the editor, in the shadow root. */
 const STYLE = `
-      :host{display:block;color:var(--primary-text-color);font:14px var(--primary-font-family,Arial)}*{box-sizing:border-box}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}label{display:grid;gap:6px;margin:12px 0;font-size:12px}
-      input,select,button{font:inherit;color:var(--primary-text-color);background:var(--card-background-color,#fff);padding:10px;border:1px solid var(--divider-color,#ccc);border-radius:8px;min-width:0}
-      button{cursor:pointer;margin:6px 6px 6px 0}p{color:var(--secondary-text-color);font-size:12px;line-height:1.5}summary{cursor:pointer}#password-message{color:var(--error-color,#a44)}
-      fieldset{min-width:0;border:1px solid var(--divider-color,#ccc);border-radius:8px;margin:10px 0;padding:0 10px}legend{font-size:12px}.axis-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
-      @media(max-width:450px){.grid{grid-template-columns:1fr}}
-      `;
+  :host {
+    display: block;
+    container-type: inline-size;
+    color: var(--primary-text-color);
+    font-family: var(--ha-font-family-body);
+    font-size: var(--ha-font-size-m);
+    line-height: var(--ha-line-height-normal);
+  }
+  * {
+    box-sizing: border-box;
+  }
+  ha-expansion-panel {
+    display: block;
+    margin-top: var(--ha-space-4);
+  }
+  .panel {
+    padding: 0 var(--ha-space-4) var(--ha-space-4);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ha-space-3);
+  }
+  label {
+    display: grid;
+    gap: var(--ha-space-1);
+    font-size: var(--ha-font-size-s);
+    color: var(--secondary-text-color);
+  }
+  input,button {
+    font: inherit;
+    font-size: var(--ha-font-size-m);
+    color: var(--primary-text-color);
+    background: var(--card-background-color);
+    padding: var(--ha-space-3);
+    border: 1px solid var(--divider-color);
+    border-radius: var(--ha-border-radius-md);
+    min-width: 0;
+  }
+  button {
+    cursor: pointer;
+    margin: var(--ha-space-3) var(--ha-space-2) 0 0;
+    font-weight: var(--ha-font-weight-medium);
+  }
+  p {
+    color: var(--secondary-text-color);
+    font-size: var(--ha-font-size-s);
+    line-height: var(--ha-line-height-normal);
+  }
+  #password-message {
+    color: var(--error-color);
+  }
+  #password-message:empty {
+    display: none;
+  }
+  @container(max-width:450px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+`;
+
+/** Markup of the editor, the texts are set by `_render()`. */
+const TEMPLATE = html`<style>${STYLE}</style>
+  <ha-form id="general"></ha-form>
+  <p id="pinning-hint"></p>
+  <p id="registry-error" hidden></p>
+  <ha-expansion-panel id="chart-axes" outlined>
+    <div class="panel"><p id="axes-hint"></p><ha-form id="axes"></ha-form></div>
+  </ha-expansion-panel>
+  <ha-expansion-panel id="flow-limits" outlined>
+    <div class="panel"><p id="flow-hint"></p><ha-form id="flow"></ha-form></div>
+  </ha-expansion-panel>
+  <ha-expansion-panel id="password" outlined>
+    <div class="panel">
+      <p id="password-hint"></p>
+      <div class="grid">
+        <label><span id="new-password-label"></span><input id="new-password" type="password" autocomplete="new-password"></label>
+        <label><span id="repeat-password-label"></span><input id="repeat-password" type="password" autocomplete="new-password"></label>
+      </div>
+      <button type="button" id="create-password"></button>
+      <button type="button" id="remove-password"></button>
+      <p id="password-message" role="status"></p>
+      <ha-form id="lock"></ha-form>
+    </div>
+  </ha-expansion-panel>
+  <p id="yaml-hint"></p>`;
 
 class KeEnergyHeatingCurveEditor extends HTMLElement {
   constructor() {
@@ -71,7 +264,8 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
   set hass(hass) {
     const before = languageCode(this._config, this._hass);
     this._hass = hass;
-    if (before !== languageCode(this._config, hass) && !this._root.activeElement) this._render();
+    if (before !== languageCode(this._config, hass)) this._render();
+    else this._root.querySelectorAll('ha-form').forEach(form => Object.assign(form, { hass }));
     if (!this._loaded && !this._loading) this._load();
   }
 
@@ -93,13 +287,12 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
       const { registry, devices } = await loadRegistry(/** @type {Hass} */ (this._hass), text => this._t(text));
       this._registry = registry;
       this._devices = devices;
-      this._controllers = discoverControllers(registry, devices, text => this._t(text));
     } catch (error) {
       this._error = this._t('Automatic selection unavailable: ') + errorText(error);
     } finally {
       this._loaded = true;
       this._loading = false;
-      if (!this._root.activeElement) this._render();
+      this._render();
     }
   }
 
@@ -117,25 +310,48 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
    *
    * @param {string} key Option.
    * @param {unknown} value New value.
-   * @param {boolean} [redraw] Whether the editor is drawn again.
    */
-  _change(key, value, redraw = false) {
+  _change(key, value) {
     const config = /** @type {Record<string, unknown>} */ (this._config);
     if (value === '' || value == null) delete config[key];
     else config[key] = value;
     this._revision++;
-    if (redraw) this._render();
+    this._render();
     this._emit();
+  }
+
+  /**
+   * Takes the changed option of a form, like the user changed it.
+   *
+   * @param {Record<string, unknown>} data Values of the form.
+   */
+  _formChanged(data) {
+    const current = this._data();
+    const key = Object.keys({ ...current, ...data }).find(name => data[name] !== current[name]);
+    if (!key) return;
+    const value = data[key];
+    const bounds = CHART_BOUNDS[key];
+    if (bounds && typeof value === 'number' && (value < bounds.min || value > bounds.max)) {
+      this._render();
+      return;
+    }
+    const config = /** @type {Record<string, unknown>} */ (this._config);
+    if (key === 'config_entry') {
+      delete config.serial;
+      delete config.circuit;
+    }
+    this._change(key, (key === 'config_entry' || key === 'circuit') && value === AUTOMATIC ? '' : value);
   }
 
   /**
    * Element of the editor.
    *
+   * @template {HTMLElement} [E=HTMLInputElement]
    * @param {string} selector CSS selector of an element that the editor always shows.
-   * @returns {HTMLInputElement} The element.
+   * @returns {E} The element.
    */
   _get(selector) {
-    return /** @type {HTMLInputElement} */ (this._root.querySelector(selector));
+    return /** @type {E} */ (this._root.querySelector(selector));
   }
 
   /** Creates the verifier of the new password, the password itself is never stored. */
@@ -161,7 +377,8 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
         message.textContent = this._t('Configuration changed. Please set the password again.');
         return;
       }
-      this._change('edit_password_hash', verifier, true);
+      message.textContent = '';
+      this._change('edit_password_hash', verifier);
     } catch (error) {
       message.textContent = this._t('Could not set the password: ') + errorText(error);
     } finally {
@@ -169,127 +386,181 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     }
   }
 
-  /** Draws the editor. */
-  _render() {
-    if (!this._config) return;
-    const c = this._config;
-    if (this._registry) this._controllers = discoverControllers(this._registry, this._devices, text => this._t(text));
-    const selected = this._controllers.find(controller => controller.id === c.config_entry
+  /** @returns {Controller | undefined} The pinned controller, also by the serial number of older configs. */
+  _selected() {
+    const c = /** @type {Record<string, unknown>} */ (this._config);
+    return this._controllers.find(controller => controller.id === c.config_entry
       || (!c.config_entry && String(c.serial || '') === controller.serial));
-    const circuits = selected?.circuits || [];
-    /**
-     * Input field of an option.
-     *
-     * @param {string} label Label.
-     * @param {string} key Option.
-     * @param {string} [type] Type of the input element.
-     * @param {string} [extra] Additional attributes.
-     */
-    const field = (label, key, type = 'text', extra = '') => {
-      const value = type === 'number' ? String(c[key] ?? '').replace(',', '.') : c[key];
-      return `<label>${esc(label)}<input data-config="${key}" type="${type}" value="${esc(value)}" ${extra}></label>`;
+  }
+
+  /** @returns {Record<string, unknown>} Values of the forms, the numbers of older configs with a decimal comma. */
+  _data() {
+    const c = /** @type {Record<string, unknown>} */ (this._config);
+    /** @type {Record<string, unknown>} */
+    const data = {
+      ...c,
+      language: c.language || 'auto',
+      config_entry: this._selected()?.id ?? AUTOMATIC,
+      circuit: c.circuit ? String(c.circuit) : AUTOMATIC,
     };
+    for (const key of NUMBERS) {
+      if (typeof data[key] === 'string') data[key] = Number(String(data[key]).replace(',', '.'));
+    }
+    return data;
+  }
+
+  /**
+   * Selection of a controller or a heating circuit, an unknown pinned heating circuit stays selectable.
+   *
+   * @param {{ id: string, label: string }[]} entries Controllers or heating circuits.
+   * @param {string} [unknown] Pinned heating circuit that the registry does not know.
+   * @returns {Record<string, unknown>} The selector.
+   */
+  _pinSelector(entries, unknown) {
+    const options = [
+      { value: AUTOMATIC, label: this._t('Automatic · selectable in the dashboard') },
+      ...entries.map(({ id, label }) => ({ value: id, label })),
+    ];
+    if (unknown) options.push({ value: unknown, label: `${this._t('Heating circuit')} ${unknown}` });
+    return { select: { mode: 'dropdown', options } };
+  }
+
+  /**
+   * Schemas of the forms.
+   *
+   * @returns {Record<'general' | 'axes' | 'flow' | 'lock', FormSchema[]>} The schema of each form.
+   */
+  _schemas() {
+    const c = /** @type {Record<string, unknown>} */ (this._config);
+    const circuits = this._selected()?.circuits || [];
+    const circuit = c.circuit ? String(c.circuit) : '';
     /**
      * Bounds and grid interval of an axis.
      *
      * @param {'x' | 'y'} axis Axis.
      * @param {string} title Title.
+     * @returns {FormSchema} The section.
      */
-    const axisFields = (axis, title) => {
-      const { min, max } = AXIS_LIMITS[axis];
-      const bounds = `min="${min}" max="${max}" step="0.01" placeholder="${esc(this._t('Automatic'))}"`;
-      const stepBounds = `min="${MIN_AXIS_STEP}" max="${max - min}" step="0.01" placeholder="${DEFAULT_AXIS_STEP}"`;
-      return `<fieldset><legend>${esc(title)}</legend><div class="grid axis-fields">
-        ${field(this._t('Minimum (°C)'), `${axis}_min`, 'number', bounds)}
-        ${field(this._t('Maximum (°C)'), `${axis}_max`, 'number', bounds)}
-        ${field(this._t('Grid interval (°C)'), `${axis}_step`, 'number', stepBounds)}
-      </div></fieldset>`;
+    const axis = (axis, title) => ({
+      name: `${axis}_axis`,
+      type: 'expandable',
+      flatten: true,
+      expanded: true,
+      title,
+      schema: [{
+        name: `${axis}_grid`,
+        type: 'grid',
+        flatten: true,
+        schema: ['min', 'max', 'step'].map(part => ({
+          name: `${axis}_${part}`,
+          selector: numberSelector(CHART_BOUNDS[`${axis}_${part}`].min, CHART_BOUNDS[`${axis}_${part}`].max, 0.01),
+        })),
+      }],
+    });
+    return {
+      general: [
+        { name: 'title', selector: { text: {} } },
+        {
+          name: 'language',
+          required: true,
+          selector: {
+            select: { mode: 'dropdown', options: LANGUAGES.map(({ value, label }) => ({ value, label: this._t(label) })) },
+          },
+        },
+        { name: 'config_entry', required: true, selector: this._pinSelector(this._controllers) },
+        {
+          name: 'circuit',
+          required: true,
+          selector: this._pinSelector(circuits, circuit && !circuits.some(({ id }) => id === circuit) ? circuit : ''),
+        },
+      ],
+      axes: [
+        axis('x', this._t('X-axis · Outdoor temperature')),
+        axis('y', this._t('Y-axis · Flow temperature')),
+        {
+          name: 'interpolated',
+          type: 'expandable',
+          flatten: true,
+          expanded: true,
+          title: this._t('Interpolated values'),
+          schema: [{
+            name: 'intermediate_step',
+            selector: numberSelector(INTERMEDIATE_STEP.min, INTERMEDIATE_STEP.max, 0.01),
+          }],
+        },
+      ],
+      flow: [{
+        name: 'flow_grid',
+        type: 'grid',
+        flatten: true,
+        schema: ['flow_min', 'flow_max'].map(name => ({ name, selector: numberSelector(10, 90, 'any') })),
+      }],
+      lock: [{ name: 'auto_lock_minutes', selector: numberSelector(1, 60, 1) }],
     };
-    const intermediateBounds = `min="${INTERMEDIATE_STEP.min}" max="${INTERMEDIATE_STEP.max}" step="0.01"`
-      + ` placeholder="${INTERMEDIATE_STEP.default}"`;
-    const axesOpen = /** @type {HTMLDetailsElement | null} */ (this._root.querySelector('#chart-axes'))?.open;
-    const automatic = esc(this._t('Automatic · selectable in the dashboard'));
-    const autoLockField = field(this._t('Auto-lock after minutes'), 'auto_lock_minutes', 'number', 'min="1" max="60" step="1"');
-    this._root.innerHTML = `<style>${STYLE}</style>${field(this._t('Title'), 'title')}
-      <label>${esc(this._t('Language'))}<select id="config-language" aria-label="${esc(this._t('Language'))}">${
-        LANGUAGES.map(({ value, label }) => `<option value="${value}" ${(c.language || 'auto') === value
-          ? 'selected'
-          : ''}>${esc(this._t(label))}</option>`).join('')
-      }</select></label>
-      <label>${esc(this._t('Pin controller'))}<select id="config-controller" aria-label="${
-        esc(this._t('Pin controller'))}"><option value="">${automatic}</option>${
-        this._controllers.map(controller => `<option value="${esc(controller.id)}" ${selected?.id === controller.id
-          ? 'selected'
-          : ''}>${esc(controller.label)}</option>`).join('')
-      }</select></label>
-      <label>${esc(this._t('Pin heating circuit'))}<select id="config-circuit" aria-label="${
-        esc(this._t('Pin heating circuit'))}"><option value="">${automatic}</option>${
-        circuits.map(circuit => `<option value="${esc(circuit.id)}" ${String(c.circuit || '') === circuit.id
-          ? 'selected'
-          : ''}>${esc(circuit.label)}</option>`).join('')}${
-        c.circuit && !circuits.some(circuit => circuit.id === String(c.circuit))
-          ? `<option value="${esc(c.circuit)}" selected>${esc(this._t('Heating circuit'))} ${esc(c.circuit)}</option>`
-          : ''
-      }</select></label>
-      <p>${esc(this._t('Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands.'))}</p>
-      ${this._error ? `<p>${esc(this._error)}</p>` : ''}
-      <details id="chart-axes" ${axesOpen ? 'open' : ''}>
-        <summary>${esc(this._t('Chart axes'))}</summary>
-        <p>${esc(this._t('Empty bounds are set automatically. The default grid interval is 5 °C. These settings only change the visible chart range and grid.'))}</p>
-        ${axisFields('x', this._t('X-axis · Outdoor temperature'))}
-        ${axisFields('y', this._t('Y-axis · Flow temperature'))}
-        <fieldset><legend>${esc(this._t('Interpolated values'))}</legend>
-          ${field(this._t('Interpolated value interval on the X-axis (°C)'), 'intermediate_step', 'number', intermediateBounds)}
-        </fieldset>
-      </details>
-      <details><summary>${esc(this._t('Chart flow limits'))}</summary><p>${
-        esc(this._t('Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.'))
-      }</p><div class="grid">${
-        field(this._t('Display minimum (°C)'), 'flow_min', 'number', 'min="10" max="90" step="any"')}${
-        field(this._t('Display maximum (°C)'), 'flow_max', 'number', 'min="10" max="90" step="any"')
-      }</div></details>
-      <details><summary>${esc(this._t('Password protection'))} ${
-        esc(c.edit_password_hash ? this._t('· configured') : this._t('· optional'))}</summary><p>${
-        esc(this._t('Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply.'))
-      }</p>
-      <div class="grid"><label>${esc(this._t('New password'))}<input id="new-password" type="password" autocomplete="new-password"></label><label>${
-        esc(this._t('Repeat password'))}<input id="repeat-password" type="password" autocomplete="new-password"></label></div>
-      <button type="button" id="create-password">${esc(this._t('Set password'))}</button>${
-        c.edit_password_hash
-          ? `<button type="button" id="remove-password">${esc(this._t('Remove password protection'))}</button>`
-          : ''
-      }
-      <p id="password-message" role="status"></p>${autoLockField}</details>
-      <p>${esc(this._t('Additional options and manual entity mappings are available in the YAML editor.'))}</p>`;
-    this._bind();
   }
 
-  /** Binds the event handlers after drawing. */
+  /**
+   * Sets the text of an element.
+   *
+   * @param {string} selector CSS selector.
+   * @param {string} text Text in the language of the editor.
+   */
+  _text(selector, text) {
+    this._get(selector).textContent = text;
+  }
+
+  /** Draws the editor, the elements stay and keep their focus and open sections. */
+  _render() {
+    if (!this._config) return;
+    if (!this._root.firstChild) {
+      this._root.innerHTML = TEMPLATE;
+      this._bind();
+    }
+    const c = this._config;
+    if (this._registry) this._controllers = discoverControllers(this._registry, this._devices, text => this._t(text));
+    const data = this._data(), schemas = this._schemas();
+    for (const name of /** @type {(keyof typeof schemas)[]} */ (Object.keys(schemas))) {
+      Object.assign(/** @type {HaForm} */ (this._get(`#${name}`)), {
+        hass: this._hass,
+        data,
+        schema: schemas[name],
+        computeLabel: (/** @type {FormSchema} */ item) => this._t(LABELS[item.name]),
+      });
+    }
+    /** @type {[string, string][]} */
+    const headers = [
+      ['#chart-axes', this._t('Chart axes')],
+      ['#flow-limits', this._t('Chart flow limits')],
+      ['#password', `${this._t('Password protection')} ${
+        c.edit_password_hash ? this._t('· configured') : this._t('· optional')}`],
+    ];
+    for (const [selector, header] of headers) {
+      /** @type {ExpansionPanel} */ (this._get(selector)).header = header;
+    }
+    this._text('#pinning-hint', this._t('Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands.'));
+    this._text('#registry-error', this._error);
+    this._get('#registry-error').hidden = !this._error;
+    this._text('#axes-hint', this._t('Empty bounds are set automatically. The default grid interval is 5 °C. These settings only change the visible chart range and grid.'));
+    this._text('#flow-hint', this._t('Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.'));
+    this._text('#password-hint', this._t('Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply.'));
+    this._text('#new-password-label', this._t('New password'));
+    this._text('#repeat-password-label', this._t('Repeat password'));
+    this._text('#create-password', this._t('Set password'));
+    this._text('#remove-password', this._t('Remove password protection'));
+    this._get('#remove-password').hidden = !c.edit_password_hash;
+    this._text('#yaml-hint', this._t('Additional options and manual entity mappings are available in the YAML editor.'));
+  }
+
+  /** Binds the event handlers once. */
   _bind() {
-    this._root.querySelectorAll('[data-config]').forEach((element) => {
-      const input = /** @type {HTMLInputElement} */ (element);
-      input.addEventListener('change', () => {
-        if (input.closest('#chart-axes') && !input.reportValidity()) return;
-        const value = input.type === 'number' && input.value !== '' ? Number(input.value) : input.value;
-        this._change(/** @type {string} */ (input.dataset.config), value);
+    this._root.querySelectorAll('ha-form').forEach((form) => {
+      form.addEventListener('value-changed', (event) => {
+        event.stopPropagation();
+        this._formChanged(/** @type {CustomEvent<{ value: Record<string, unknown> }>} */ (event).detail.value);
       });
     });
-    this._get('#config-language').addEventListener('change', () => {
-      this._change('language', this._get('#config-language').value, true);
-    });
-    this._get('#config-controller').addEventListener('change', () => {
-      const config = /** @type {Record<string, unknown>} */ (this._config);
-      delete config.serial;
-      delete config.circuit;
-      this._change('config_entry', this._get('#config-controller').value, true);
-    });
-    this._get('#config-circuit').addEventListener('change', () => {
-      this._change('circuit', this._get('#config-circuit').value);
-    });
     this._get('#create-password').addEventListener('click', () => this._createPassword());
-    this._root.querySelector('#remove-password')?.addEventListener('click', () => {
-      this._change('edit_password_hash', '', true);
-    });
+    this._get('#remove-password').addEventListener('click', () => this._change('edit_password_hash', ''));
   }
 }
 

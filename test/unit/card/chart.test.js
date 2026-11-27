@@ -1,8 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
 import { createHass } from '../../fixtures/hass';
 import { circuitStates, curveSensor, plain } from '../../fixtures/registry';
+import { installResizeObserver, observerCount, resizeTo, setRenderedWidth } from '../../fixtures/resize-observer';
 /** @import { FieldKey } from '../../fixtures/registry' */
 /** @import { CardConfig, EntityState, FakeHass } from '../../fixtures/types' */
 
@@ -171,7 +172,7 @@ describe('axes', () => {
     const view = await chart({ y_step: 1 });
 
     expect(view.gridLines.length - view.axisTexts.length).toBeGreaterThan(20);
-    expect(view.yAxisLabels.slice(0, 3)).toEqual(['16', '18', '20']);
+    expect(view.yAxisLabels.slice(0, 3)).toEqual(['15', '18', '21']);
   });
 
   it('widens the automatic axes for the points and limits', async () => {
@@ -197,5 +198,77 @@ describe('axes', () => {
     const two = await chart();
 
     expect(one.clipPathId).not.toBe(two.clipPathId);
+  });
+});
+
+describe('text size', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('keeps the texts at their size in pixels in a narrow chart', async () => {
+    installResizeObserver();
+    const view = await chart();
+
+    resizeTo(350);
+
+    expect(view.textScale).toBe('2');
+  });
+
+  it('scales the texts when the card is rendered again', async () => {
+    installResizeObserver();
+    const card = await CardView.create({}, createHass());
+    setRenderedWidth(1400);
+
+    card.setConfig({ title: 'Other' });
+
+    expect(card.chart.textScale).toBe('0.5');
+  });
+
+  it('stops observing when the card leaves the page', async () => {
+    installResizeObserver();
+    const card = await CardView.create({}, createHass());
+
+    card.element.remove();
+
+    expect(observerCount()).toBe(0);
+  });
+
+  it('keeps the texts unscaled without a rendered width', async () => {
+    const view = await chart();
+
+    expect(view.textScale).toBe('1');
+    expect(view.height).toBe(400);
+  });
+
+  it('draws a narrow chart taller', async () => {
+    installResizeObserver();
+    const view = await chart();
+
+    resizeTo(350);
+
+    expect(view.height).toBe(520);
+  });
+
+  it('labels a dense grid less often in a narrow chart', async () => {
+    installResizeObserver();
+    const view = await chart({ y_step: 1 });
+    const labels = view.yAxisLabels.length;
+
+    resizeTo(350);
+
+    expect(view.yAxisLabels.length).toBeLessThan(labels);
+  });
+
+  it('keeps the chart when the width does not change', async () => {
+    installResizeObserver();
+    const view = await chart();
+    resizeTo(350);
+    const svg = view.svg;
+
+    resizeTo(350);
+
+    expect(view.svg).toBe(svg);
   });
 });

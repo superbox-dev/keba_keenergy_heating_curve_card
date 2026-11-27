@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
 import { createHass } from '../../fixtures/hass';
@@ -110,8 +110,34 @@ describe('card API', () => {
     expect(Card().getStubConfig()).toEqual({});
   });
 
-  it('creates the editor', () => {
-    expect(Card().getConfigElement().localName).toBe('keba-keenergy-heating-curve-card-editor');
+  it('creates the editor', async () => {
+    const editor = await Card().getConfigElement();
+
+    expect(editor.localName).toBe('keba-keenergy-heating-curve-card-editor');
+  });
+
+  it('loads the forms of Home Assistant before it creates the editor', async () => {
+    const getConfigElement = vi.fn();
+    // A card of Home Assistant, its class loads the editor with the forms.
+    const createCardElement = vi.fn(() => ({ constructor: { getConfigElement } }));
+    const card = Card();
+    vi.spyOn(customElements, 'get').mockReturnValueOnce(undefined);
+    vi.stubGlobal('loadCardHelpers', async () => ({ createCardElement }));
+
+    await card.getConfigElement();
+    vi.unstubAllGlobals();
+
+    expect(createCardElement).toHaveBeenCalledWith({ type: 'button' });
+    expect(getConfigElement).toHaveBeenCalled();
+  });
+
+  it('creates the editor without the card helpers of Home Assistant', async () => {
+    const card = Card();
+    vi.spyOn(customElements, 'get').mockReturnValueOnce(undefined);
+
+    const editor = await card.getConfigElement();
+
+    expect(editor.localName).toBe('keba-keenergy-heating-curve-card-editor');
   });
 
   it('shows the version', async () => {

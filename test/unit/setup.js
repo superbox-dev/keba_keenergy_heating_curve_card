@@ -1,4 +1,5 @@
 import { afterEach, vi } from 'vitest';
+import { defineHaForm } from '../fixtures/ha-form';
 
 /**
  * @typedef {object} Pbkdf2Options
@@ -8,6 +9,9 @@ import { afterEach, vi } from 'vitest';
 
 // Bundler-defined globals the sources read, set by esbuild in the build.
 Object.assign(globalThis, { __VERSION__: '0.0.0-test' });
+
+// The forms of Home Assistant, the editor of the card uses them.
+defineHaForm();
 
 // The same PBKDF2-SHA256 with Web Crypto, the JavaScript version is very slow while the coverage is measured.
 vi.mock('@noble/hashes/pbkdf2.js', async (importOriginal) => {

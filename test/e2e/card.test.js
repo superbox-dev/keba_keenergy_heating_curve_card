@@ -1,6 +1,6 @@
 // The card in a real Chromium: layout, focus, keyboard and the PBKDF2 of the browser, which jsdom can't test.
 import { describe, expect, it, vi } from 'vitest';
-import { userEvent } from 'vitest/browser';
+import { page, userEvent } from 'vitest/browser';
 import '../../src/card';
 import { createHass, withStates } from '../fixtures/hass';
 import { PASSWORD, PASSWORD_HASH } from '../fixtures/password';
@@ -56,6 +56,33 @@ describe('layout', () => {
     const view = await cardWithWidth(400);
 
     expect(columns(view)).toBe(1);
+  });
+
+  it('keeps the chart texts at the same size in a narrow and a wide card', async () => {
+    const wide = await cardWithWidth(1000);
+
+    const narrow = await cardWithWidth(360);
+
+    // The browser calls the ResizeObserver in the next frame.
+    await expect.poll(() => Math.abs(wide.chart.axisTitleHeight - narrow.chart.axisTitleHeight)).toBeLessThan(1);
+    expect(narrow.chart.axisTitleHeight).toBeGreaterThan(10);
+  });
+});
+
+describe('editor layout', () => {
+  it.each([
+    { width: 600, columns: 2 },
+    { width: 360, columns: 1 },
+  ])('shows $columns column(s) in an editor of $width px in a wide window', async ({ width, columns }) => {
+    await page.viewport(1200, 800);
+    const column = document.createElement('div');
+    column.style.width = `${width}px`;
+    document.body.append(column);
+
+    const editor = await EditorView.create({});
+    column.append(editor.element);
+
+    expect(editor.passwordColumns).toBe(columns);
   });
 });
 

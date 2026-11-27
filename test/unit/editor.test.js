@@ -17,7 +17,7 @@ const twoControllers = () => createHass({
   deviceList: [...devices('111', 2), ...devices('222')],
 });
 
-const AUTOMATIC = { value: '', label: 'Automatic · selectable in the dashboard', selected: false };
+const AUTOMATIC = { value: 'auto', label: 'Automatic · selectable in the dashboard', selected: false };
 
 describe('fields', () => {
   it('renders nothing without config', () => {
@@ -31,36 +31,48 @@ describe('fields', () => {
   it('shows the config', async () => {
     const editor = await EditorView.create({ title: 'Basement', language: 'de', flow_min: '20,5', x_min: -10 });
 
-    expect(editor.field('title').value).toBe('Basement');
-    expect(editor.languageSelect.value).toBe('de');
-    expect(editor.field('flow_min').value).toBe('20.5');
-    expect(editor.field('x_min').value).toBe('-10');
-    expect(editor.field('x_max').value).toBe('');
+    expect(editor.value('title')).toBe('Basement');
+    expect(editor.value('language')).toBe('de');
+    expect(editor.value('flow_min')).toBe(20.5);
+    expect(editor.value('x_min')).toBe(-10);
+    expect(editor.value('x_max')).toBeUndefined();
     expect(editor.summary).toBe('Diagrammachsen');
   });
 
-  it('escapes the values', async () => {
-    const editor = await EditorView.create({ title: `"><b>A & 'B'</b>` });
+  it('labels the fields and sections in the language of the card', async () => {
+    const editor = await EditorView.create({ language: 'de' });
 
-    expect(editor.field('title').value).toBe(`"><b>A & 'B'</b>`);
+    expect(editor.label('title')).toBe('Titel');
+    expect(editor.label('x_step')).toBe('Rasterweite (°C)');
+    expect(editor.sectionTitles).toEqual(['X-Achse · Außentemperatur', 'Y-Achse · Vorlauftemperatur', 'Zwischenwerte']);
+    expect(editor.sectionLabels).toEqual(['', '', '', '', '', '']);
+  });
+
+  it('shows texts of Home Assistant as text', async () => {
+    const hass = createHass();
+    hass.callWS.mockRejectedValue(Error('<b>denied</b>'));
+
+    const editor = await EditorView.create({}, hass);
+
+    expect(editor.content).toContain('<b>denied</b>');
     expect(editor.query('b')).toBeNull();
   });
 
   it('shows the chart axis limits', async () => {
     const editor = await EditorView.create({});
 
-    const yStep = editor.field('y_step');
-    expect([yStep.min, yStep.max, yStep.placeholder]).toEqual(['0.01', '150', '5']);
-    expect(editor.field('intermediate_step').max).toBe('200');
+    expect(editor.bounds('y_step')).toEqual({ min: 0.01, max: 150, step: 0.01, mode: 'box' });
+    expect(editor.bounds('intermediate_step')?.max).toBe(200);
   });
 
-  it('keeps the chart axes open after a redraw', async () => {
+  it('keeps its sections and forms when it is drawn again', async () => {
     const editor = await EditorView.create({});
-    editor.chartAxes.open = true;
+    const axes = editor.chartAxes, form = editor.form('title');
 
     await editor.selectLanguage('de');
 
-    expect(editor.chartAxes.open).toBe(true);
+    expect(editor.chartAxes).toBe(axes);
+    expect(editor.form('title')).toBe(form);
   });
 
   it('shows the language of Home Assistant', async () => {
@@ -76,17 +88,27 @@ describe('fields', () => {
     editor.hass = withLanguage(hass, 'de');
 
     expect(editor.summary).toBe('Diagrammachsen');
+    expect(editor.label('title')).toBe('Titel');
   });
 
-  it('keeps a focused field when the language changes', async () => {
+  it('gives the forms the hass object', async () => {
+    const hass = createHass();
+
+    const editor = await EditorView.create({}, hass);
+
+    expect(editor.form('title').hass).toBe(hass);
+  });
+
+  it('keeps the schemas when only the states change', async () => {
     const hass = createHass();
     const editor = await EditorView.create({}, hass);
-    const title = editor.field('title');
-    title.focus();
+    const schema = editor.form('title').schema;
+    const update = { ...hass };
 
-    editor.hass = withLanguage(hass, 'de');
+    editor.hass = update;
 
-    expect(editor.field('title')).toBe(title);
+    expect(editor.form('title').schema).toBe(schema);
+    expect(editor.form('title').hass).toBe(update);
   });
 });
 
@@ -109,7 +131,7 @@ describe('controllers', () => {
   it('selects the controller of the serial number', async () => {
     const editor = await EditorView.create({ serial: 222 }, twoControllers());
 
-    expect(editor.controllerSelect.value).toBe('entry-2');
+    expect(editor.value('config_entry')).toBe('entry-2');
   });
 
   it('keeps an unknown heating circuit', async () => {
@@ -137,11 +159,14 @@ describe('controllers', () => {
     expect(configs).toEqual([{ config_entry: 'entry-1', circuit: '2' }]);
   });
 
-  it('removes the pinning', async () => {
-    const editor = await EditorView.create({ config_entry: 'entry-1' }, twoControllers());
+  it.each([
+    { name: 'controller', config: { config_entry: 'entry-1' }, select: 'selectController' },
+    { name: 'heating circuit', config: { circuit: '2' }, select: 'selectCircuit' },
+  ])('removes the pinning of the $name', async ({ config, select }) => {
+    const editor = await EditorView.create(config, twoControllers());
     const configs = editor.collectConfigs();
 
-    await editor.selectController('');
+    await editor[/** @type {'selectController' | 'selectCircuit'} */ (select)]('auto');
 
     expect(configs).toEqual([{}]);
   });
@@ -168,7 +193,7 @@ describe('controllers', () => {
     expect(editor.content).toContain(`Automatic selection unavailable: ${error}`);
   });
 
-  it('keeps a focused field when the registry arrives', async () => {
+  it('keeps the forms when the registry arrives', async () => {
     /** @type {(() => void)[]} */
     const pending = [];
     const hass = twoControllers();
@@ -177,14 +202,13 @@ describe('controllers', () => {
       pending.push(() => resolve(answer(message)));
     }));
     const editor = await EditorView.create({}, hass);
-    const title = editor.field('title');
-    title.focus();
+    const form = editor.form('config_entry');
 
     pending.forEach(finish => finish());
     await settle();
 
-    expect(editor.field('title')).toBe(title);
-    expect(editor.controllerOptions).toHaveLength(1);
+    expect(editor.form('config_entry')).toBe(form);
+    expect(editor.controllerOptions).toHaveLength(3);
   });
 
   it('explains an invalid registry', async () => {
@@ -205,21 +229,32 @@ describe('changes', () => {
     expect(configs).toEqual([{ title: 'New' }, {}]);
   });
 
-  it('sends number fields as numbers', async () => {
+  it('sends number fields and removes empty ones', async () => {
     const editor = await EditorView.create({});
     const configs = editor.collectConfigs();
 
-    await editor.setField('flow_max', '55.5');
-    await editor.setField('x_step', '2.5');
+    await editor.setField('flow_max', 55.5);
+    await editor.setField('x_step', 2.5);
+    await editor.setField('x_step', undefined);
 
-    expect(configs).toEqual([{ flow_max: 55.5 }, { flow_max: 55.5, x_step: 2.5 }]);
+    expect(configs).toEqual([{ flow_max: 55.5 }, { flow_max: 55.5, x_step: 2.5 }, { flow_max: 55.5 }]);
   });
 
   it('ignores invalid chart axis values', async () => {
     const editor = await EditorView.create({});
     const configs = editor.collectConfigs();
 
-    await editor.setField('x_min', '-200');
+    await editor.setField('x_min', -200);
+
+    expect(configs).toEqual([]);
+    expect(editor.value('x_min')).toBeUndefined();
+  });
+
+  it('ignores a form event without a change', async () => {
+    const editor = await EditorView.create({ title: 'Same' });
+    const configs = editor.collectConfigs();
+
+    await editor.setField('title', 'Same');
 
     expect(configs).toEqual([]);
   });

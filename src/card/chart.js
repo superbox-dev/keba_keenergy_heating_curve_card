@@ -26,18 +26,26 @@ import { inLimits, interpolate, sortByOutdoor } from './points.js';
  * @property {Translate} t Translates the texts.
  * @property {FormatNumber} number Formats the numbers.
  * @property {(value: number) => string} temperature Formats a temperature with its unit.
+ * @property {number} textScale SVG units per pixel, so texts, margins and marks keep their size in pixels.
  */
 
-/** Plot area in SVG units. */
-const PLOT = { left: 58, top: 24, width: 580, height: 320 };
-const PLOT_RIGHT = PLOT.left + PLOT.width;
-const PLOT_BOTTOM = PLOT.top + PLOT.height;
+/** Width of the chart in SVG units, the rendered width gives the text scale. */
+export const CHART_WIDTH = 700;
+
+/** Height of the chart in SVG units at the text scale 1. */
+const CHART_HEIGHT = 400;
+
+/** Minimum rendered height of the chart in pixels, a narrow chart gets taller. */
+const MIN_HEIGHT = 260;
+
+/** Margins of the plot area in pixels, for the axis labels and titles. */
+const MARGIN = { left: 58, top: 24, right: 62, bottom: 56 };
 
 /** Default range of the axes without fixed bounds, extended by the points. */
 const AUTO_OUTDOOR = { min: -20, max: 30 };
 const AUTO_FLOW = { min: 15, max: 60 };
 
-/** Distance in SVG units below which interpolated values get no label next to a point. */
+/** Distance in pixels below which interpolated values get no label next to a point. */
 const SAMPLE_LABEL_GAP = 25;
 
 /**
@@ -47,7 +55,18 @@ const SAMPLE_LABEL_GAP = 25;
  * @returns {string} The SVG element.
  */
 export function renderChart(input) {
-  const { config, t, number, temperature } = input;
+  const { config, t, number, temperature, textScale } = input;
+  /**
+   * A size in pixels in SVG units, rounded to 2 decimals.
+   *
+   * @param {number} pixels
+   */
+  const units = pixels => Math.round(pixels * textScale * 100) / 100;
+  const height = Math.max(CHART_HEIGHT, units(MIN_HEIGHT));
+  const plotLeft = units(MARGIN.left), plotTop = units(MARGIN.top);
+  const plotRight = CHART_WIDTH - units(MARGIN.right), plotBottom = height - units(MARGIN.bottom);
+  const plotWidth = plotRight - plotLeft, plotHeight = plotBottom - plotTop;
+  const sampleLabelGap = units(SAMPLE_LABEL_GAP);
   const valid = sortByOutdoor(input.points.filter(inLimits));
   const minimum = config.flow_min ?? -Infinity, maximum = config.flow_max ?? Infinity;
   /** @param {number} value */
@@ -68,9 +87,9 @@ export function renderChart(input) {
   const { min: bottom, max: top } = flowRange;
 
   /** @param {number} outdoor */
-  const x = outdoor => PLOT.left + (hi - outdoor) / (hi - lo) * PLOT.width;
+  const x = outdoor => plotLeft + (hi - outdoor) / (hi - lo) * plotWidth;
   /** @param {number} flow */
-  const y = flow => PLOT_BOTTOM - (flow - bottom) / (top - bottom) * PLOT.height;
+  const y = flow => plotBottom - (flow - bottom) / (top - bottom) * plotHeight;
   /**
    * @param {number} outdoor
    * @param {number} flow
@@ -85,35 +104,36 @@ export function renderChart(input) {
   const outdoorTicks = axisTicks(outdoorRange, config.x_step ?? DEFAULT_AXIS_STEP, {
     fixedMin: config.x_min !== null,
     fixedMax: config.x_max !== null,
-    length: PLOT.width,
-    labelGap: 28,
+    length: plotWidth,
+    labelGap: units(28),
   });
   for (const { value, showLabel } of outdoorTicks) {
-    const px = x(value);
-    grid += `<line x1="${px}" y1="${PLOT.top}" x2="${px}" y2="${PLOT_BOTTOM}" class="grid"/>`;
-    if (showLabel) grid += `<text x="${px}" y="365" text-anchor="middle">${tickLabel(value)}</text>`;
+    const tickX = x(value);
+    grid += `<line x1="${tickX}" y1="${plotTop}" x2="${tickX}" y2="${plotBottom}" class="grid"/>`;
+    if (showLabel) grid += `<text x="${tickX}" y="${plotBottom + units(21)}" text-anchor="middle">${tickLabel(value)}</text>`;
   }
   const flowTicks = axisTicks(flowRange, config.y_step ?? DEFAULT_AXIS_STEP, {
     fixedMin: config.y_min !== null,
     fixedMax: config.y_max !== null,
-    length: PLOT.height,
-    labelGap: 13,
+    length: plotHeight,
+    labelGap: units(16),
   });
   for (const { value, showLabel } of flowTicks) {
     const py = y(value);
-    grid += `<line x1="${PLOT.left}" y1="${py}" x2="${PLOT_RIGHT}" y2="${py}" class="grid"/>`;
-    if (showLabel) grid += `<text x="48" y="${py + 3}" text-anchor="end">${tickLabel(value)}</text>`;
+    grid += `<line x1="${plotLeft}" y1="${py}" x2="${plotRight}" y2="${py}" class="grid"/>`;
+    if (showLabel) grid += `<text x="${plotLeft - units(10)}" y="${py + units(4)}" text-anchor="end">${tickLabel(value)}</text>`;
   }
 
   let limits = '';
   for (const { value, cls, label, labelY } of [
-    { value: input.limitDay, cls: 'day', label: t('Day'), labelY: 16 },
-    { value: input.limitNight, cls: 'night', label: t('Night'), labelY: 34 },
+    { value: input.limitDay, cls: 'day', label: t('Day'), labelY: units(16) },
+    { value: input.limitNight, cls: 'night', label: t('Night'), labelY: units(34) },
   ]) {
     if (!Number.isFinite(value) || value < lo || value > hi) continue;
     const px = x(value);
-    limits += html`<line x1="${px}" y1="${PLOT.top}" x2="${px}" y2="${PLOT_BOTTOM}" class="limit ${cls}"/>
-      <text x="${Math.max(110, Math.min(585, px))}" y="${labelY}" text-anchor="middle" class="limit-label">
+    limits += html`<line x1="${px}" y1="${plotTop}" x2="${px}" y2="${plotBottom}" class="limit ${cls}"/>
+      <text x="${Math.max(plotLeft + units(52), Math.min(plotRight - units(53), px))}" y="${labelY}"
+        text-anchor="middle" class="limit-label">
         ${esc(t('HL'))} ${esc(label)} ${esc(temperature(value))}
       </text>`;
   }
@@ -123,8 +143,8 @@ export function renderChart(input) {
   ]) {
     if (value < bottom || value > top) continue;
     const py = y(value);
-    limits += html`<line x1="${PLOT.left}" y1="${py}" x2="${PLOT_RIGHT}" y2="${py}" class="limit ${cls}"/>
-      <text x="632" y="${py - 7}" text-anchor="end" class="flow-limit-label ${cls}">
+    limits += html`<line x1="${plotLeft}" y1="${py}" x2="${plotRight}" y2="${py}" class="limit ${cls}"/>
+      <text x="${plotRight - units(6)}" y="${py - units(7)}" text-anchor="end" class="flow-limit-label ${cls}">
         ${esc(label)} ${esc(temperature(value))}
       </text>`;
   }
@@ -134,9 +154,9 @@ export function renderChart(input) {
     const shown = clamp(p.flow);
     if (!visible(p.outdoor, shown)) return;
     const px = x(p.outdoor), py = y(shown);
-    const anchor = px <= 75 ? 'start' : px >= 620 ? 'end' : 'middle';
+    const anchor = px <= plotLeft + units(17) ? 'start' : px >= plotRight - units(18) ? 'end' : 'middle';
     const label = shown > minimum && shown < maximum
-      ? html`<text x="${px}" y="${Math.max(17, py - 12)}" text-anchor="${anchor}" class="point-label">
+      ? html`<text x="${px}" y="${Math.max(units(17), py - units(12))}" text-anchor="${anchor}" class="point-label">
           ${esc(decimal(shown))}
         </text>`
       : '';
@@ -148,7 +168,7 @@ export function renderChart(input) {
     });
     dots += html`<g>
       <title>${esc(tooltip)}</title>
-      <circle cx="${px}" cy="${py}" r="2.8" class="point"/>
+      <circle cx="${px}" cy="${py}" r="${units(2.8)}" class="point"/>
       ${label}
     </g>`;
   });
@@ -159,8 +179,8 @@ export function renderChart(input) {
     const sampleTicks = axisTicks(outdoorRange, config.intermediate_step ?? INTERMEDIATE_STEP.default, {
       fixedMin: false,
       fixedMax: false,
-      length: PLOT.width,
-      labelGap: SAMPLE_LABEL_GAP,
+      length: plotWidth,
+      labelGap: sampleLabelGap,
     });
     for (const { value: outdoor, showLabel } of sampleTicks) {
       if (pointTemperatures.has(outdoor)) continue;
@@ -169,8 +189,8 @@ export function renderChart(input) {
       const px = x(outdoor), py = y(shown);
       // Keep the sample markers at the chosen interval and give saved point labels priority.
       const flowLabel = decimal(shown);
-      const labelY = Math.max(17, py - 9);
-      const label = showLabel && !unique.some(point => Math.abs(x(point.outdoor) - px) < SAMPLE_LABEL_GAP)
+      const labelY = Math.max(units(17), py - units(9));
+      const label = showLabel && !unique.some(point => Math.abs(x(point.outdoor) - px) < sampleLabelGap)
         ? html`<text x="${px}" y="${labelY}" text-anchor="middle" class="sample-label" data-outdoor="${outdoor}">
             ${esc(flowLabel)}
           </text>`
@@ -181,7 +201,7 @@ export function renderChart(input) {
       });
       samples += html`<g>
         <title>${esc(tooltip)}</title>
-        <circle cx="${px}" cy="${py}" r="1.7" class="sample-point"/>
+        <circle cx="${px}" cy="${py}" r="${units(1.7)}" class="sample-point"/>
         ${label}
       </g>`;
     }
@@ -193,23 +213,26 @@ export function renderChart(input) {
     { value: input.actual, cls: 'actual', radius: 3 },
   ]) {
     if (visible(input.outdoor, value)) {
-      marks += `<circle cx="${x(input.outdoor)}" cy="${y(value)}" r="${radius}" class="${cls}"/>`;
+      marks += `<circle cx="${x(input.outdoor)}" cy="${y(value)}" r="${units(radius)}" class="${cls}"/>`;
     }
   }
 
   const path = curvePath(unique, lo, hi, minimum, maximum, (outdoor, flow) => x(outdoor) + ',' + y(clamp(flow)));
-  const plot = `x="${PLOT.left}" y="${PLOT.top}" width="${PLOT.width}" height="${PLOT.height}"`;
+  const plot = `x="${plotLeft}" y="${plotTop}" width="${plotWidth}" height="${plotHeight}"`;
   const label = esc(t('Saved heating curve points, interpolated values and current flow temperatures'));
-  return html`<svg viewBox="0 0 700 400" style="${palette(input.dark)}" aria-label="${label}" role="img">
+  return html`<svg viewBox="0 0 ${CHART_WIDTH} ${height}" style="${palette(input.dark, textScale)}" aria-label="${label}" role="img">
     <defs><clipPath id="${input.plotId}" clipPathUnits="userSpaceOnUse"><rect ${plot}/></clipPath></defs>
-    <rect ${plot} rx="8" class="plot"/>
+    <rect ${plot} rx="${units(8)}" class="plot"/>
     <g class="axes">${grid}</g>
     ${limits}
     <path d="${path}" class="curve" clip-path="url(#${input.plotId})"/>
     ${samples}${dots}${marks}
     <g class="axes">
-      <text x="348" y="393" text-anchor="middle">${esc(t('Outdoor temperature'))} °C</text>
-      <text x="15" y="184" text-anchor="middle" transform="rotate(-90 15 184)">${esc(t('Flow °C'))}</text>
+      <text x="${plotLeft + plotWidth / 2}" y="${height - units(7)}" text-anchor="middle">
+        ${esc(t('Outdoor temperature'))} °C
+      </text>
+      <text x="${units(15)}" y="${plotTop + plotHeight / 2}" text-anchor="middle"
+        transform="rotate(-90 ${units(15)} ${plotTop + plotHeight / 2})">${esc(t('Flow °C'))}</text>
     </g>
   </svg>`;
 }
@@ -244,13 +267,15 @@ function curvePath(points, lo, hi, minimum, maximum, coordinates) {
 }
 
 /**
- * Colors of the curve for the light and the dark theme.
+ * Colors of the curve for the light and the dark theme and the scale of the texts.
  *
  * @param {boolean} dark Whether the dark theme is active.
+ * @param {number} textScale SVG units per pixel.
  * @returns {string} CSS custom properties for the `style` attribute.
  */
-function palette(dark) {
+function palette(dark, textScale) {
   return [
+    `--chart-scale:${textScale}`,
     `--curve-point-label:${dark ? '#D8AE8B' : '#9A6138'}`,
     `--curve-sample-label:${dark ? '#9BACB8' : '#657B89'}`,
     `--curve-line:${dark ? '#65B4B0' : '#278F89'}`,

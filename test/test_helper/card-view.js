@@ -617,6 +617,33 @@ export class ChartView {
     return this.view.texts('g.axes text');
   }
 
+  /**
+   * SVG units per pixel, 1 until the card knows the rendered width of the chart.
+   *
+   * @returns {string}
+   */
+  get textScale() {
+    return this.svg.style.getPropertyValue('--chart-scale');
+  }
+
+  /**
+   * The height of the `viewBox` in SVG units.
+   *
+   * @returns {number}
+   */
+  get height() {
+    return Number(this.svg.getAttribute('viewBox')?.split(' ')[3]);
+  }
+
+  /**
+   * The rendered height of the title of the outdoor axis in pixels, the flow title is rotated.
+   *
+   * @returns {number}
+   */
+  get axisTitleHeight() {
+    return this.view.queryAll('g.axes text').at(-2)?.getBoundingClientRect().height ?? 0;
+  }
+
   /** @returns {SVGLineElement[]} */
   get gridLines() {
     return this.view.queryAll('g.axes line');

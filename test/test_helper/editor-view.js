@@ -2,14 +2,39 @@
 import { expect, vi } from 'vitest';
 import { settle, ShadowView } from './shadow-view';
 /** @import { SelectOption } from './shadow-view' */
-/** @import { CardConfig, FakeHass, HeatingCurveCardEditor } from '../fixtures/types' */
+/** @import { CardConfig, FakeHass, FormSchema, HeatingCurveCardEditor } from '../fixtures/types' */
 
 /**
- * A field of the editor with `data-config`.
+ * An option of the editor, a field of one of its forms.
  *
- * @typedef {'title' | 'flow_min' | 'flow_max' | 'x_min' | 'x_max' | 'x_step' | 'y_step'
- *   | 'intermediate_step'} ConfigField
+ * @typedef {'title' | 'language' | 'config_entry' | 'circuit' | 'flow_min' | 'flow_max' | 'x_min' | 'x_max'
+ *   | 'x_step' | 'y_min' | 'y_max' | 'y_step' | 'intermediate_step' | 'auto_lock_minutes'} ConfigField
  */
+
+/**
+ * The fake `ha-form` with its properties.
+ *
+ * @typedef {HTMLElement & {
+ *   hass?: Partial<FakeHass>,
+ *   data: Record<string, unknown>,
+ *   schema: FormSchema[],
+ *   computeLabel: (schema: FormSchema) => string,
+ * }} Form
+ */
+
+/**
+ * The `ha-expansion-panel` with its header.
+ *
+ * @typedef {HTMLElement & { header: string }} Panel
+ */
+
+/**
+ * The items of a schema and their nested items.
+ *
+ * @param {FormSchema[]} schema
+ * @returns {FormSchema[]}
+ */
+const allItems = schema => schema.flatMap(item => [item, ...allItems(item.schema ?? [])]);
 
 /**
  * A new editor element, not yet on the page.
@@ -71,69 +96,139 @@ export class EditorView extends ShadowView {
 
   // Fields.
 
+  /** @returns {Form[]} */
+  get forms() {
+    return this.queryAll('ha-form');
+  }
+
   /**
+   * The form with the field.
+   *
    * @param {ConfigField} name
-   * @returns {HTMLInputElement}
+   * @returns {Form}
+   */
+  form(name) {
+    const form = this.forms.find(candidate => allItems(candidate.schema).some(item => item.name === name));
+    if (!form) throw Error(`No field ${name}`);
+    return form;
+  }
+
+  /**
+   * The schema item of the field.
+   *
+   * @param {ConfigField} name
+   * @returns {FormSchema}
    */
   field(name) {
-    return this.get(`[data-config="${name}"]`);
+    return /** @type {FormSchema} */ (allItems(this.form(name).schema).find(item => item.name === name));
   }
 
-  /** @returns {HTMLSelectElement} */
-  get languageSelect() {
-    return this.get('#config-language');
+  /**
+   * The value that the field shows.
+   *
+   * @param {ConfigField} name
+   * @returns {unknown}
+   */
+  value(name) {
+    return this.form(name).data[name];
   }
 
-  /** @returns {HTMLSelectElement} */
-  get controllerSelect() {
-    return this.get('#config-controller');
+  /**
+   * The label of the field.
+   *
+   * @param {ConfigField} name
+   * @returns {string}
+   */
+  label(name) {
+    return this.form(name).computeLabel(this.field(name));
   }
 
-  /** @returns {HTMLSelectElement} */
-  get circuitSelect() {
-    return this.get('#config-circuit');
+  /**
+   * The bounds of a number field.
+   *
+   * @param {ConfigField} name
+   * @returns {{ min: number, max: number, step: number | 'any' } | undefined}
+   */
+  bounds(name) {
+    return this.field(name).selector?.number;
+  }
+
+  /**
+   * The options of a select field with the selected one.
+   *
+   * @param {ConfigField} name
+   * @returns {SelectOption[]}
+   */
+  selectOptions(name) {
+    const value = this.value(name);
+    return (this.field(name).selector?.select?.options ?? [])
+      .map(option => ({ value: option.value, label: option.label, selected: option.value === value }));
   }
 
   /** @returns {SelectOption[]} */
   get languageOptions() {
-    return this.options('#config-language');
+    return this.selectOptions('language');
   }
 
   /** @returns {SelectOption[]} */
   get controllerOptions() {
-    return this.options('#config-controller');
+    return this.selectOptions('config_entry');
   }
 
   /** @returns {SelectOption[]} */
   get circuitOptions() {
-    return this.options('#config-circuit');
+    return this.selectOptions('circuit');
+  }
+
+  /**
+   * The titles of the sections inside the forms.
+   *
+   * @returns {string[]}
+   */
+  get sectionTitles() {
+    return this.forms.flatMap(form => allItems(form.schema)).flatMap(item => item.title ? [item.title] : []);
+  }
+
+  /**
+   * The labels of the sections and grids inside the forms, they have a title or no label.
+   *
+   * @returns {string[]}
+   */
+  get sectionLabels() {
+    return this.forms.flatMap(form => allItems(form.schema)
+      .filter(item => item.type)
+      .map(item => form.computeLabel(item)));
   }
 
   /**
    * The collapsible section of the chart axes.
    *
-   * @returns {HTMLDetailsElement}
+   * @returns {Panel}
    */
   get chartAxes() {
     return this.get('#chart-axes');
   }
 
   /**
-   * The heading of the first collapsible section.
+   * The header of the section of the chart axes.
    *
-   * @returns {string | undefined}
+   * @returns {string}
    */
   get summary() {
-    return this.text('summary');
+    return this.chartAxes.header;
   }
 
   /**
+   * Changes a field like the user, `ha-form` sends all its values.
+   *
    * @param {ConfigField} name
-   * @param {string | number} value
+   * @param {unknown} value
    * @returns {Promise<void>}
    */
-  setField(name, value) {
-    return this.change(this.field(name), value);
+  async setField(name, value) {
+    const form = this.form(name);
+    form.dispatchEvent(new CustomEvent('value-changed', { detail: { value: { ...form.data, [name]: value } } }));
+    await settle();
   }
 
   /**
@@ -141,7 +236,7 @@ export class EditorView extends ShadowView {
    * @returns {Promise<void>}
    */
   selectLanguage(language) {
-    return this.change(this.languageSelect, language);
+    return this.setField('language', language);
   }
 
   /**
@@ -149,7 +244,7 @@ export class EditorView extends ShadowView {
    * @returns {Promise<void>}
    */
   selectController(id) {
-    return this.change(this.controllerSelect, id);
+    return this.setField('config_entry', id);
   }
 
   /**
@@ -157,7 +252,7 @@ export class EditorView extends ShadowView {
    * @returns {Promise<void>}
    */
   selectCircuit(id) {
-    return this.change(this.circuitSelect, id);
+    return this.setField('circuit', id);
   }
 
   // Password protection.
@@ -165,15 +260,25 @@ export class EditorView extends ShadowView {
   /**
    * `Password protection · configured` or `Password protection · optional`.
    *
-   * @returns {string | undefined}
+   * @returns {string}
    */
   get passwordSummary() {
-    return this.text('details:nth-of-type(3) summary');
+    return /** @type {Panel} */ (this.get('#password')).header;
   }
 
   /** @returns {HTMLInputElement} */
   get newPasswordInput() {
     return this.get('#new-password');
+  }
+
+  /**
+   * Number of the columns of the password fields, the grid layout of the editor.
+   *
+   * @returns {number}
+   */
+  get passwordColumns() {
+    const grid = /** @type {HTMLElement} */ (this.newPasswordInput.closest('.grid'));
+    return getComputedStyle(grid).gridTemplateColumns.split(' ').length;
   }
 
   /** @returns {HTMLInputElement} */
@@ -187,12 +292,13 @@ export class EditorView extends ShadowView {
   }
 
   /**
-   * The button to remove the password, `null` without password.
+   * The button to remove the password, `null` while it is hidden without password.
    *
    * @returns {HTMLButtonElement | null}
    */
   get removePasswordButton() {
-    return this.query('#remove-password');
+    const button = this.get('#remove-password');
+    return button.hidden ? null : /** @type {HTMLButtonElement} */ (button);
   }
 
   /** @returns {HTMLElement} */

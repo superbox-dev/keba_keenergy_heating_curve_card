@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Showed the texts of the card in the sizes of Home Assistant ([Issue #43][issue-43]).
+- Kept the chart texts at the same size at every card width ([Issue #43][issue-43]).
+- Rebuilt the visual editor with the forms of Home Assistant ([Issue #43][issue-43]).
+
+[issue-43]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/43
+
 ## [1.1.0] - 2026-11-26
 
 ### Added

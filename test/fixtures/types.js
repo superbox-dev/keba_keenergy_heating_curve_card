@@ -104,8 +104,29 @@
  * @typedef {{
  *   new (): HeatingCurveCard,
  *   getStubConfig(): CardConfig,
- *   getConfigElement(): HTMLElement,
+ *   getConfigElement(): Promise<HTMLElement>,
  * }} HeatingCurveCardClass
+ */
+
+/**
+ * Item of a schema of `ha-form`, like in the Home Assistant frontend.
+ *
+ * @typedef {object} FormSchema
+ * @property {string} name
+ * @property {'expandable' | 'grid'} [type]
+ * @property {string} [title]
+ * @property {boolean} [required]
+ * @property {FormSelector} [selector]
+ * @property {FormSchema[]} [schema]
+ */
+
+/**
+ * Selector of a field of `ha-form`.
+ *
+ * @typedef {object} FormSelector
+ * @property {{}} [text]
+ * @property {{ mode: string, options: { value: string, label: string }[] }} [select]
+ * @property {{ min: number, max: number, step: number | 'any', mode: string }} [number]
  */
 
 /**

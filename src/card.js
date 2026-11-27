@@ -3,7 +3,7 @@ import { FIELDS, discoverControllers, loadRegistry } from './discovery.js';
 import { errorText, formatNumber, languageCode, translate } from './i18n.js';
 import { enableEntities, saveLimits, savePoints, selectCurve } from './card/actions.js';
 import { resolveBinding } from './card/binding.js';
-import { renderChart } from './card/chart.js';
+import { CHART_WIDTH, renderChart } from './card/chart.js';
 import { normalizeConfig } from './card/config.js';
 import {
   LIMIT_FIELDS,
@@ -16,7 +16,7 @@ import {
 import { EditLock } from './card/lock.js';
 import { POINT_LIMITS, newPoint, readPoints, samePoints, sortByOutdoor } from './card/points.js';
 import { cardTemplate, curveLabel, pointRows } from './card/templates.js';
-import './editor.js';
+import { loadHaForm } from './editor.js';
 
 /**
  * @typedef {import('./discovery.js').Controller} Controller
@@ -68,6 +68,10 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     this._edits = {};
     /** @type {Draft | null} */
     this._draft = null;
+    /** SVG units per pixel of the chart, measured after rendering. */
+    this._textScale = 1;
+    /** Keeps the texts of the chart at their size in pixels when the card changes its width. */
+    this._resizeObserver = globalThis.ResizeObserver ? new ResizeObserver(() => this._scaleChart()) : undefined;
     /** Whether an action is running. */
     this._busy = false;
     /** Status message. */
@@ -195,19 +199,22 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     return {};
   }
 
-  /** @returns {HTMLElement} The visual card editor. */
-  static getConfigElement() {
+  /** @returns {Promise<HTMLElement>} The visual card editor, after Home Assistant has loaded its forms. */
+  static async getConfigElement() {
+    await loadHaForm();
     return document.createElement(EDITOR_TYPE);
   }
 
   /** Locks when the page is hidden, while the card is on the page. */
   connectedCallback() {
     globalThis.document?.addEventListener('visibilitychange', this._visibilityHandler);
+    this._resizeObserver?.observe(this);
   }
 
   /** Locks when the card leaves the page, the unsaved changes are discarded. */
   disconnectedCallback() {
     globalThis.document?.removeEventListener('visibilitychange', this._visibilityHandler);
+    this._resizeObserver?.disconnect();
     if (this._lock.enabled) this._lock.lock(this._t('Editing locked.'));
   }
 
@@ -474,7 +481,21 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       t: (text, params) => this._t(text, params),
       number: (value, options) => this._number(value, options),
       temperature: value => this._fmt(value),
+      textScale: this._textScale,
     });
+  }
+
+  /**
+   * Redraws the chart when its rendered width changed, so texts, margins and marks keep their size in pixels like
+   * the other texts of the card.
+   */
+  _scaleChart() {
+    const width = this._root.querySelector('#chart svg')?.getBoundingClientRect().width;
+    if (!width) return;
+    const scale = Math.round(CHART_WIDTH / width * 1000) / 1000;
+    if (scale === this._textScale) return;
+    this._textScale = scale;
+    this._preview();
   }
 
   /** Redraws the chart, for example while the user types. */
@@ -629,6 +650,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       table.scrollTop = tableScroll.top;
       table.scrollLeft = tableScroll.left;
     }
+    this._scaleChart();
   }
 
   /**

@@ -5,31 +5,32 @@ export const STYLE = `
   :host {
     display: block;
     container-type: inline-size;
-    font-family: var(--primary-font-family,Arial,sans-serif);
-    color: var(--primary-text-color,#203b44);
-    --muted: var(--secondary-text-color,#7a8c96);
-    --panel: var(--card-background-color,#fff);
-    --border: var(--divider-color,#e1e9ec);
+    font-family: var(--ha-font-family-body);
+    font-size: var(--ha-font-size-m);
+    line-height: var(--ha-line-height-normal);
+    color: var(--primary-text-color);
+    --muted: var(--secondary-text-color);
+    --panel: var(--card-background-color);
+    --border: var(--divider-color);
   }
   * {
     box-sizing: border-box;
   }
   ha-card {
     overflow: hidden;
-    border-radius: 20px;
   }
   .layout {
     display: grid;
     grid-template-columns: minmax(0,2.1fr) minmax(270px,1fr);
     gap: 16px;
     padding: 16px;
-    background: var(--secondary-background-color,#eef3f4);
+    background: var(--secondary-background-color);
   }
   .chart-panel,.editor {
     min-width: 0;
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 17px;
+    border-radius: var(--ha-card-border-radius,var(--ha-border-radius-lg));
     padding: 16px;
   }
   header,.editor-head {
@@ -40,18 +41,18 @@ export const STYLE = `
     padding: 0 8px 14px;
   }
   header small {
-    font-size: 10px;
-    font-weight: 800;
+    font-size: var(--ha-font-size-xs);
+    font-weight: var(--ha-font-weight-bold);
     letter-spacing: .14em;
     color: #138e90;
   }
   h2 {
     margin: 6px 0;
-    font-size: 25px;
+    font-size: var(--ha-card-header-font-size,var(--ha-font-size-2xl));
   }
   header p,.editor-head p {
     margin: 0;
-    font-size: 12px;
+    font-size: var(--ha-font-size-m);
     color: var(--muted);
   }
   .badge {
@@ -59,13 +60,16 @@ export const STYLE = `
     border-radius: 9px;
     background: #e4f2f0;
     color: #087f82;
-    font-size: 11px;
-    font-weight: 750;
+    font-size: var(--ha-font-size-s);
+    font-weight: var(--ha-font-weight-medium);
   }
   svg {
     display: block;
     width: 100%;
     height: auto;
+  }
+  svg line,svg path,svg circle,svg rect {
+    vector-effect: non-scaling-stroke;
   }
   .plot {
     fill: var(--panel);
@@ -85,11 +89,11 @@ export const STYLE = `
   }
   .axes {
     fill: var(--muted);
-    font-size: 10px;
+    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
   }
   .axis-title {
-    font-size: 11px;
-    font-weight: 600;
+    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-medium);
   }
   .point {
     fill: #138e90;
@@ -98,8 +102,8 @@ export const STYLE = `
   }
   .point-label {
     fill: #087f82;
-    font-size: 10px;
-    font-weight: bold;
+    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-bold);
     paint-order: stroke;
     stroke: var(--panel);
     stroke-width: 3px;
@@ -117,8 +121,8 @@ export const STYLE = `
   }
   .limit-label {
     fill: var(--muted);
-    font-size: 9px;
-    font-weight: bold;
+    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-medium);
     paint-order: stroke;
     stroke: var(--panel);
     stroke-width: 3px;
@@ -139,7 +143,7 @@ export const STYLE = `
     justify-content: center;
     gap: 15px;
     padding: 12px 4px 0;
-    font-size: 11px;
+    font-size: var(--ha-font-size-s);
     color: var(--muted);
   }
   .legend span {
@@ -172,14 +176,13 @@ export const STYLE = `
   }
   h3 {
     margin: 5px 2px 10px;
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: .03em;
+    font-size: var(--ha-font-size-l);
+    font-weight: var(--ha-font-weight-medium);
   }
   .field {
     display: grid;
     gap: 5px;
-    font-size: 11px;
+    font-size: var(--ha-font-size-s);
     color: var(--muted);
   }
   select,input {
@@ -189,13 +192,13 @@ export const STYLE = `
     border: 1px solid var(--border);
     border-radius: 9px;
     background: var(--panel);
-    color: var(--primary-text-color,#203b44);
+    color: var(--primary-text-color);
     font: inherit;
   }
   .curve-status {
     min-height: 20px;
     margin: 5px 2px 12px;
-    font-size: 10px;
+    font-size: var(--ha-font-size-s);
     color: var(--muted);
   }
   .metrics {
@@ -214,11 +217,11 @@ export const STYLE = `
     background: var(--panel);
   }
   .metric span {
-    font-size: 10px;
+    font-size: var(--ha-font-size-s);
     color: var(--muted);
   }
   .metric b {
-    font-size: 21px;
+    font-size: var(--ha-font-size-xl);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
@@ -238,7 +241,7 @@ export const STYLE = `
   .limit-fields label {
     display: grid;
     gap: 5px;
-    font-size: 11px;
+    font-size: var(--ha-font-size-s);
     color: var(--muted);
   }
   button {
@@ -246,10 +249,10 @@ export const STYLE = `
     border-radius: 9px;
     padding: 9px 12px;
     background: var(--panel);
-    color: var(--primary-text-color,#203b44);
+    color: var(--primary-text-color);
     font: inherit;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: var(--ha-font-size-m);
+    font-weight: var(--ha-font-weight-medium);
     cursor: pointer;
   }
   button:hover:not(:disabled) {
@@ -277,9 +280,9 @@ export const STYLE = `
     margin: 12px 2px 0;
     padding: 10px 12px;
     border-radius: 10px;
-    background: var(--secondary-background-color,#eef3f4);
+    background: var(--secondary-background-color);
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--ha-font-size-s);
     line-height: 1.5;
     overflow-wrap: anywhere;
   }
@@ -291,7 +294,7 @@ export const STYLE = `
   }
   .editor-head h3 {
     margin: 0 0 5px;
-    color: var(--primary-text-color,#203b44);
+    color: var(--primary-text-color);
   }
   .buttons {
     display: flex;
@@ -305,7 +308,7 @@ export const STYLE = `
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 11px;
+    font-size: var(--ha-font-size-m);
   }
   th,td {
     padding: 7px 8px;
@@ -317,14 +320,14 @@ export const STYLE = `
     top: 0;
     background: var(--panel);
     color: var(--muted);
-    font-weight: 600;
+    font-weight: var(--ha-font-weight-medium);
   }
   td input {
     padding: 7px;
   }
   .remove {
     padding: 5px 9px;
-    font-size: 17px;
+    font-size: var(--ha-font-size-l);
     color: #a54b4b;
   }
   @container(max-width:760px) {
@@ -351,7 +354,7 @@ export const STYLE = `
       padding: 9px;
     }
     .metric b {
-      font-size: 18px;
+      font-size: var(--ha-font-size-l);
     }
     .buttons {
       width: 100%;
@@ -370,8 +373,8 @@ export const STYLE = `
   .target-error {
     grid-column: 1/-1;
     margin: 0;
-    font-size: 12px;
-    color: var(--error-color,#b64c4c);
+    font-size: var(--ha-font-size-s);
+    color: var(--error-color);
   }
   .target-panel .hint {
     grid-column: 1/-1;
@@ -416,14 +419,14 @@ export const STYLE = `
   }
   .edit-lock-info b {
     display: block;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: var(--ha-font-size-m);
+    font-weight: var(--ha-font-weight-medium);
   }
   .edit-lock-info span {
     display: block;
     margin-top: 4px;
     color: var(--muted);
-    font-size: 10.5px;
+    font-size: var(--ha-font-size-s);
     line-height: 1.5;
   }
   .unlock-form {
@@ -437,8 +440,8 @@ export const STYLE = `
   }
   .unlock-error {
     grid-column: 1/-1;
-    color: var(--error-color,#b64c4c);
-    font-size: 11px;
+    color: var(--error-color);
+    font-size: var(--ha-font-size-s);
     min-height: 1em;
   }
   @container(max-width:440px) {
@@ -457,20 +460,20 @@ export const STYLE = `
     padding: 14px;
     border: 1px solid #138e90;
     border-radius: 12px;
-    background: var(--secondary-background-color,#eef3f4);
-    font-size: 12px;
+    background: var(--secondary-background-color);
+    font-size: var(--ha-font-size-m);
   }
   .setup p {
     line-height: 1.5;
   }
   .hint {
-    font-size: 10.5px;
+    font-size: var(--ha-font-size-s);
     color: var(--muted);
     line-height: 1.5;
   }
   details {
     padding: 12px;
-    font-size: 11px;
+    font-size: var(--ha-font-size-s);
     line-height: 1.6;
   }
   details code {
@@ -481,9 +484,8 @@ export const STYLE = `
     margin: 9px 0;
   }
   .chart-panel h2 {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -.02em;
+    font-size: var(--ha-card-header-font-size,var(--ha-font-size-2xl));
+    font-weight: var(--ha-font-weight-normal);
   }
   .plot {
     stroke-width: .7;
@@ -493,8 +495,8 @@ export const STYLE = `
     opacity: .3;
   }
   .axes {
-    font-size: 8.5px;
-    font-weight: 400;
+    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-normal);
   }
   .curve {
     stroke: var(--curve-line,#278F89);
@@ -506,8 +508,8 @@ export const STYLE = `
   }
   .point-label {
     fill: var(--curve-point-label,#9A6138);
-    font-size: 10.5px;
-    font-weight: 600;
+    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-bold);
     stroke: var(--panel);
     stroke-width: 2.5px;
     stroke-linejoin: round;
@@ -519,8 +521,8 @@ export const STYLE = `
   }
   .sample-label {
     fill: var(--curve-sample-label,#657B89);
-    font-size: 8px;
-    font-weight: 450;
+    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-normal);
     stroke: var(--panel);
     stroke-width: 2px;
     stroke-linejoin: round;
@@ -532,8 +534,8 @@ export const STYLE = `
     stroke-dasharray: 4 5;
   }
   .limit-label {
-    font-size: 8px;
-    font-weight: 500;
+    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-medium);
     stroke-width: 2px;
   }
   .limit.flow-min {
@@ -549,8 +551,8 @@ export const STYLE = `
     opacity: .75;
   }
   .flow-limit-label {
-    font-size: 8.5px;
-    font-weight: 500;
+    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
+    font-weight: var(--ha-font-weight-medium);
     paint-order: stroke;
     stroke: var(--panel);
     stroke-width: 2px;
@@ -568,7 +570,7 @@ export const STYLE = `
     stroke-width: 1;
   }
   .legend {
-    font-size: 10px;
+    font-size: var(--ha-font-size-s);
     gap: 12px;
   }
   .legend .line {
@@ -583,10 +585,10 @@ export const STYLE = `
     background: linear-gradient(to right,#4D8DC6 50%,#CE7373 50%);
   }
   .metric b {
-    font-size: 19px;
+    font-size: var(--ha-font-size-xl);
   }
   .notice {
-    font-size: 10.5px;
+    font-size: var(--ha-font-size-s);
     padding: 8px 10px;
     border-radius: 8px;
   }

@@ -54,6 +54,6 @@ describe('bundle', () => {
 
     const editor = await EditorView.create({}, hass);
 
-    expect(editor.controllerOptions.map(option => option.value)).toEqual(['', 'entry-1']);
+    expect(editor.controllerOptions.map(option => option.value)).toEqual(['auto', 'entry-1']);
   });
 });
