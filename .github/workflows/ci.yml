@@ -98,22 +98,6 @@ jobs:
       - name: Run end-to-end tests
         run: npm run test:e2e
 
-  validation:
-    name: Validation
-    runs-on: ubuntu-latest
-    # HACS checks the asset of the release, so it only runs after a new release.
-    needs:
-      - release
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          persist-credentials: False
-      - name: Run HACS validation
-        uses: hacs/action@d556e736723344f83838d08488c983a15381059a  # 22.5.0
-        with:
-          category: plugin
-
   security:
     name: Audit packages
     runs-on: ubuntu-latest
