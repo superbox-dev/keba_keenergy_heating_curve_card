@@ -130,6 +130,7 @@ jobs:
     needs:
       - code-analysis
       - build
+      - e2e
     permissions:
       contents: write
     steps:
