@@ -101,11 +101,9 @@ jobs:
   validation:
     name: Validation
     runs-on: ubuntu-latest
-    # HACS checks the asset of the latest release, so on a tag it waits for the new release.
-    # Without a tag the release is skipped and the validation still runs.
+    # HACS checks the asset of the release, so it only runs after a new release.
     needs:
       - release
-    if: ${{ !cancelled() && (needs.release.result == 'success' || needs.release.result == 'skipped') }}
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
