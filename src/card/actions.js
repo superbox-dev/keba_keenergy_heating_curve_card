@@ -25,7 +25,8 @@ export async function selectCurve(card, name) {
     card._render();
     return;
   }
-  if (!card._options().includes(name)) return;
+  // Only a different table is written, the control unit stores it in its flash memory.
+  if (!card._options().includes(name) || name === card._selected()) return;
   card._loadingCurve = name;
   card._busy = true;
   card._message = card._t('Assigning curve …');
@@ -73,7 +74,7 @@ export async function savePoints(card) {
       points,
     });
     card._draft = card._lock.canEdit() ? { name, points, saved: true } : null;
-    card._message = card._t('Points for {name} sent. Controller readings are updating.', { name });
+    card._message = '';
     if (samePoints(points, sortByOutdoor(card._readPoints()))) card._draft = null;
   } catch (error) {
     card._message = card._t('Save failed: ') + errorText(error);
@@ -115,11 +116,12 @@ export async function saveLimits(card) {
       if (Math.abs(card._num(ids[key]) - value) > EPSILON) {
         const converted = Math.round(fromCelsius(card._state(ids[key]), value) * 1e8) / 1e8;
         await card._connection.callService('number', 'set_value', { entity_id: ids[key], value: converted });
+        card._sent[ids[key]] = { value, before: card._num(ids[key]) };
         saved++;
       }
       delete card._edits[key];
     }
-    card._message = card._t('{count} settings sent. The next update will show the controller values.', { count: saved });
+    card._message = '';
   } catch (error) {
     card._message = card._t('Partially saved ({count}). Remaining changes were not sent: {error}', { count: saved, error: errorText(error) });
   } finally {
@@ -170,7 +172,7 @@ export async function enableEntities(card) {
     }
     card._message = card._t('{count} entities enabled. Home Assistant is loading their values; they will appear after the next update.', { count });
   } catch (error) {
-    card._message = card._t('Enabling stopped after {count} entities: {error}. Sign in as an administrator or enable entities in the KeEnergy settings.', { count, error: errorText(error) });
+    card._message = card._t('Enabling stopped after {count} entities: {error}. Sign in as an administrator or enable entities in the KEBA KeEnergy settings.', { count, error: errorText(error) });
   } finally {
     card._busy = false;
     card._discovered = false;

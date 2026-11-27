@@ -34,12 +34,35 @@ describe('curve tables', () => {
       .toEqual([{ value: 'HC1', selected: true }, { value: 'HC2', selected: false }]);
   });
 
+  it('shows the assignment right after the choice, while the menu still has the focus', async () => {
+    const hass = createHass();
+    hass.callService.mockReturnValue(new Promise(() => {}));
+    const view = await CardView.create({}, hass);
+    const form = view.cardForm('curve');
+    form.dispatchEvent(new Event('focusin'));
+
+    await view.selectCurve('HC2');
+
+    expect(view.cardForm('curve')).not.toBe(form);
+    expect(view.curveDisabled).toBe(true);
+  });
+
+  it('explains the selection below the field', async () => {
+    const view = await CardView.create({}, createHass());
+
+    expect(view.curveTexts).toEqual({
+      label: 'Curve table for this heating circuit',
+      helper: 'Choose one of the heating tables (HC…) offered by the controller. Selecting a table assigns it to this '
+        + 'heating circuit. A table can be shared by several circuits on the same controller.',
+    });
+  });
+
   it('offers no tables without options', async () => {
     const states = circuitStates('111', 1, { select: { state: 'HC1', attributes: {} } });
 
     const view = await CardView.create({}, createHass({ states }));
 
-    expect(view.curveOptions.map(option => option.label)).toEqual(['Current: HC1', 'HC1']);
+    expect(view.curveOptions.map(option => option.label)).toEqual(['Current: HC1']);
   });
 
   it('assigns a table to the heating circuit', async () => {
@@ -69,7 +92,7 @@ describe('curve tables', () => {
     await view.selectCurve('HC3');
 
     expect(view.message).toBe('Assigning curve …');
-    expect(view.curveSelect.disabled).toBe(true);
+    expect(view.curveDisabled).toBe(true);
 
     finish();
     await settle();
@@ -134,6 +157,15 @@ describe('curve tables', () => {
     expect(view.message).toBe('Save points / settings or discard the draft before switching tables.');
   });
 
+  it('writes nothing when the table is already assigned', async () => {
+    const hass = createHass();
+    const view = await CardView.create({}, hass);
+
+    await view.selectCurve('HC1');
+
+    expect(selections(hass)).toEqual([]);
+  });
+
   it('ignores tables that are not offered', async () => {
     const hass = createHass();
     const view = await CardView.create({}, hass);
@@ -148,10 +180,8 @@ describe('curve tables', () => {
     hass.callService.mockReturnValue(new Promise(() => {}));
     const view = await CardView.create({}, hass);
     await view.selectCurve('HC2');
-    const select = view.curveSelect;
-    select.disabled = false;
 
-    await view.change(select, 'HC3');
+    await view.selectCurve('HC3');
 
     expect(selections(hass)).toHaveLength(1);
   });
@@ -161,7 +191,7 @@ describe('curve tables', () => {
 
     const view = await CardView.create({}, createHass({ states }));
 
-    expect(view.curveSelect.disabled).toBe(true);
+    expect(view.curveDisabled).toBe(true);
   });
 
   it('keeps the point edits while assigning', async () => {
@@ -172,6 +202,6 @@ describe('curve tables', () => {
 
     await view.setLimit('limitDay', 20);
 
-    expect(view.limitInput('limitDay').disabled).toBe(true);
+    expect(view.limitField('limitDay').disabled).toBe(true);
   });
 });

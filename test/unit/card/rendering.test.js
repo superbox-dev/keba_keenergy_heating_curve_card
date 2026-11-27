@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import '../../../src/card';
 import { CardView } from '../../test_helper/card-view';
-import { createHass, withLanguage, withStates } from '../../fixtures/hass';
+import { createHass, withStates } from '../../fixtures/hass';
 import {
   circuitStates,
   controllerEntities,
@@ -51,11 +51,11 @@ describe('readings', () => {
 
     expect(view.reading('outdoor')).toBe('5 °C');
     expect(view.reading('actual')).toBe('33 °C');
-    const day = view.limitInput('limitDay');
-    expect(Number(day.value)).toBeCloseTo(18);
-    expect(Number(day.min)).toBeCloseTo(0);
-    expect(Number(day.max)).toBeCloseTo(30);
-    expect(Number(day.step)).toBeCloseTo(0.5);
+    expect(Number(view.limitValue('limitDay'))).toBeCloseTo(18);
+    const day = view.limitField('limitDay').selector?.number;
+    expect(Number(day?.min)).toBeCloseTo(0);
+    expect(Number(day?.max)).toBeCloseTo(30);
+    expect(Number(day?.step)).toBeCloseTo(0.5);
   });
 
   it('reads numbers with a decimal comma', async () => {
@@ -77,6 +77,19 @@ describe('readings', () => {
     expect(view.mode).toBe(mode);
   });
 
+  it('shows an unknown reading like Home Assistant and its value when it arrives', async () => {
+    const hass = createHass({ states: circuitStates('111', 1, { actual: plain('unknown') }) });
+    const view = await CardView.create({}, hass);
+
+    expect(view.reading('actual')).toBe('Unknown');
+    expect(view.readingMissing('actual')).toBe(true);
+
+    view.hass = withStates(hass, { [id('actual')]: temperature(31) });
+
+    expect(view.reading('actual')).toBe('31 °C');
+    expect(view.readingMissing('actual')).toBe(false);
+  });
+
   it('lists the missing entities', async () => {
     const registry = controllerEntities('entry-1', '111').filter(entry => entry.entity_id !== id('target'));
     const states = circuitStates('111', 1, { actual: plain('unavailable') });
@@ -84,9 +97,15 @@ describe('readings', () => {
 
     const view = await CardView.create({}, createHass({ registry, states }));
 
-    expect(view.reading('actual')).toBe('—');
-    expect(view.missingEntities).toEqual([id('outdoor'), id('actual'), 'flow_setpoint (not mapped)']);
-    expect(view.text('details p')).toBe('These entities are missing or do not yet provide values:');
+    expect(view.reading('actual')).toBe('Unavailable');
+    expect(view.reading('outdoor')).toBe('Unavailable');
+    expect(view.missingEntities).toEqual([
+      `Outdoor temperature · ${id('outdoor')}`,
+      `Actual flow · ${id('actual')}`,
+      'Target flow · flow_setpoint (not mapped)',
+    ]);
+    expect(view.text('#setup-details p')).toBe('These entities are missing or do not yet provide values:');
+    expect(view.setupHints?.getAttribute('alert-type')).toBe('warning');
   });
 
   it('explains the missing action of the integration', async () => {
@@ -105,7 +124,7 @@ describe('readings', () => {
   it('shows the card in German', async () => {
     const view = await CardView.create({ language: 'de' }, createHass());
 
-    expect(view.title).toBe('Heizkurve KeEnergy');
+    expect(view.title).toBe('Heizkurve KEBA KeEnergy');
     expect(view.text('#save-points')).toBe('Punkte speichern');
     expect(view.reading('target')).toBe('32 °C');
   });
@@ -123,7 +142,7 @@ describe('readings', () => {
     const upper = await CardView.create({ flow_max: 50 }, createHass());
 
     expect(lower.notice).toBe('Display limits: 20 °C to no maximum. Limits apply to the chart only. '
-      + 'The controller target is read separately from KeEnergy.');
+      + 'The controller target is read separately from KEBA KeEnergy.');
     expect(upper.notice).toContain('Display limits: no minimum to 50 °C.');
     expect(upper.legend).toContain('Flow min / max');
   });
@@ -132,7 +151,7 @@ describe('readings', () => {
     const view = await CardView.create({}, createHass());
 
     expect(view.notice)
-      .toBe('Saved table with linearly interpolated values. The controller target is read separately from KeEnergy.');
+      .toBe('Saved table with linearly interpolated values. The controller target is read separately from KEBA KeEnergy.');
     expect(view.legend).not.toContain('Flow min / max');
   });
 });
@@ -159,7 +178,7 @@ describe('updates', () => {
 
     expect(view.get('ha-card')).toBe(shell);
     expect(view.pointRows).toHaveLength(2);
-    expect(view.pointInput(0, 'outdoor').value).toBe('-10');
+    expect(view.pointValues[0]).toEqual(['-10', '40']);
   });
 
   it('redraws when the view changes', async () => {
@@ -172,101 +191,52 @@ describe('updates', () => {
     expect(view.get('ha-card')).not.toBe(shell);
   });
 
-  it('keeps an open select and redraws when it closes', async () => {
+  it('keeps the open curve table menu and redraws when it closes', async () => {
     const hass = createHass();
     const view = await CardView.create({}, hass);
-    const select = view.curveSelect;
-    select.dispatchEvent(new MouseEvent('pointerdown', { button: 0 }));
+    const form = view.cardForm('curve');
+    form.dispatchEvent(new Event('focusin'));
 
     view.hass = withStates(hass, { [id('select')]: curveSelect('HC1', ['HC1', 'HC4']) });
 
-    expect(view.curveSelect).toBe(select);
+    expect(view.cardForm('curve')).toBe(form);
 
-    select.dispatchEvent(new Event('blur'));
+    form.dispatchEvent(new Event('focusout'));
     view.root.dispatchEvent(new Event('click'));
     await settle();
 
-    expect(view.curveSelect).not.toBe(select);
+    expect(view.cardForm('curve')).not.toBe(form);
     expect(view.curveOptions.map(option => option.value)).toEqual(['HC1', 'HC4']);
   });
 
-  it('ignores other mouse buttons and disabled selects', async () => {
-    const hass = createHass();
-    const view = await CardView.create({ config_entry: 'entry-1' }, hass);
-    view.curveSelect.dispatchEvent(new MouseEvent('pointerdown', { button: 2 }));
-    view.controllerSelect.dispatchEvent(new MouseEvent('pointerdown', { button: 0 }));
-    const shell = view.get('ha-card');
-
-    view.hass = otherTable(hass);
-
-    expect(view.get('ha-card')).not.toBe(shell);
-  });
-
-  it.each([
-    ['#controller-select', 'focus', new Event('focus')],
-    ['#controller-select', 'pointerdown', new MouseEvent('pointerdown', { button: 0 })],
-    ['#circuit-select', 'focus', new Event('focus')],
-    ['#circuit-select', 'pointerdown', new MouseEvent('pointerdown', { button: 0 })],
-    ['#curve-select', 'focus', new Event('focus')],
-  ])('keeps %s after %s', async (selector, _, event) => {
+  it.each(['controller', 'circuit', 'limits'])('keeps the %s form while it has the focus', async (kind) => {
     const registry = [...controllerEntities('entry-1', '111', 2), ...controllerEntities('entry-2', '222')];
     const hass = createHass({ registry });
     const view = await CardView.create({}, hass);
-    const select = view.get(selector);
-    select.dispatchEvent(event);
+    const form = view.cardForm(/** @type {'controller' | 'circuit' | 'limits'} */ (kind));
+    form.dispatchEvent(new Event('focusin'));
 
     view.hass = otherTable(hass);
 
-    expect(view.get(selector)).toBe(select);
+    expect(view.get(`#${kind}-form`)).toBe(form);
 
-    select.dispatchEvent(new Event('blur'));
-    view.root.dispatchEvent(new Event('click'));
+    form.dispatchEvent(new FocusEvent('focusout', { bubbles: true, composed: true }));
     await settle();
 
-    expect(view.get(selector)).not.toBe(select);
-  });
-
-  it('keeps a focused input and redraws when it loses the focus', async () => {
-    const hass = createHass();
-    const view = await CardView.create({}, hass);
-    const field = view.limitInput('limitDay');
-    field.focus();
-
-    view.hass = otherTable(hass);
-
-    expect(view.limitInput('limitDay')).toBe(field);
-
-    field.blur();
-    await settle();
-
-    expect(view.limitInput('limitDay')).not.toBe(field);
+    expect(view.get(`#${kind}-form`)).not.toBe(form);
   });
 
   it('waits for a button click before a redraw', async () => {
     const hass = createHass();
     const view = await CardView.create({}, hass);
-    const field = view.limitInput('limitDay');
-    field.focus();
+    const form = view.cardForm('limits');
+    form.dispatchEvent(new Event('focusin'));
     view.hass = otherTable(hass);
 
     const focusout = new FocusEvent('focusout', { bubbles: true, composed: true, relatedTarget: view.saveLimitsButton });
-    await view.dispatch(field, focusout);
+    await view.dispatch(form, focusout);
 
-    expect(view.limitInput('limitDay')).toBe(field);
-  });
-
-  it('keeps the scroll position of the point table', async () => {
-    const hass = createHass();
-    const view = await CardView.create({}, hass);
-    view.tableWrap.scrollTop = 40;
-
-    view.hass = withLanguage(hass, 'de');
-
-    expect(view.tableWrap.scrollTop).toBe(40);
-
-    await view.setPoint(0, 'flow', 44);
-
-    expect(view.tableWrap.scrollTop).toBe(40);
+    expect(view.cardForm('limits')).toBe(form);
   });
 
   it('keeps an empty heating limit when the points change', async () => {
@@ -277,7 +247,7 @@ describe('updates', () => {
     await view.addPoint();
 
     expect(view.get('ha-card')).toBe(shell);
-    expect(view.limitInput('limitDay').value).toBe('');
+    expect(view.limitValue('limitDay')).toBeUndefined();
   });
 
   it('draws the chart in the dark theme', async () => {

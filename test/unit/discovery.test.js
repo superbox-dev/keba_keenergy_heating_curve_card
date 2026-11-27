@@ -138,10 +138,10 @@ describe('discoverControllers', () => {
     expect(controller.circuits[0].label).toBe('Heating circuit 1');
   });
 
-  it('uses KeEnergy without devices', () => {
+  it('uses KEBA KeEnergy without devices', () => {
     const [controller] = discover(controllerEntities('entry-1', '111'));
 
-    expect(controller.label).toBe('KeEnergy · 111');
+    expect(controller.label).toBe('KEBA KeEnergy · 111');
   });
 
   it('marks fields with several entities as ambiguous', () => {

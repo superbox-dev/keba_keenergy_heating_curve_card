@@ -25,6 +25,14 @@ import { STYLE } from './styles.js';
  */
 
 /**
+ * A form of the card as `ha-form`: its schema and its values.
+ *
+ * @typedef {object} CardForm
+ * @property {object[]} schema Schema of the fields, with the translated `label` and `helper` of each.
+ * @property {Record<string, unknown>} data Values of the fields.
+ */
+
+/**
  * State of the password lock.
  *
  * @typedef {object} LockModel
@@ -66,13 +74,13 @@ import { STYLE } from './styles.js';
  * @property {boolean} dirty Whether the points are a draft.
  * @property {string | null} flowLimitsNotice Display limits of the flow temperature, `null` without limits.
  * @property {string} message Status message.
- * @property {Record<'outdoor' | 'target' | 'actual', string>} readings Formatted temperatures.
+ * @property {Record<'outdoor' | 'target' | 'actual', Reading>} readings Formatted temperatures.
  * @property {LimitModel[]} limits Heating limit fields.
  * @property {boolean} limitsDisabled Whether saving the heating limits is disabled.
  * @property {CurvePoint[]} points Points of the draft or the curve table.
  * @property {boolean} ready Whether the points can be edited and saved.
  * @property {boolean} discardDisabled Whether discarding the draft is disabled.
- * @property {string[]} missing Missing entities, entity IDs or config keys.
+ * @property {string[]} missing Missing entities, their name with the entity ID or the config key.
  * @property {boolean} entryMissing Whether the config entry is unknown.
  * @property {boolean} pointServiceMissing Whether the integration has no action to save points.
  * @property {string} version Version of the card.
@@ -89,6 +97,7 @@ export function cardTemplate(model, t) {
   return html`<style>${STYLE}</style>
     <ha-card>
       ${targetPanel(model.target, t)}
+      ${setupAlert(model, t)}
       ${model.lock ? lockPanel(model.lock, t) : ''}
       ${model.disabledEntities ? setupNotice(model.disabledEntities, model.canEnableEntities, t) : ''}
       <div class="layout">${chartPanel(model, t)}${sidePanel(model, t)}</div>
@@ -120,39 +129,55 @@ export function pointRows(points, ready, t) {
     const number = index + 1;
     const removeLabel = esc(t('Remove point {index}', { index: number }));
     const removeDisabled = disabledIf(!ready || points.length <= POINT_LIMITS.count.min);
-    return html`<tr>
-      <td>${number}</td>
-      <td>${pointInput(index, 'outdoor', point.outdoor, ready, t('Point {index} outdoor temperature', { index: number }))}</td>
-      <td>${pointInput(index, 'flow', point.flow, ready, t('Point {index} flow temperature', { index: number }))}</td>
-      <td><button type="button" data-remove="${index}" ${removeDisabled} aria-label="${removeLabel}">×</button></td>
-    </tr>`;
+    return html`<div class="point-row">
+      <span class="point-number">${number}</span>
+      <ha-form data-point="${index}"></ha-form>
+      <ha-icon-button data-remove="${index}" label="${removeLabel}" ${removeDisabled}></ha-icon-button>
+    </div>`;
   }).join('');
 }
 
 /**
- * Input field of a point temperature.
+ * The fields of a point as `ha-form`, the outdoor and the flow temperature next to each other.
  *
- * @param {number} index Index of the point.
- * @param {'outdoor' | 'flow'} axis Temperature of the point.
- * @param {number} value Temperature in °C, `NaN` for an empty field.
+ * @param {CurvePoint} point The point, `NaN` when a field is empty.
  * @param {boolean} ready Whether the points can be edited.
- * @param {string} label Accessible label.
- * @returns {string} The input element.
+ * @param {Translate} t Translates the labels.
+ * @returns {CardForm} The schema and the values.
  */
-function pointInput(index, axis, value, ready, label) {
-  const { min, max } = POINT_LIMITS[axis];
-  const attributes = [
-    `data-point="${index}"`,
-    `data-axis="${axis}"`,
-    'type="number"',
-    'step="any"',
-    `min="${min}"`,
-    `max="${max}"`,
-    `value="${Number.isFinite(value) ? value : ''}"`,
-    disabledIf(!ready),
-    `aria-label="${esc(label)}"`,
-  ];
-  return `<input ${attributes.join(' ')}>`;
+export function pointForm(point, ready, t) {
+  /** @param {'outdoor' | 'flow'} axis */
+  const field = axis => ({
+    name: axis,
+    label: t(axis === 'outdoor' ? 'Outdoor °C' : 'Flow °C'),
+    disabled: !ready,
+    selector: { number: { mode: 'box', step: 'any', min: POINT_LIMITS[axis].min, max: POINT_LIMITS[axis].max } },
+  });
+  return {
+    // Both fields stay next to each other also in a narrow card, one row per point.
+    schema: [{
+      name: 'point',
+      label: '',
+      type: 'grid',
+      flatten: true,
+      column_min_width: '120px',
+      schema: [field('outdoor'), field('flow')],
+    }],
+    data: pointData(point),
+  };
+}
+
+/**
+ * The values of the fields of a point.
+ *
+ * @param {CurvePoint} point The point.
+ * @returns {Record<'outdoor' | 'flow', number | undefined>} The values, `undefined` when empty.
+ */
+export function pointData(point) {
+  return {
+    outdoor: Number.isFinite(point.outdoor) ? point.outdoor : undefined,
+    flow: Number.isFinite(point.flow) ? point.flow : undefined,
+  };
 }
 
 /**
@@ -163,73 +188,94 @@ function pointInput(index, axis, value, ready, label) {
  * @returns {string} The section.
  */
 function targetPanel(model, t) {
-  const { controllers, controllerId, circuitId, busy } = model;
-  const controller = controllers.find(c => c.id === controllerId);
-  const circuits = controller?.circuits || [];
-  const controllerSelect = targetSelect({
-    id: 'controller-select',
-    label: t('Controller'),
-    disabled: busy || model.controllerPinned || controllers.length < 2,
-    selected: controllerId,
-    missing: !!controllerId && !controller,
-    missingLabel: t('Selected controller is missing'),
-    options: controllers,
-    emptyLabel: t('No controller found'),
-  });
-  const circuitSelect = targetSelect({
-    id: 'circuit-select',
-    label: t('Heating circuit'),
-    disabled: busy || model.circuitPinned || circuits.length < 2,
-    selected: circuitId,
-    missing: !!circuitId && !circuits.some(c => c.id === circuitId),
-    missingLabel: t('Selected heating circuit is missing'),
-    options: circuits,
-    emptyLabel: t('No heating circuit found'),
-  });
   return html`<section class="target-panel" aria-label="${esc(t('Controller and heating circuit'))}">
-    ${controllerSelect}
-    ${circuitSelect}
-    <button type="button" id="reload-registry" ${disabledIf(busy)}>${esc(t('Rediscover'))}</button>
+    <ha-form id="controller-form" class="target-form"></ha-form>
+    <ha-form id="circuit-form" class="target-form"></ha-form>
+    <ha-button id="reload-registry" appearance="outlined" ${disabledIf(model.busy)}>${esc(t('Rediscover'))}</ha-button>
     ${model.bindingError ? html`<p class="target-error" role="alert">${esc(model.bindingError)}</p>` : ''}
     ${model.registryError ? html`<p class="hint">${esc(t('Registry: '))}${esc(model.registryError)}</p>` : ''}
   </section>`;
 }
 
 /**
- * Selection with a label.
+ * The selections of a controller and a heating circuit, with the options, the disabled state and a missing value.
  *
- * @param {object} options The selection.
- * @param {string} options.id ID of the select element.
- * @param {string} options.label Label.
- * @param {boolean} options.disabled Whether the selection is disabled.
- * @param {string} options.selected Selected value.
- * @param {boolean} options.missing Whether the selected value is not in the options.
- * @param {string} options.missingLabel Label of a missing selected value.
- * @param {{ id: string, label: string }[]} options.options Options.
- * @param {string} options.emptyLabel Label without options.
- * @returns {string} The label with the select element.
+ * @param {TargetModel} model The selection.
+ * @param {Translate} t Translates the texts.
+ * @returns {Record<'controller' | 'circuit', TargetSelection>} The two selections.
  */
-function targetSelect({ id, label, disabled, selected, missing, missingLabel, options, emptyLabel }) {
-  const missingOption = missing ? html`<option value="${esc(selected)}" selected>${esc(missingLabel)}</option>` : '';
-  const items = options.length
-    ? options.map(o => option(o.id, o.label, o.id === selected)).join('')
-    : html`<option>${esc(emptyLabel)}</option>`;
-  return html`<label class="field">${esc(label)}
-    <select id="${id}" aria-label="${esc(label)}" ${disabledIf(disabled)}>${missingOption}${items}</select>
-  </label>`;
+function targetSelections(model, t) {
+  const { controllers, controllerId, circuitId, busy } = model;
+  const controller = controllers.find(c => c.id === controllerId);
+  const circuits = controller?.circuits || [];
+  return {
+    controller: {
+      label: t('Controller'),
+      disabled: busy || model.controllerPinned || controllers.length < 2,
+      selected: controllerId,
+      missing: !!controllerId && !controller,
+      missingLabel: t('Selected controller is missing'),
+      options: controllers,
+      emptyLabel: t('No controller found'),
+    },
+    circuit: {
+      label: t('Heating circuit'),
+      disabled: busy || model.circuitPinned || circuits.length < 2,
+      selected: circuitId,
+      missing: !!circuitId && !circuits.some(c => c.id === circuitId),
+      missingLabel: t('Selected heating circuit is missing'),
+      options: circuits,
+      emptyLabel: t('No heating circuit found'),
+    },
+  };
 }
 
 /**
- * Option of a select element.
+ * The selections as `ha-form`, a missing value and the empty list are options of the select field.
  *
- * @param {string} value Value.
- * @param {string} label Label.
- * @param {boolean} selected Whether the option is selected.
- * @returns {string} The option element.
+ * @param {TargetModel} model The selection.
+ * @param {Translate} t Translates the texts.
+ * @returns {Record<'controller' | 'circuit', CardForm>} The schema and the value of each form.
  */
-function option(value, label, selected) {
-  return html`<option value="${esc(value)}" ${selected ? 'selected' : ''}>${esc(label)}</option>`;
+export function targetForms(model, t) {
+  const selections = targetSelections(model, t);
+  /**
+   * @param {'controller' | 'circuit'} name
+   * @returns {CardForm}
+   */
+  const form = (name) => {
+    const { label, disabled, selected, missing, missingLabel, options, emptyLabel } = selections[name];
+    const items = [
+      ...missing ? [{ value: selected, label: missingLabel }] : [],
+      ...options.map(o => ({ value: o.id, label: o.label })),
+    ];
+    const value = items.length ? selected : emptyLabel;
+    return {
+      schema: [{
+        name,
+        label,
+        required: true,
+        disabled,
+        selector: { select: { mode: 'dropdown', options: items.length ? items : [{ value, label: emptyLabel }] } },
+      }],
+      data: { [name]: value },
+    };
+  };
+  return { controller: form('controller'), circuit: form('circuit') };
 }
+
+/**
+ * A selection of the target panel.
+ *
+ * @typedef {object} TargetSelection
+ * @property {string} label Label.
+ * @property {boolean} disabled Whether the selection is disabled.
+ * @property {string} selected Selected value.
+ * @property {boolean} missing Whether the selected value is not in the options.
+ * @property {string} missingLabel Label of a missing selected value.
+ * @property {{ id: string, label: string }[]} options Options.
+ * @property {string} emptyLabel Label without options.
+ */
 
 /**
  * Status of the password lock with the unlock form.
@@ -279,13 +325,11 @@ function lockPanel(model, t) {
  * @returns {string} The notice.
  */
 function setupNotice(count, canEnable, t) {
-  const text = t('{count} required KeEnergy entities are disabled. An administrator can enable the required entities for this heating circuit.', { count });
+  const text = t('{count} required KEBA KeEnergy entities are disabled. An administrator can enable the required entities for this heating circuit.', { count });
   return html`<div class="setup">
     <b>${esc(t('Enable editing'))}</b>
     <p>${esc(text)}</p>
-    <button type="button" id="enable-editors" class="primary" ${disabledIf(!canEnable)}>
-      ${esc(t('Enable required entities'))}
-    </button>
+    <ha-button id="enable-editors" ${disabledIf(!canEnable)}>${esc(t('Enable required entities'))}</ha-button>
   </div>`;
 }
 
@@ -303,8 +347,8 @@ function chartPanel(model, t) {
   const notice = model.flowLimitsNotice ?? t('Saved table with linearly interpolated values. ');
   return html`<section class="chart-panel">
     <header>
-      <div><small>KEBA KEENERGY</small><h2>${esc(model.title)}</h2><p>${esc(model.mode)}</p></div>
-      <span class="badge">${esc(model.selected || '—')}</span>
+      <div><h2>${esc(model.title)}</h2><p class="curve-mode">${esc(model.mode)}</p></div>
+      <span class="curve-table">${esc(model.selected || '—')}</span>
     </header>
     <div id="chart">${model.chart}</div>
     <div class="legend">
@@ -314,8 +358,8 @@ function chartPanel(model, t) {
       ${limitsLegend}
       <span><i class="dot interpolated"></i>${esc(t('Interpolated values'))}</span>
     </div>
-    <p class="notice">${esc(notice)}${esc(t('The controller target is read separately from KeEnergy.'))}</p>
-    <div id="message" class="notice" role="status">${esc(model.message)}</div>
+    <p class="notice">${esc(notice)}${esc(t('The controller target is read separately from KEBA KeEnergy.'))}</p>
+    <ha-alert id="message" alert-type="info" role="status">${esc(model.message)}</ha-alert>
   </section>`;
 }
 
@@ -327,70 +371,113 @@ function chartPanel(model, t) {
  * @returns {string} The aside element.
  */
 function sidePanel(model, t) {
-  const { selected, options } = model;
-  const selectLabel = esc(t('Curve table for this heating circuit'));
-  const currentOption = selected && !options.includes(selected)
-    ? html`<option value="" selected>${esc(t('Current: {name}', { name: selected }))}</option>`
-    : '';
-  const items = options.length
-    ? options.map(o => option(o, o, o === selected)).join('')
-    : html`<option>${esc(selected || t('No curves available'))}</option>`;
-  const hint = t('Choose one of the heating tables (HC…) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller.');
   return html`<aside>
-    <h3>${esc(t('Select curve table'))}</h3>
-    <label class="field">${selectLabel}
-      <select id="curve-select" aria-label="${selectLabel}" ${disabledIf(model.curveSelectDisabled)}>
-        ${currentOption}${items}
-      </select>
-    </label>
-    <p class="hint">${esc(hint)}</p>
+    <ha-form id="curve-form"></ha-form>
     <h3>${esc(t('Current readings'))}</h3>
     <div class="metrics">
       ${metric(t('Outdoor temperature'), model.readings.outdoor, '', 'outdoor')}
       ${metric(t('Target flow'), model.readings.target, 'target', 'target')}
       ${metric(t('Actual flow'), model.readings.actual, 'actual', 'actual')}
-      ${metric(t('Points'), model.points.length, '', 'points')}
+      ${metric(t('Points'), { text: String(model.points.length), missing: false }, '', 'points')}
     </div>
-    <h3>${esc(t('Day / night heating limits'))}</h3>
-    <div class="limit-fields">${model.limits.map(limit => limitInput(limit, t)).join('')}</div>
-    <button class="primary" id="save-settings" ${disabledIf(model.limitsDisabled)}>
-      ${esc(t('Save heating limits'))}
-    </button>
+    <ha-form id="limits-form"></ha-form>
+    <ha-button id="save-settings" ${disabledIf(model.limitsDisabled)}>${esc(t('Save heating limits'))}</ha-button>
   </aside>`;
 }
+
+/**
+ * The curve table selection as `ha-form`, the current table stays selectable when the controller does not offer it.
+ *
+ * @param {CardModel} model What the card shows.
+ * @param {Translate} t Translates the texts.
+ * @returns {CardForm} The schema and the value.
+ */
+export function curveForm(model, t) {
+  const { selected, options } = model;
+  const items = [
+    ...selected && !options.includes(selected) ? [{ value: selected, label: t('Current: {name}', { name: selected }) }] : [],
+    ...options.map(name => ({ value: name, label: name })),
+  ];
+  const empty = selected || t('No curves available');
+  return {
+    schema: [{
+      name: 'curve',
+      label: t('Curve table for this heating circuit'),
+      helper: t('Choose one of the heating tables (HC…) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller.'),
+      required: true,
+      disabled: model.curveSelectDisabled,
+      selector: { select: { mode: 'dropdown', options: items.length ? items : [{ value: empty, label: empty }] } },
+    }],
+    data: { curve: items.length ? selected : empty },
+  };
+}
+
+/**
+ * The heating limit fields as `ha-form`, sliders with the range and the step of the entities.
+ *
+ * @param {LimitModel[]} limits The fields.
+ * @param {Translate} t Translates the labels.
+ * @returns {CardForm} The schema and the values, `undefined` when unknown.
+ */
+export function limitsForm(limits, t) {
+  return {
+    // Sliders with a number field, like the number entities of Home Assistant, without a range only the field.
+    // Next to each other when both have room, else below each other.
+    schema: [{
+      name: 'limits',
+      label: '',
+      type: 'grid',
+      flatten: true,
+      column_min_width: '250px',
+      schema: limits.map(({ key, label, unit, min, max, step, disabled }) => ({
+        name: key,
+        label: `${t(label)} (${unit})`,
+        disabled,
+        selector: {
+          number: {
+            mode: 'slider',
+            step: Number.isFinite(step) && step > 0 ? step : 'any',
+            ...Number.isFinite(min) ? { min } : {},
+            ...Number.isFinite(max) ? { max } : {},
+          },
+        },
+      })),
+    }],
+    data: limitsData(limits),
+  };
+}
+
+/**
+ * The values of the heating limit fields.
+ *
+ * @param {{ key: LimitKey, value: number }[]} limits The fields with their value in °C.
+ * @returns {Record<string, number | undefined>} The values, `undefined` when unknown.
+ */
+export function limitsData(limits) {
+  return Object.fromEntries(limits.map(({ key, value }) => [key, Number.isFinite(value) ? value : undefined]));
+}
+
+/**
+ * A reading of a tile.
+ *
+ * @typedef {object} Reading
+ * @property {string} text Formatted value, or `Unavailable` / `Unknown`.
+ * @property {boolean} missing Whether the value is missing, the tile shows the text like a state of Home Assistant.
+ */
 
 /**
  * Tile of a reading.
  *
  * @param {string} label Label.
- * @param {string | number} value Formatted value.
+ * @param {Reading} reading Formatted value.
  * @param {string} cls Additional class.
  * @param {string} key Key of `data-live` for the live update.
  * @returns {string} The tile.
  */
-function metric(label, value, cls, key) {
-  return html`<div class="metric ${cls}"><span>${esc(label)}</span><b data-live="${key}">${esc(value)}</b></div>`;
-}
-
-/**
- * Input field of a heating limit.
- *
- * @param {LimitModel} model The field.
- * @param {Translate} t Translates the label.
- * @returns {string} The label with the input element.
- */
-function limitInput(model, t) {
-  const { key, min, max, step, value } = model;
-  const attributes = [
-    `data-setting="${key}"`,
-    'type="number"',
-    `step="${Number.isFinite(step) && step > 0 ? step : 'any'}"`,
-    Number.isFinite(min) ? `min="${min}"` : '',
-    Number.isFinite(max) ? `max="${max}"` : '',
-    `value="${Number.isFinite(value) ? value : ''}"`,
-    disabledIf(model.disabled),
-  ];
-  return `<label class="field">${esc(t(model.label))} (${esc(model.unit)})<input ${attributes.join(' ')}></label>`;
+function metric(label, reading, cls, key) {
+  return html`<div class="metric ${cls}${reading.missing ? ' missing' : ''}">
+    <span>${esc(label)}</span><b data-live="${key}">${esc(reading.text)}</b>
+  </div>`;
 }
 
 /**
@@ -407,43 +494,36 @@ function editorSection(model, t) {
     <div class="editor-head">
       <div><h3>${esc(t('Edit curve points'))}</h3><p>${esc(intro)}</p></div>
       <div class="buttons">
-        <button type="button" id="reset" ${disabledIf(model.discardDisabled)}>${esc(t('Discard draft'))}</button>
-        <button type="button" id="add-point" ${disabledIf(!ready || points.length >= POINT_LIMITS.count.max)}>
+        <ha-button id="reset" appearance="outlined" ${disabledIf(model.discardDisabled)}>${esc(t('Discard draft'))}</ha-button>
+        <ha-button id="add-point" appearance="outlined" ${disabledIf(!ready || points.length >= POINT_LIMITS.count.max)}>
           ${esc(t('Add point'))}
-        </button>
-        <button type="button" id="save-points" class="primary" ${disabledIf(!ready)}>${esc(t('Save points'))}</button>
+        </ha-button>
+        <ha-button id="save-points" ${disabledIf(!ready)}>${esc(t('Save points'))}</ha-button>
       </div>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>#</th><th>${esc(t('Outdoor °C'))}</th><th>${esc(t('Flow °C'))}</th><th></th></tr></thead>
-        <tbody>${pointRows(points, ready, t)}</tbody>
-      </table>
-    </div>
-    ${setupDetails(model, t)}
-    <p class="hint">${esc(t('KeEnergy heating curve · General version {version}', { version: model.version }))}</p>
+    <div class="points">${pointRows(points, ready, t)}</div>
+    <p class="hint">${esc(t('KEBA KeEnergy heating curve · General version {version}', { version: model.version }))}</p>
   </section>`;
 }
 
 /**
- * Hints about missing entities, the config entry and the action of the integration.
+ * Warning about missing entities and actions, at the top of the card like the warnings of Home Assistant.
  *
  * @param {CardModel} model What the card shows.
  * @param {Translate} t Translates the texts.
- * @returns {string} The details element, empty when everything is set up.
+ * @returns {string} The `ha-alert`, empty when everything is there.
  */
-function setupDetails(model, t) {
+function setupAlert(model, t) {
   const { missing } = model;
   if (!missing.length && !model.entryMissing && !model.pointServiceMissing) return '';
   const missingText = t('These entities are missing or do not yet provide values:');
   const entryText = t('Integration entry not found yet. Optionally set config_entry in the card.');
   const serviceText = t('The keba_keenergy.set_heating_curve_points action is unavailable. The integration must support editing curve points.');
-  return html`<details open>
-    <summary>${esc(t('Check entities / setup'))}</summary>
+  return html`<ha-alert id="setup-details" alert-type="warning" title="${esc(t('Check entities / setup'))}">
     ${missing.length ? html`<p>${esc(missingText)}</p>` : ''}
-    <ul>${missing.map(id => html`<li><code>${esc(id)}</code></li>`).join('')}</ul>
+    <ul>${missing.map(item => html`<li>${esc(item)}</li>`).join('')}</ul>
     ${model.entryMissing ? html`<p>${esc(entryText)}</p>` : ''}
     ${model.pointServiceMissing ? html`<p>${esc(serviceText)}</p>` : ''}
-    <button type="button" id="retry">${esc(t('Reload mapping'))}</button>
-  </details>`;
+    <ha-button slot="action" id="retry" appearance="plain">${esc(t('Reload mapping'))}</ha-button>
+  </ha-alert>`;
 }

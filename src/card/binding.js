@@ -68,12 +68,12 @@ export function resolveBinding({ config, registry, controllers, registryError, c
       return { ...binding, entryId: config.config_entry };
     }
     if (controllers.length) {
-      return fail(t('The configured KeEnergy controller was not found. Check the card configuration.'));
+      return fail(t('The configured KEBA KeEnergy controller was not found. Check the card configuration.'));
     }
     if (registryError) {
-      return fail(t('Cannot read the KeEnergy mapping. Open as an administrator or set entities and config_entry manually.'));
+      return fail(t('Cannot read the KEBA KeEnergy mapping. Open as an administrator or set entities and config_entry manually.'));
     }
-    return fail(t('No KeEnergy heating circuit with a heating curve table found.'));
+    return fail(t('No KEBA KeEnergy heating circuit with a heating curve table found.'));
   }
   if (entries.length && controller.id !== entries[0]) {
     return fail(t('config_entry and the entity mapping belong to different controllers.'));

@@ -53,7 +53,8 @@ describe('point table', () => {
     const view = await CardView.create({}, createHass());
 
     expect(view.pointValues).toEqual([['-20', '45'], ['0', '35'], ['20', '25']]);
-    expect(view.pointInput(0, 'outdoor').getAttribute('aria-label')).toBe('Point 1 outdoor temperature');
+    expect(view.pointField(0, 'outdoor').label).toBe('Outdoor °C');
+    expect(view.pointField(0, 'flow').selector?.number).toEqual({ mode: 'box', step: 'any', min: 10, max: 90 });
     expect(view.savePointsButton.disabled).toBe(false);
   });
 
@@ -84,8 +85,8 @@ describe('point table', () => {
 
     const view = await CardView.create({}, createHass({ states }));
 
-    expect(view.badge).toBe('HC1');
-    expect(view.text('#curve-select')).toBe('Current: HC1HC1');
+    expect(view.curveTable).toBe('HC1');
+    expect(view.curveOptions).toEqual([{ value: 'HC1', label: 'Current: HC1', selected: true }]);
   });
 
   it('shows a dash without curve table', async () => {
@@ -93,8 +94,8 @@ describe('point table', () => {
 
     const view = await CardView.create({}, createHass({ states }));
 
-    expect(view.badge).toBe('—');
-    expect(view.text('#curve-select')).toBe('No curves available');
+    expect(view.curveTable).toBe('—');
+    expect(view.curveOptions).toEqual([{ value: 'No curves available', label: 'No curves available', selected: true }]);
   });
 });
 
@@ -182,7 +183,7 @@ describe('editing points', () => {
     await view.discardDraft();
 
     expect(view.pointValues).toHaveLength(3);
-    expect(view.limitInput('limitDay').value).toBe('18');
+    expect(view.limitValue('limitDay')).toBe(18);
     expect(view.message).toBe('Draft discarded.');
   });
 
@@ -223,8 +224,9 @@ describe('saving points', () => {
       heating_curve: 'HC1',
       points: [{ outdoor: -25.56, flow: 35 }, { outdoor: -20, flow: 45 }, { outdoor: 20, flow: 25 }],
     }]]);
-    expect(view.message).toBe('Points for HC1 sent. Controller readings are updating.');
-    expect(view.curveLabel).toBe('Point table · Draft');
+    expect(view.message).toBe('');
+    expect(view.curveLabel).toBe('Point table');
+    expect(view.pointValues[0]).toEqual(['-25.56', '35']);
   });
 
   it('removes the draft when the controller has the points', async () => {
@@ -267,7 +269,8 @@ describe('saving points', () => {
     ['an outdoor temperature above 40 °C', 2, 'outdoor', 41],
     ['a flow temperature below 10 °C', 0, 'flow', 9],
     ['a flow temperature above 90 °C', 0, 'flow', 91],
-    ['an empty field', 0, 'flow', ''],
+    ['an empty flow temperature', 0, 'flow', ''],
+    ['an empty outdoor temperature', 0, 'outdoor', ''],
     ['a duplicate outdoor temperature', 1, 'outdoor', -20.001],
   ]))('rejects %s', async (_, index, axis, value) => {
     const hass = createHass();
@@ -319,9 +322,7 @@ describe('saving points', () => {
     expect(view.message).toBe('Saving points …');
     expect(view.savePointsButton.disabled).toBe(true);
 
-    const field = view.pointInput(0, 'flow');
-    field.disabled = false;
-    await view.input(field, 50);
+    await view.setPoint(0, 'flow', 50);
 
     expect(view.message).toBe('Saving points …');
 
@@ -334,7 +335,7 @@ describe('saving points', () => {
     finish();
     await settle();
 
-    expect(view.message).toBe('Points for HC1 sent. Controller readings are updating.');
+    expect(view.message).toBe('');
   });
 
   it('drops the draft when the card locks while saving', async () => {

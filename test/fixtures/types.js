@@ -116,6 +116,9 @@
  * @property {'expandable' | 'grid'} [type]
  * @property {string} [title]
  * @property {boolean} [required]
+ * @property {boolean} [disabled]
+ * @property {string} [label]
+ * @property {string} [helper]
  * @property {FormSelector} [selector]
  * @property {FormSchema[]} [schema]
  */
@@ -126,7 +129,7 @@
  * @typedef {object} FormSelector
  * @property {{}} [text]
  * @property {{ mode: string, options: { value: string, label: string }[] }} [select]
- * @property {{ min: number, max: number, step: number | 'any', mode: string }} [number]
+ * @property {{ min?: number, max?: number, step: number | 'any', mode: string }} [number]
  */
 
 /**

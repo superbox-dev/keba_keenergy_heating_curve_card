@@ -208,7 +208,7 @@ Missing readings are shown as `—`.
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `title` | KeEnergy heating curve | Title of the card |
+| `title` | KEBA KeEnergy heating curve | Title of the card |
 | `language` | `auto` | `auto`, `de` or `en` |
 | `config_entry` | automatic | Fixed controller, by its config entry ID |
 | `serial` | automatic | Fixed controller, by its serial number |

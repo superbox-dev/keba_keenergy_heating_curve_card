@@ -15,7 +15,17 @@ import {
 } from './card/entities.js';
 import { EditLock } from './card/lock.js';
 import { POINT_LIMITS, newPoint, readPoints, samePoints, sortByOutdoor } from './card/points.js';
-import { cardTemplate, curveLabel, pointRows } from './card/templates.js';
+import {
+  cardTemplate,
+  curveForm,
+  curveLabel,
+  limitsData,
+  limitsForm,
+  pointData,
+  pointForm,
+  pointRows,
+  targetForms,
+} from './card/templates.js';
 import { loadHaForm } from './editor.js';
 
 /**
@@ -29,6 +39,17 @@ import { loadHaForm } from './editor.js';
  * @typedef {import('./card/entities.js').LimitKey} LimitKey
  * @typedef {import('./card/points.js').CurvePoint} CurvePoint
  * @typedef {import('./card/templates.js').CardModel} CardModel
+ * @typedef {import('./card/templates.js').CardForm} CardForm
+ * @typedef {import('./card/templates.js').Reading} Reading
+ * @typedef {import('./types.js').Translate} Translate
+ */
+
+/**
+ * A heating limit that the card sent, it shows the value until the entity changes.
+ *
+ * @typedef {object} SentValue
+ * @property {number} value Sent value in °C.
+ * @property {number} before Value of the entity when the card sent the value, in °C.
  */
 
 /**
@@ -39,6 +60,21 @@ import { loadHaForm } from './editor.js';
  * @property {CurvePoint[]} points The changed points.
  * @property {boolean} [saved] Whether the points were sent and the card waits for the controller values.
  */
+
+/** Names of the fields in the warning about missing entities, translated by `_t()`. @type {Record<FieldKey, string>} */
+const FIELD_NAMES = {
+  select: 'Curve table selection',
+  curve: 'Curve table points',
+  outdoor: 'Outdoor temperature',
+  actual: 'Actual flow',
+  target: 'Target flow',
+  useCurve: 'Curve mode',
+  limitDay: 'Day heating limit',
+  limitNight: 'Night heating limit',
+};
+
+/** Path of the icon `mdi:delete-outline` of Material Design Icons, embedded like the icons of Home Assistant. */
+const DELETE_ICON = 'M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z';
 
 const CARD_TYPE = 'keba-keenergy-heating-curve-card';
 const EDITOR_TYPE = 'keba-keenergy-heating-curve-card-editor';
@@ -66,10 +102,15 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     });
     /** Unsaved heating limits by field, in °C. @type {Partial<Record<LimitKey, number>>} */
     this._edits = {};
+    /** Sent heating limits by entity, shown until the entity changes. @type {Record<string, SentValue>} */
+    this._sent = {};
     /** @type {Draft | null} */
     this._draft = null;
     /** SVG units per pixel of the chart, measured after rendering. */
     this._textScale = 1;
+    // The selection of the controller and the heating circuit is a form of Home Assistant, Lit keeps the properties
+    // that the card sets before the element is defined.
+    loadHaForm().catch(() => undefined);
     /** Keeps the texts of the chart at their size in pixels when the card changes its width. */
     this._resizeObserver = globalThis.ResizeObserver ? new ResizeObserver(() => this._scaleChart()) : undefined;
     /** Whether an action is running. */
@@ -115,7 +156,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     root.addEventListener('focusout', (event) => {
       // A button click must reach its handler before a pending redraw replaces that button.
       const target = /** @type {Element | null} */ (/** @type {FocusEvent} */ (event).relatedTarget);
-      if (target && root.contains(target) && target.matches('button')) return;
+      if (target && root.contains(target) && target.matches('button, ha-button')) return;
       flush();
     });
     root.addEventListener('click', flush);
@@ -244,10 +285,10 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
    * Formats a temperature in °C.
    *
    * @param {number} value Temperature in °C.
-   * @returns {string} The temperature with unit, `—` when unknown.
+   * @returns {string} The temperature with unit, the callers show a missing value themselves.
    */
   _fmt(value) {
-    return Number.isFinite(value) ? this._number(value) + ' °C' : '—';
+    return this._number(value) + ' °C';
   }
 
   /**
@@ -389,8 +430,8 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     this._selectInteracting = false;
     if (this._busy || this._draft || Object.keys(this._edits).length) {
       this._notice(this._t('Save changes or discard the draft before switching controller or heating circuit.'));
-      const select = /** @type {HTMLSelectElement} */ (this._root.querySelector('#' + kind + '-select'));
-      select.value = kind === 'controller' ? this._controllerId : this._circuitId;
+      // Shows the selection of the card again.
+      this._render(true);
       return;
     }
     if (kind === 'controller') {
@@ -462,7 +503,9 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
    * @returns {number} The value in °C, `NaN` when unknown.
    */
   _fieldValue(key) {
-    return this._edits[key] ?? this._num(this._ids()[key]);
+    const id = this._ids()[key], value = this._num(id), sent = this._sent[id];
+    // Shows a sent value right away, until the controller reports a value, the sent one or its own.
+    return this._edits[key] ?? (sent && Object.is(sent.before, value) ? sent.value : value);
   }
 
   /** @returns {string} SVG of the chart. */
@@ -509,22 +552,37 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     return this._loadingCurve ? this._t('Loading curve {name} …', { name: this._loadingCurve }) : '';
   }
 
-  /** @returns {Record<'outdoor' | 'target' | 'actual', string>} The formatted readings. */
+  /** @returns {Record<'outdoor' | 'target' | 'actual', Reading>} The formatted readings. */
   _readings() {
     const ids = this._ids();
     return {
-      outdoor: this._fmt(this._num(ids.outdoor)),
-      target: this._fmt(this._num(ids.target)),
-      actual: this._fmt(this._num(ids.actual)),
+      outdoor: this._reading(ids.outdoor),
+      target: this._reading(ids.target),
+      actual: this._reading(ids.actual),
     };
+  }
+
+  /**
+   * A reading like Home Assistant shows it: the temperature, or `Unavailable` / `Unknown` without a value.
+   *
+   * @param {string} id Entity ID.
+   * @returns {Reading} The text and whether the value is missing.
+   */
+  _reading(id) {
+    const value = this._num(id);
+    if (Number.isFinite(value)) return { text: this._fmt(value), missing: false };
+    const state = this._state(id);
+    return { text: this._t(state && state.state !== 'unavailable' ? 'Unknown' : 'Unavailable'), missing: true };
   }
 
   /** Updates the chart, the readings and the message without replacing the inputs. */
   _refreshLive() {
     this._preview();
-    const values = { ...this._readings(), points: this._points().length };
-    for (const [key, value] of Object.entries(values)) {
-      this._get('[data-live="' + key + '"]').textContent = String(value);
+    const readings = { ...this._readings(), points: { text: String(this._points().length), missing: false } };
+    for (const [key, { text, missing }] of Object.entries(readings)) {
+      const value = this._get('[data-live="' + key + '"]');
+      value.textContent = text;
+      /** @type {HTMLElement} */ (value.parentElement).classList.toggle('missing', missing);
     }
     this._get('#message').textContent = this._statusMessage();
   }
@@ -537,23 +595,14 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
    * @param {boolean} dirty Whether the points are a draft.
    */
   _patchPoints(points, ready, dirty) {
-    const table = this._get('.table-wrap');
-    const top = table.scrollTop, left = table.scrollLeft;
-    // The surrounding ha-card, editor buttons and scroll container stay connected.
+    // The surrounding ha-card and the editor buttons stay connected.
     // Replacing the entire card here can reset the dashboard's outer scroll area.
-    this._get('tbody').innerHTML = pointRows(points, ready, (text, params) => this._t(text, params));
-    table.scrollTop = top;
-    table.scrollLeft = left;
-    /** @type {HTMLButtonElement} */ (this._get('#add-point')).disabled = !ready
-      || points.length >= POINT_LIMITS.count.max;
-    /** @type {HTMLButtonElement} */ (this._get('#save-points')).disabled = !ready;
+    this._get('.points').innerHTML = pointRows(points, ready, (text, params) => this._t(text, params));
+    this._get('#add-point').toggleAttribute('disabled', !ready || points.length >= POINT_LIMITS.count.max);
+    this._get('#save-points').toggleAttribute('disabled', !ready);
     this._get('#curve-label').textContent = curveLabel(dirty, (text, params) => this._t(text, params));
-    for (const key of LIMIT_KEYS) {
-      const value = this._fieldValue(key);
-      /** @type {HTMLInputElement} */ (this._get('[data-setting="' + key + '"]')).value = Number.isFinite(value)
-        ? String(value)
-        : '';
-    }
+    const limits = LIMIT_KEYS.map(key => ({ key, value: this._fieldValue(key) }));
+    Object.assign(this._get('#limits-form'), { data: limitsData(limits) });
     this._bindPointRows();
   }
 
@@ -581,8 +630,9 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     const tableState = this._state(ids.useCurve)?.state;
     const missing = /** @type {[FieldKey, string][]} */ (Object.entries(ids))
       .filter(([, id]) => !isAvailable(this._state(id)))
-      .map(([key, id]) => id || FIELDS[key].configKey + this._t(' (not mapped)'));
-    const dirty = !!this._draft;
+      .map(([key, id]) => this._t(FIELD_NAMES[key]) + ' · ' + (id || FIELDS[key].configKey + this._t(' (not mapped)')));
+    // Sent points stay until the controller has them, they are no draft any more.
+    const dirty = !!this._draft && !this._draft.saved;
     const disabled = this._disabledEditors();
     // Readings change frequently; keep the actual controls and scroll container
     // when the editor structure/data is unchanged. Scrollbar dragging and touch
@@ -629,27 +679,12 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       this._refreshLive();
       return;
     }
-    const previousTable = this._root.querySelector('.table-wrap');
-    const tableScroll = previousTable ? { top: previousTable.scrollTop, left: previousTable.scrollLeft } : null;
-    this._root.innerHTML = cardTemplate(this._model({
-      selected,
-      options,
-      points,
-      ready,
-      canEdit,
-      tableState,
-      missing,
-      dirty,
-      disabled,
-    }), (text, params) => this._t(text, params));
+    const model = this._model({ selected, options, points, ready, canEdit, tableState, missing, dirty, disabled });
+    this._root.innerHTML = cardTemplate(model, (text, params) => this._t(text, params));
     this._viewKey = viewKey;
     this._shellKey = shellKey;
     this._bind();
-    const table = this._root.querySelector('.table-wrap');
-    if (table && tableScroll) {
-      table.scrollTop = tableScroll.top;
-      table.scrollLeft = tableScroll.left;
-    }
+    this._bindForms(model);
     this._scaleChart();
   }
 
@@ -696,7 +731,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
         : null,
       disabledEntities: disabled.length,
       canEnableEntities: !this._busy && canEdit && !!this._hass?.user?.is_admin,
-      title: config.title || this._t('KeEnergy heating curve'),
+      title: config.title || this._t('KEBA KeEnergy heating curve'),
       mode: tableState === 'on' || tableState === 'off' ? modes[tableState] : this._t('Curve mode unavailable'),
       selected,
       options,
@@ -760,50 +795,109 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
 
   /** Binds the inputs and the remove buttons of the point table. */
   _bindPointRows() {
-    this._root.querySelectorAll('[data-point]').forEach(element => element.addEventListener('input', () => {
-      if (!this._lock.canEdit() || this._busy) return;
-      const input = /** @type {HTMLInputElement} */ (element);
-      this._lock.touch();
-      if (!this._draft) this._draft = { name: this._selected(), points: this._readPoints() };
-      this._draft.saved = false;
-      const axis = /** @type {'outdoor' | 'flow'} */ (input.dataset.axis);
-      this._draft.points[Number(input.dataset.point)][axis] = numeric(input.value);
-      this._notice(this._t('Points changed · not saved yet'));
-      this._preview();
-    }));
-    this._root.querySelectorAll('[data-remove]').forEach(element => element.addEventListener('click', () => {
-      const points = this._points();
-      if (!this._lock.canEdit() || !this._ready() || points.length <= POINT_LIMITS.count.min) return;
-      this._lock.touch();
-      points.splice(Number(/** @type {HTMLElement} */ (element).dataset.remove), 1);
-      this._draft = { name: this._selected(), points };
-      this._render();
-    }));
+    const points = this._points(), ready = this._ready() && this._lock.canEdit() && !this._bindingError;
+    this._root.querySelectorAll('ha-form[data-point]').forEach((element) => {
+      const index = Number(/** @type {HTMLElement} */ (element).dataset.point);
+      const form = pointForm(points[index], ready, (text, params) => this._t(text, params));
+      this._bindFormElement(/** @type {HTMLElement} */ (element), form, (data) => {
+        // Like in Home Assistant, the card gives the form its values, the form does not keep them itself.
+        if (!this._lock.canEdit() || this._busy) {
+          Object.assign(element, { data: pointData(this._points()[index]) });
+          return;
+        }
+        this._lock.touch();
+        if (!this._draft) this._draft = { name: this._selected(), points: this._readPoints() };
+        this._draft.saved = false;
+        this._draft.points[index] = { outdoor: numeric(data.outdoor ?? ''), flow: numeric(data.flow ?? '') };
+        Object.assign(element, { data });
+        this._notice(this._t('Points changed · not saved yet'));
+        this._preview();
+      });
+    });
+    this._root.querySelectorAll('ha-icon-button[data-remove]').forEach((element) => {
+      Object.assign(element, { path: DELETE_ICON });
+      element.addEventListener('click', () => {
+        const current = this._points();
+        if (!this._lock.canEdit() || !this._ready() || current.length <= POINT_LIMITS.count.min) return;
+        this._lock.touch();
+        current.splice(Number(/** @type {HTMLElement} */ (element).dataset.remove), 1);
+        this._draft = { name: this._selected(), points: current };
+        this._render();
+      });
+    });
   }
 
   /**
-   * Tracks a select element, the card keeps it while the user opens or uses it.
+   * Sets a form of Home Assistant and its handler, the card keeps the form while it has the focus.
    *
-   * @param {string} selector CSS selector of the select element.
-   * @param {(value: string) => unknown} onChange Called with the chosen value.
+   * @param {string} selector CSS selector of the `ha-form`.
+   * @param {CardForm} form Schema and values.
+   * @param {(data: Record<string, unknown>, form: HTMLElement) => unknown} onChange Called with the values.
    */
-  _bindSelect(selector, onChange) {
-    const select = /** @type {HTMLSelectElement} */ (this._root.querySelector(selector));
-    select.addEventListener('pointerdown', (event) => {
-      const target = /** @type {HTMLSelectElement} */ (event.target);
-      if (event.button === 0 && !target.disabled) this._selectInteracting = true;
+  _bindForm(selector, form, onChange) {
+    this._bindFormElement(this._get(selector), form, onChange);
+  }
+
+  /**
+   * Sets a form element of Home Assistant and its handler, the card keeps the form while it has the focus.
+   *
+   * @param {HTMLElement} element The `ha-form`.
+   * @param {CardForm} form Schema and values.
+   * @param {(data: Record<string, unknown>, form: HTMLElement) => unknown} onChange Called with the values.
+   */
+  _bindFormElement(element, form, onChange) {
+    Object.assign(element, {
+      hass: this._hass,
+      ...form,
+      computeLabel: (/** @type {{ label: string }} */ item) => item.label,
+      computeHelper: (/** @type {{ helper?: string }} */ item) => item.helper,
     });
-    select.addEventListener('focus', () => {
+    element.addEventListener('focusin', () => {
       this._selectInteracting = true;
     });
-    select.addEventListener('blur', () => {
+    element.addEventListener('focusout', () => {
       this._selectInteracting = false;
     });
-    select.addEventListener('change', () => {
-      const { value } = select;
+    element.addEventListener('value-changed', (event) => {
+      event.stopPropagation();
+      onChange(/** @type {CustomEvent<{ value: Record<string, unknown> }>} */ (event).detail.value, element);
+    });
+  }
+
+  /**
+   * Binds the forms: controller, heating circuit, curve table and heating limits.
+   *
+   * @param {CardModel} model What the card shows.
+   */
+  _bindForms(model) {
+    /** @type {Translate} */
+    const t = (text, params) => this._t(text, params);
+    const targets = targetForms(model.target, t);
+    for (const kind of /** @type {('controller' | 'circuit')[]} */ (['controller', 'circuit'])) {
+      this._bindForm(`#${kind}-form`, targets[kind], data => this._chooseTarget(kind, String(data[kind])));
+    }
+    const curve = curveForm(model, t);
+    this._bindForm('#curve-form', curve, (data, form) => {
+      // The choice closes the menu, the card draws the assignment right away although the form keeps the focus.
       this._selectInteracting = false;
-      select.blur();
-      return onChange(value);
+      // The form shows the table of the controller until the controller has switched it.
+      Object.assign(form, { data: curve.data });
+      return selectCurve(this, String(data.curve));
+    });
+    this._bindForm('#limits-form', limitsForm(model.limits, t), (data, form) => {
+      const shown = limitsData(LIMIT_KEYS.map(key => ({ key, value: this._fieldValue(key) })));
+      // Like in Home Assistant, the card gives the form its values, the form does not keep them itself.
+      if (!this._lock.canEdit() || this._busy) {
+        Object.assign(form, { data: shown });
+        return;
+      }
+      this._lock.touch();
+      for (const key of LIMIT_KEYS.filter(name => data[name] !== shown[name])) {
+        this._edits[key] = numeric(data[key] ?? '');
+      }
+      Object.assign(form, { data });
+      this._notice(this._t('Settings changed · not saved yet'));
+      this._preview();
     });
   }
 
@@ -817,8 +911,6 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
      */
     const on = (selector, event, handler) => root.querySelector(selector)?.addEventListener(event, handler);
     this._bindPointRows();
-    this._bindSelect('#controller-select', value => this._chooseTarget('controller', value));
-    this._bindSelect('#circuit-select', value => this._chooseTarget('circuit', value));
     on('#reload-registry', 'click', () => {
       if (this._busy) return;
       this._discovered = false;
@@ -838,15 +930,6 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
         this._lock.lock(this._t('Editing locked.'));
       }
     });
-    root.querySelectorAll('[data-setting]').forEach(element => element.addEventListener('input', () => {
-      if (!this._lock.canEdit() || this._busy) return;
-      const input = /** @type {HTMLInputElement} */ (element);
-      this._lock.touch();
-      this._edits[/** @type {LimitKey} */ (input.dataset.setting)] = numeric(input.value);
-      this._notice(this._t('Settings changed · not saved yet'));
-      this._preview();
-    }));
-    this._bindSelect('#curve-select', value => selectCurve(this, value));
     on('#reset', 'click', () => {
       if (!this._lock.canEdit() || this._busy) return;
       this._lock.touch();

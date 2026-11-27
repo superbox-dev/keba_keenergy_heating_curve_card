@@ -146,7 +146,7 @@ export function discoverControllers(registry, devices = [], t = text => text) {
   return [...controllers.values()].map((controller) => {
     const outdoor = controller.outdoorCandidates;
     controller.outdoor = outdoor.length === 1 ? /** @type {string} */ (outdoor[0].entity_id) : '';
-    controller.label = (controller.label || 'KeEnergy') + ' · ' + controller.serial;
+    controller.label = (controller.label || 'KEBA KeEnergy') + ' · ' + controller.serial;
     controller.circuits = controller.circuits.filter(c => c.candidates.curve || c.candidates.select).map((circuit) => {
       circuit.label = t('Heating circuit') + ' ' + circuit.id + (circuit.label ? ' · ' + circuit.label : '');
       for (const [key, entries] of Object.entries(circuit.candidates)) {

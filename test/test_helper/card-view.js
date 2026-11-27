@@ -3,9 +3,26 @@ import { vi } from 'vitest';
 import { PASSWORD } from '../fixtures/password';
 import { settle, ShadowView } from './shadow-view';
 /** @import { SelectOption } from './shadow-view' */
-/** @import { CardConfig, FakeHass, HeatingCurveCard } from '../fixtures/types' */
+/** @import { CardConfig, FakeHass, FormSchema, HeatingCurveCard } from '../fixtures/types' */
 
 /** @typedef {'limitDay' | 'limitNight'} HeatingLimit */
+/** @typedef {'controller' | 'circuit'} TargetKind */
+/** @typedef {TargetKind | 'curve' | 'limits'} CardFormId */
+/**
+ * A form with the label and help text functions of the card.
+ *
+ * @typedef {TargetForm & { computeLabel: LabelOf, computeHelper: LabelOf }} LabeledForm
+ */
+/** @typedef {(item: FormSchema) => string} LabelOf */
+
+/**
+ * The items of a schema and their nested items.
+ *
+ * @param {FormSchema[]} schema
+ * @returns {FormSchema[]}
+ */
+const allItems = schema => schema.flatMap(item => [item, ...allItems(item.schema ?? [])]);
+/** @typedef {HTMLElement & { data: Record<string, unknown>, schema: FormSchema[], hass?: unknown }} TargetForm */
 /** @typedef {'outdoor' | 'flow'} PointAxis */
 /** @typedef {'outdoor' | 'target' | 'actual' | 'points'} Reading */
 
@@ -68,16 +85,16 @@ export class CardView extends ShadowView {
    * @returns {string | undefined}
    */
   get mode() {
-    return this.text('.chart-panel header p');
+    return this.text('.curve-mode');
   }
 
   /**
-   * The curve table in the header.
+   * The curve table below the title.
    *
    * @returns {string | undefined}
    */
-  get badge() {
-    return this.text('.badge');
+  get curveTable() {
+    return this.text('.curve-table');
   }
 
   /** @returns {string | undefined} */
@@ -112,36 +129,146 @@ export class CardView extends ShadowView {
     return this.text(`[data-live="${key}"]`);
   }
 
+  /**
+   * Whether a reading has no value, the tile shows `Unavailable` or `Unknown`.
+   *
+   * @param {Reading} key
+   * @returns {boolean}
+   */
+  readingMissing(key) {
+    return !!this.get(`[data-live="${key}"]`).parentElement?.classList.contains('missing');
+  }
+
   // Controller, heating circuit and curve table.
 
-  /** @returns {HTMLSelectElement} */
-  get controllerSelect() {
-    return this.get('#controller-select');
+  /**
+   * A `ha-form` of the card.
+   *
+   * @param {CardFormId} id
+   * @returns {TargetForm}
+   */
+  cardForm(id) {
+    return this.get(`#${id}-form`);
   }
 
-  /** @returns {HTMLSelectElement} */
-  get circuitSelect() {
-    return this.get('#circuit-select');
+  /**
+   * The schema item of a field of a form.
+   *
+   * @param {CardFormId} id
+   * @param {string} name
+   * @returns {FormSchema}
+   */
+  formField(id, name) {
+    return /** @type {FormSchema} */ (allItems(this.cardForm(id).schema).find(item => item.name === name));
   }
 
-  /** @returns {HTMLSelectElement} */
-  get curveSelect() {
-    return this.get('#curve-select');
+  /**
+   * The options of a select field with the selected one.
+   *
+   * @param {CardFormId} id
+   * @param {string} name
+   * @returns {SelectOption[]}
+   */
+  formOptions(id, name) {
+    const value = this.cardForm(id).data[name];
+    return (this.formField(id, name).selector?.select?.options ?? [])
+      .map(option => ({ value: option.value, label: option.label, selected: option.value === value }));
+  }
+
+  /**
+   * Changes a field like the user, `ha-form` sends all its values.
+   *
+   * @param {CardFormId} id
+   * @param {string} name
+   * @param {unknown} value
+   * @returns {Promise<void>}
+   */
+  async setFormField(id, name, value) {
+    const form = this.cardForm(id);
+    form.dispatchEvent(new CustomEvent('value-changed', { detail: { value: { ...form.data, [name]: value } } }));
+    await settle();
+  }
+
+  /**
+   * The `ha-form` of the controller or the heating circuit.
+   *
+   * @param {TargetKind} kind
+   * @returns {TargetForm}
+   */
+  targetForm(kind) {
+    return this.cardForm(kind);
+  }
+
+  /**
+   * The options of the controller or the heating circuit.
+   *
+   * @param {TargetKind} kind
+   * @returns {SelectOption[]}
+   */
+  targetOptions(kind) {
+    return this.formOptions(kind, kind);
+  }
+
+  /**
+   * Whether the user can not change the controller or the heating circuit.
+   *
+   * @param {TargetKind} kind
+   * @returns {boolean}
+   */
+  targetDisabled(kind) {
+    return !!this.formField(kind, kind).disabled;
+  }
+
+  /**
+   * The shown controller or heating circuit.
+   *
+   * @param {TargetKind} kind
+   * @returns {string}
+   */
+  targetValue(kind) {
+    return String(this.cardForm(kind).data[kind]);
+  }
+
+  /**
+   * The label of the form of the controller or the heating circuit.
+   *
+   * @param {TargetKind} kind
+   * @returns {string}
+   */
+  targetLabel(kind) {
+    const form = /** @type {LabeledForm} */ (this.cardForm(kind));
+    return form.computeLabel(form.schema[0]);
   }
 
   /** @returns {SelectOption[]} */
   get controllerOptions() {
-    return this.options('#controller-select');
+    return this.targetOptions('controller');
   }
 
   /** @returns {SelectOption[]} */
   get circuitOptions() {
-    return this.options('#circuit-select');
+    return this.targetOptions('circuit');
   }
 
   /** @returns {SelectOption[]} */
   get curveOptions() {
-    return this.options('#curve-select');
+    return this.formOptions('curve', 'curve');
+  }
+
+  /** @returns {boolean} Whether the curve table can not be chosen. */
+  get curveDisabled() {
+    return !!this.formField('curve', 'curve').disabled;
+  }
+
+  /**
+   * The label and the help text of the curve table selection.
+   *
+   * @returns {{ label: string, helper: string }}
+   */
+  get curveTexts() {
+    const form = /** @type {LabeledForm} */ (this.cardForm('curve'));
+    const field = this.formField('curve', 'curve');
+    return { label: form.computeLabel(field), helper: form.computeHelper(field) };
   }
 
   /**
@@ -162,7 +289,7 @@ export class CardView extends ShadowView {
     return this.text('.target-panel .hint');
   }
 
-  /** @returns {HTMLButtonElement} */
+  /** @returns {HTMLElement} */
   get reloadButton() {
     return this.get('#reload-registry');
   }
@@ -172,7 +299,7 @@ export class CardView extends ShadowView {
    * @returns {Promise<void>}
    */
   selectController(id) {
-    return this.change(this.controllerSelect, id);
+    return this.selectTarget('controller', id);
   }
 
   /**
@@ -180,7 +307,18 @@ export class CardView extends ShadowView {
    * @returns {Promise<void>}
    */
   selectCircuit(id) {
-    return this.change(this.circuitSelect, id);
+    return this.selectTarget('circuit', id);
+  }
+
+  /**
+   * Chooses a controller or a heating circuit like the user, `ha-form` sends its values.
+   *
+   * @param {TargetKind} kind
+   * @param {string} id
+   * @returns {Promise<void>}
+   */
+  selectTarget(kind, id) {
+    return this.setFormField(kind, kind, id);
   }
 
   /**
@@ -188,7 +326,7 @@ export class CardView extends ShadowView {
    * @returns {Promise<void>}
    */
   selectCurve(table) {
-    return this.change(this.curveSelect, table);
+    return this.setFormField('curve', 'curve', table);
   }
 
   /** @returns {Promise<void>} */
@@ -199,25 +337,44 @@ export class CardView extends ShadowView {
   // Heating limits.
 
   /**
+   * The shown value of a heating limit, `undefined` when unknown.
+   *
    * @param {HeatingLimit} key
-   * @returns {HTMLInputElement}
+   * @returns {unknown}
    */
-  limitInput(key) {
-    return this.get(`[data-setting="${key}"]`);
+  limitValue(key) {
+    return this.cardForm('limits').data[key];
   }
 
-  /** @returns {HTMLButtonElement} */
+  /**
+   * The field of a heating limit with its label, range and step.
+   *
+   * @param {HeatingLimit} key
+   * @returns {FormSchema}
+   */
+  limitField(key) {
+    return this.formField('limits', key);
+  }
+
+  /** @returns {HTMLElement} */
   get saveLimitsButton() {
     return this.get('#save-settings');
   }
 
+  /** @returns {boolean} Whether the button to save the heating limits is disabled. */
+  get saveLimitsDisabled() {
+    return this.saveLimitsButton.hasAttribute('disabled');
+  }
+
   /**
+   * Types a heating limit like the user, an empty field sends `undefined`.
+   *
    * @param {HeatingLimit} key
    * @param {string | number} value
    * @returns {Promise<void>}
    */
   setLimit(key, value) {
-    return this.input(this.limitInput(key), value);
+    return this.setFormField('limits', key, value === '' ? undefined : Number(value));
   }
 
   /** @returns {Promise<void>} */
@@ -228,12 +385,37 @@ export class CardView extends ShadowView {
   // Point table.
 
   /**
+   * The `ha-form` of a point.
+   *
+   * @param {number} index
+   * @returns {TargetForm}
+   */
+  pointForm(index) {
+    return this.get(`ha-form[data-point="${index}"]`);
+  }
+
+  /**
+   * The input of a field of a point, the fake `ha-form` renders it like Home Assistant.
+   *
    * @param {number} index
    * @param {PointAxis} axis
    * @returns {HTMLInputElement}
    */
   pointInput(index, axis) {
-    return this.get(`[data-point="${index}"][data-axis="${axis}"]`);
+    const input = this.pointForm(index).shadowRoot?.querySelector(`input[name="${axis}"]`);
+    if (!input) throw Error(`No input ${axis} of point ${index}`);
+    return /** @type {HTMLInputElement} */ (input);
+  }
+
+  /**
+   * The schema item of a field of a point, with its label and range.
+   *
+   * @param {number} index
+   * @param {PointAxis} axis
+   * @returns {FormSchema}
+   */
+  pointField(index, axis) {
+    return /** @type {FormSchema} */ (allItems(this.pointForm(index).schema).find(item => item.name === axis));
   }
 
   /**
@@ -244,9 +426,9 @@ export class CardView extends ShadowView {
     return this.get(`[data-remove="${index}"]`);
   }
 
-  /** @returns {HTMLTableRowElement[]} */
+  /** @returns {HTMLElement[]} */
   get pointRows() {
-    return this.queryAll('tbody tr');
+    return this.queryAll('.point-row');
   }
 
   /**
@@ -255,12 +437,9 @@ export class CardView extends ShadowView {
    * @returns {string[][]}
    */
   get pointValues() {
-    return this.pointRows.map(row => [...row.querySelectorAll('input')].map(field => field.value));
-  }
-
-  /** @returns {HTMLElement} */
-  get tableWrap() {
-    return this.get('.table-wrap');
+    return this.queryAll('ha-form[data-point]')
+      .map(form => [/** @type {TargetForm} */ (form).data.outdoor, /** @type {TargetForm} */ (form).data.flow]
+        .map(value => value === undefined ? '' : String(value)));
   }
 
   /** @returns {HTMLButtonElement} */
@@ -284,8 +463,11 @@ export class CardView extends ShadowView {
    * @param {string | number} value
    * @returns {Promise<void>}
    */
-  setPoint(index, axis, value) {
-    return this.input(this.pointInput(index, axis), value);
+  async setPoint(index, axis, value) {
+    const form = this.pointForm(index);
+    const number = value === '' ? undefined : Number(value);
+    form.dispatchEvent(new CustomEvent('value-changed', { detail: { value: { ...form.data, [axis]: number } } }));
+    await settle();
   }
 
   /** @returns {Promise<void>} */
@@ -316,15 +498,15 @@ export class CardView extends ShadowView {
   /**
    * The collapsible hints for missing entities and actions, `null` if everything is there.
    *
-   * @returns {HTMLDetailsElement | null}
+   * @returns {HTMLElement | null}
    */
   get setupHints() {
-    return this.query('details');
+    return this.query('#setup-details');
   }
 
   /** @returns {string[]} */
   get missingEntities() {
-    return this.texts('details li');
+    return this.texts('#setup-details li');
   }
 
   /** @returns {HTMLButtonElement} */
@@ -600,7 +782,7 @@ export class ChartView {
 
   /** @returns {string[]} */
   get xAxisLabels() {
-    return this.view.texts('g.axes text[y="365"]');
+    return this.view.texts('g.axes text.x-tick');
   }
 
   /** @returns {string[]} */

@@ -43,7 +43,7 @@ function answerUpdates(hass, update) {
  * @returns {string}
  */
 const stopped = (count, error) => `Enabling stopped after ${count} entities: ${error}. `
-  + 'Sign in as an administrator or enable entities in the KeEnergy settings.';
+  + 'Sign in as an administrator or enable entities in the KEBA KeEnergy settings.';
 
 describe('disabled entities', () => {
   it('shows no setup without disabled entities', async () => {
@@ -55,7 +55,7 @@ describe('disabled entities', () => {
   it('asks to enable the disabled entities', async () => {
     const view = await CardView.create({}, createHass({ registry: disabled('limitDay', 'limitNight') }));
 
-    expect(view.text('.setup p')).toBe('2 required KeEnergy entities are disabled. '
+    expect(view.text('.setup p')).toBe('2 required KEBA KeEnergy entities are disabled. '
       + 'An administrator can enable the required entities for this heating circuit.');
     expect(view.enableButton.disabled).toBe(false);
   });

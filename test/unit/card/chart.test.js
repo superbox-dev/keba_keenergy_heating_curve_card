@@ -59,7 +59,7 @@ describe('points', () => {
     const xs = view.curveSteps.map(step => step.split(',')[0]);
     const ys = view.curveSteps.map(step => step.split(',')[1]);
     expect(xs).toEqual(['M638', 'L406', 'L58']);
-    expect(new Set(ys.map(y => Number(y).toFixed(2)))).toEqual(new Set(['201.78']));
+    expect(new Set(ys.map(y => Number(y).toFixed(2)))).toEqual(new Set(['257.33']));
     expect(view.samplePoints).toHaveLength(0);
   });
 
@@ -129,20 +129,20 @@ describe('heating limits and readings', () => {
   it('draws the day and night heating limits', async () => {
     const view = await chart();
 
-    expect(view.heatingLimitLabels).toEqual(['HL Day 18 °C', 'HL Night 15 °C']);
+    expect(view.heatingLimitLabels).toEqual(['Day heating limit 18 °C', 'Night heating limit 15 °C']);
   });
 
   it('hides heating limits outside the axis', async () => {
     const view = await chart({ x_max: 16 });
 
-    expect(view.heatingLimitLabels).toEqual(['HL Night 15 °C']);
+    expect(view.heatingLimitLabels).toEqual(['Night heating limit 15 °C']);
   });
 
   it('marks the target and the actual flow', async () => {
     const view = await chart();
 
-    // Target 32 °C on the default flow axis from 15 to 60 °C, 320 pixels high with the bottom at 344.
-    expect(view.target?.getAttribute('cy')).toBe(String(344 - (32 - 15) / 45 * 320));
+    // Target 32 °C on the default flow axis from 15 to 60 °C, 420 units high with the bottom at 444.
+    expect(view.target?.getAttribute('cy')).toBe(String(444 - (32 - 15) / 45 * 420));
     expect(view.actual).not.toBeNull();
   });
 
@@ -172,7 +172,7 @@ describe('axes', () => {
     const view = await chart({ y_step: 1 });
 
     expect(view.gridLines.length - view.axisTexts.length).toBeGreaterThan(20);
-    expect(view.yAxisLabels.slice(0, 3)).toEqual(['15', '18', '21']);
+    expect(view.yAxisLabels.slice(0, 3)).toEqual(['16', '18', '20']);
   });
 
   it('widens the automatic axes for the points and limits', async () => {
@@ -239,7 +239,7 @@ describe('text size', () => {
     const view = await chart();
 
     expect(view.textScale).toBe('1');
-    expect(view.height).toBe(400);
+    expect(view.height).toBe(500);
   });
 
   it('draws a narrow chart taller', async () => {
@@ -248,7 +248,7 @@ describe('text size', () => {
 
     resizeTo(350);
 
-    expect(view.height).toBe(520);
+    expect(view.height).toBe(640);
   });
 
   it('labels a dense grid less often in a narrow chart', async () => {

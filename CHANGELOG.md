@@ -12,6 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Showed the texts of the card in the sizes of Home Assistant ([Issue #43][issue-43]).
 - Kept the chart texts at the same size at every card width ([Issue #43][issue-43]).
 - Rebuilt the visual editor with the forms of Home Assistant ([Issue #43][issue-43]).
+- Used the theme colors of Home Assistant ([Issue #43][issue-43]).
+- Showed the selections, the heating limits and the curve points with the forms of Home Assistant ([Issue #43][issue-43]).
+- Showed all points without a scroll area ([Issue #43][issue-43]).
+- Showed saved heating limits and points right away, without a message ([Issue #43][issue-43]).
+- Showed missing entities as a warning at the top of the card, with their names ([Issue #43][issue-43]).
+- Made the chart taller ([Issue #43][issue-43]).
+- Showed missing readings as `Unavailable` or `Unknown` like Home Assistant ([Issue #43][issue-43]).
+- Wrote `KEBA KeEnergy` instead of `KeEnergy` in the texts and the default title ([Issue #43][issue-43]).
+- Showed the chart directly in the card, without a frame ([Issue #43][issue-43]).
+- Renamed the chart labels `HL Day` and `HL Night` to `Day heating limit` and `Night heating limit` ([Issue #43][issue-43]).
+
+### Fixed
+
+- Fixed the write of a curve table that was already assigned ([Issue #43][issue-43]).
 
 [issue-43]: https://github.com/superbox-dev/keba_keenergy_heating_curve_card/issues/43
 

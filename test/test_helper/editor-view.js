@@ -147,7 +147,7 @@ export class EditorView extends ShadowView {
    * The bounds of a number field.
    *
    * @param {ConfigField} name
-   * @returns {{ min: number, max: number, step: number | 'any' } | undefined}
+   * @returns {{ min?: number, max?: number, step: number | 'any' } | undefined}
    */
   bounds(name) {
     return this.field(name).selector?.number;

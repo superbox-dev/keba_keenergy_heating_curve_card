@@ -16,7 +16,7 @@ describe('setConfig', () => {
   it('accepts an empty config', async () => {
     const view = await CardView.create({}, createHass());
 
-    expect(view.title).toBe('KeEnergy heating curve');
+    expect(view.title).toBe('KEBA KeEnergy heating curve');
   });
 
   it('shows the title', async () => {
@@ -143,7 +143,7 @@ describe('card API', () => {
   it('shows the version', async () => {
     const view = await CardView.create({}, createHass());
 
-    expect(view.content).toContain('KeEnergy heating curve · General version 0.0.0-test');
+    expect(view.content).toContain('KEBA KeEnergy heating curve · General version 0.0.0-test');
     expect(view.query('ha-card')).not.toBeNull();
   });
 });

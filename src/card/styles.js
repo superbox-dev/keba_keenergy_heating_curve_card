@@ -19,49 +19,59 @@ export const STYLE = `
   ha-card {
     overflow: hidden;
   }
+  /* Buttons of Home Assistant have one line, the texts around them wrap instead. */
+  ha-button {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
   .layout {
     display: grid;
-    grid-template-columns: minmax(0,2.1fr) minmax(270px,1fr);
-    gap: 16px;
-    padding: 16px;
-    background: var(--secondary-background-color);
+    /* 8:4 like the 12 columns of the sections view of Home Assistant. */
+    grid-template-columns: minmax(0,2fr) minmax(300px,1fr);
+    gap: var(--ha-space-6);
+    padding: 0 var(--ha-space-4) var(--ha-space-4);
   }
   .chart-panel,.editor {
     min-width: 0;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: var(--ha-card-border-radius,var(--ha-border-radius-lg));
-    padding: 16px;
   }
-  header,.editor-head {
+  header {
     display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--ha-space-3);
+    padding: var(--ha-space-1) 0 var(--ha-space-3);
+  }
+  .curve-table {
+    flex-shrink: 0;
+    padding: var(--ha-space-1) var(--ha-space-3);
+    border-radius: var(--ha-border-radius-pill);
+    background: var(--ha-color-fill-primary-quiet-resting);
+    color: var(--ha-color-on-primary-normal);
+    font-size: var(--ha-font-size-s);
+    font-weight: var(--ha-font-weight-medium);
+    line-height: var(--ha-line-height-normal);
+  }
+  .editor-head {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 0 8px 14px;
+    padding: 0 0 var(--ha-space-3);
   }
-  header small {
-    font-size: var(--ha-font-size-xs);
-    font-weight: var(--ha-font-weight-bold);
-    letter-spacing: .14em;
-    color: #138e90;
+  /* The text takes the space next to the buttons, without room the buttons move below it as one row. */
+  .editor-head > div:first-child {
+    flex: 1 1 280px;
   }
   h2 {
-    margin: 6px 0;
+    margin: 0;
     font-size: var(--ha-card-header-font-size,var(--ha-font-size-2xl));
+    line-height: var(--ha-line-height-condensed);
   }
   header p,.editor-head p {
-    margin: 0;
+    margin: var(--ha-space-1) 0 0;
     font-size: var(--ha-font-size-m);
     color: var(--muted);
-  }
-  .badge {
-    padding: 7px 12px;
-    border-radius: 9px;
-    background: #e4f2f0;
-    color: #087f82;
-    font-size: var(--ha-font-size-s);
-    font-weight: var(--ha-font-weight-medium);
   }
   svg {
     display: block;
@@ -209,12 +219,11 @@ export const STYLE = `
   }
   .metric {
     display: grid;
-    gap: 8px;
+    gap: var(--ha-space-2);
     min-height: 75px;
-    padding: 12px;
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    background: var(--panel);
+    padding: var(--ha-space-3);
+    border-radius: var(--ha-border-radius-lg);
+    background: var(--ha-color-fill-neutral-quiet-resting);
   }
   .metric span {
     font-size: var(--ha-font-size-s);
@@ -225,24 +234,20 @@ export const STYLE = `
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-  .metric.target {
-    background: #eaf6f2;
-    color: #087f82;
+  .metric.target b {
+    color: var(--ha-color-on-primary-normal);
   }
-  .metric.actual {
-    background: #fff6eb;
-    color: #ac6b24;
+  .metric.actual b {
+    color: var(--ha-color-on-warning-normal);
   }
-  .limit-fields {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
-  }
-  .limit-fields label {
-    display: grid;
-    gap: 5px;
-    font-size: var(--ha-font-size-s);
+  .metric.missing b {
     color: var(--muted);
+    font-size: var(--ha-font-size-l);
+    font-weight: var(--ha-font-weight-normal);
+  }
+  aside ha-form {
+    display: block;
+    margin-bottom: var(--ha-space-4);
   }
   button {
     border: 1px solid var(--border);
@@ -256,41 +261,36 @@ export const STYLE = `
     cursor: pointer;
   }
   button:hover:not(:disabled) {
-    border-color: #138e90;
-    color: #087f82;
+    border-color: var(--ha-color-border-primary-normal);
+    color: var(--ha-color-on-primary-normal);
   }
   button:disabled {
     opacity: .45;
     cursor: not-allowed;
   }
   .primary {
-    background: #138e90;
-    border-color: #138e90;
-    color: #fff;
+    background: var(--ha-color-fill-primary-loud-resting);
+    border-color: var(--ha-color-fill-primary-loud-resting);
+    color: var(--ha-color-on-primary-loud);
   }
   .primary:hover:not(:disabled) {
-    background: #087f82;
-    color: #fff;
+    background: var(--ha-color-fill-primary-loud-hover);
+    color: var(--ha-color-on-primary-loud);
   }
   #save-limits {
     width: 100%;
     margin-top: 9px;
   }
   .notice {
-    margin: 12px 2px 0;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: var(--secondary-background-color);
+    margin: var(--ha-space-3) 0 0;
     color: var(--muted);
     font-size: var(--ha-font-size-s);
-    line-height: 1.5;
+    text-align: center;
     overflow-wrap: anywhere;
   }
   .editor {
-    margin: 0 16px 16px;
-  }
-  .editor-head {
-    padding: 0 0 12px;
+    padding: var(--ha-space-4);
+    border-top: 1px solid var(--border);
   }
   .editor-head h3 {
     margin: 0 0 5px;
@@ -298,57 +298,44 @@ export const STYLE = `
   }
   .buttons {
     display: flex;
+    flex: 0 0 auto;
+    justify-content: flex-end;
     gap: 8px;
     flex-wrap: wrap;
+    margin-left: auto;
   }
-  .table-wrap {
-    max-height: 390px;
-    overflow: auto;
+  .point-row {
+    display: grid;
+    grid-template-columns: 2em minmax(0,1fr) auto;
+    align-items: center;
+    gap: var(--ha-space-2);
+    padding: var(--ha-space-1) 0;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--ha-font-size-m);
-  }
-  th,td {
-    padding: 7px 8px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  th {
-    position: sticky;
-    top: 0;
-    background: var(--panel);
+  .point-number {
     color: var(--muted);
-    font-weight: var(--ha-font-weight-medium);
+    text-align: right;
   }
-  td input {
-    padding: 7px;
-  }
-  .remove {
-    padding: 5px 9px;
-    font-size: var(--ha-font-size-l);
-    color: #a54b4b;
-  }
-  @container(max-width:760px) {
+  /* Below 900 px the chart takes the whole width, the readings stand in one row below it. */
+  @container(max-width:900px) {
     .layout {
       grid-template-columns: 1fr;
+    }
+    .metrics {
+      grid-template-columns: repeat(4,minmax(0,1fr));
+    }
+  }
+  @container(max-width:600px) {
+    .metrics {
+      grid-template-columns: repeat(2,minmax(0,1fr));
     }
   }
   @container(max-width:440px) {
     .layout {
-      padding: 8px;
-      gap: 10px;
-    }
-    .chart-panel,.editor {
-      padding: 12px;
+      padding: 0 var(--ha-space-3) var(--ha-space-3);
+      gap: var(--ha-space-4);
     }
     .editor {
-      margin: 0 8px 8px;
-    }
-    .editor-head {
-      align-items: flex-start;
-      flex-direction: column;
+      padding: var(--ha-space-3);
     }
     .metric {
       padding: 9px;
@@ -356,19 +343,15 @@ export const STYLE = `
     .metric b {
       font-size: var(--ha-font-size-l);
     }
-    .buttons {
-      width: 100%;
-    }
-    .buttons button {
-      flex: 1;
-    }
   }
   .target-panel {
     display: grid;
     grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) auto;
-    align-items: end;
+    align-items: center;
     gap: 12px;
-    margin: 16px;
+    margin-bottom: var(--ha-space-4);
+    padding: var(--ha-space-4);
+    border-bottom: 1px solid var(--border);
   }
   .target-error {
     grid-column: 1/-1;
@@ -384,7 +367,7 @@ export const STYLE = `
     .target-panel {
       grid-template-columns: 1fr;
     }
-    .target-panel button {
+    .target-panel ha-button {
       justify-self: start;
     }
   }
@@ -413,7 +396,7 @@ export const STYLE = `
     min-width: 0;
   }
   .edit-lock-info ha-icon {
-    color: #138e90;
+    color: var(--ha-color-on-primary-normal);
     --mdc-icon-size: 21px;
     flex-shrink: 0;
   }
@@ -458,7 +441,7 @@ export const STYLE = `
   .setup {
     margin: 16px;
     padding: 14px;
-    border: 1px solid #138e90;
+    border: 1px solid var(--ha-color-border-primary-normal);
     border-radius: 12px;
     background: var(--secondary-background-color);
     font-size: var(--ha-font-size-m);
@@ -471,17 +454,20 @@ export const STYLE = `
     color: var(--muted);
     line-height: 1.5;
   }
-  details {
-    padding: 12px;
-    font-size: var(--ha-font-size-s);
-    line-height: 1.6;
+  #setup-details {
+    display: block;
+    margin: 0 var(--ha-space-4) var(--ha-space-4);
   }
-  details code {
+  #setup-details p,#setup-details ul {
+    margin: var(--ha-space-1) 0;
+  }
+  #setup-details li {
     overflow-wrap: anywhere;
   }
   #save-settings {
-    width: 100%;
-    margin: 9px 0;
+    display: block;
+    width: fit-content;
+    margin-left: auto;
   }
   .chart-panel h2 {
     font-size: var(--ha-card-header-font-size,var(--ha-font-size-2xl));
@@ -507,7 +493,7 @@ export const STYLE = `
     stroke-width: 1.1;
   }
   .point-label {
-    fill: var(--curve-point-label,#9A6138);
+    fill: var(--curve-line,#278F89);
     font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
     font-weight: var(--ha-font-weight-bold);
     stroke: var(--panel);
@@ -587,9 +573,11 @@ export const STYLE = `
   .metric b {
     font-size: var(--ha-font-size-xl);
   }
-  .notice {
-    font-size: var(--ha-font-size-s);
-    padding: 8px 10px;
-    border-radius: 8px;
+  #message {
+    display: block;
+    margin-top: var(--ha-space-3);
+  }
+  #message:empty {
+    display: none;
   }
 `;

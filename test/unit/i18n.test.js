@@ -56,8 +56,7 @@ describe('translate', () => {
 
   it('replaces the placeholders', () => {
     expect(translate('de', 'Loading curve {name} …', { name: 'HC1' })).toBe('Kurve HC1 wird geladen …');
-    expect(translate('en', '{count} settings sent. The next update will show the controller values.', { count: 0 }))
-      .toBe('0 settings sent. The next update will show the controller values.');
+    expect(translate('en', 'Remove point {index}', { index: 0 })).toBe('Remove point 0');
   });
 
   it('keeps placeholders without value', () => {

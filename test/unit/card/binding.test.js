@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import '../../../src/card';
 import { CardView, createCard } from '../../test_helper/card-view';
 import { answerRegistry, createHass, withLanguage } from '../../fixtures/hass';
@@ -13,6 +13,7 @@ import {
   registryEntry,
 } from '../../fixtures/registry';
 import { settle } from '../../test_helper/shadow-view';
+import { withoutHaForm } from '../../fixtures/ha-form';
 /** @import { CallWS, CardConfig, FakeHass } from '../../fixtures/types' */
 
 /**
@@ -36,7 +37,7 @@ const ambiguousRegistry = () => [
   registryEntry('entry-1', '111', 1, 'curve', { entity_id: 'sensor.second_curve' }),
 ];
 
-const CONTROLLER_MISSING = 'The configured KeEnergy controller was not found. Check the card configuration.';
+const CONTROLLER_MISSING = 'The configured KEBA KeEnergy controller was not found. Check the card configuration.';
 const CIRCUIT_MISSING = 'The selected heating circuit was not found on this controller.';
 
 describe('automatic selection', () => {
@@ -51,17 +52,17 @@ describe('automatic selection', () => {
       { value: '1', label: 'Heating circuit 1 · Circuit device 1', selected: true },
       { value: '2', label: 'Heating circuit 2 · Circuit device 2', selected: false },
     ]);
-    expect(view.controllerSelect.disabled).toBe(false);
-    expect(view.circuitSelect.disabled).toBe(false);
-    expect(view.badge).toBe('HC1');
+    expect(view.targetDisabled('controller')).toBe(false);
+    expect(view.targetDisabled('circuit')).toBe(false);
+    expect(view.curveTable).toBe('HC1');
     expect(view.mappingError).toBeUndefined();
   });
 
   it('disables the selects with one controller and circuit', async () => {
     const view = await CardView.create({}, createHass());
 
-    expect(view.controllerSelect.disabled).toBe(true);
-    expect(view.circuitSelect.disabled).toBe(true);
+    expect(view.targetDisabled('controller')).toBe(true);
+    expect(view.targetDisabled('circuit')).toBe(true);
   });
 
   it('switches the controller without sending anything', async () => {
@@ -72,7 +73,7 @@ describe('automatic selection', () => {
 
     expect(view.controllerOptions[1].selected).toBe(true);
     expect(view.circuitOptions).toEqual([{ value: '1', label: 'Heating circuit 1 · Circuit device 1', selected: true }]);
-    expect(view.badge).toBe('HC3');
+    expect(view.curveTable).toBe('HC3');
     expect(view.message).toBe('View changed. No values were sent.');
     expect(hass.callService).not.toHaveBeenCalled();
   });
@@ -83,7 +84,7 @@ describe('automatic selection', () => {
     await view.selectCircuit('2');
 
     expect(view.circuitOptions[1].selected).toBe(true);
-    expect(view.badge).toBe('HC2');
+    expect(view.curveTable).toBe('HC2');
   });
 
   it('ignores unknown controllers and heating circuits', async () => {
@@ -93,7 +94,7 @@ describe('automatic selection', () => {
     await view.selectCircuit('9');
 
     expect(view.message).toBe('');
-    expect(view.badge).toBe('HC1');
+    expect(view.curveTable).toBe('HC1');
   });
 
   it('keeps the view with unsaved changes', async () => {
@@ -103,11 +104,11 @@ describe('automatic selection', () => {
     await view.selectController('entry-2');
 
     expect(view.message).toBe('Save changes or discard the draft before switching controller or heating circuit.');
-    expect(view.controllerSelect.value).toBe('entry-1');
+    expect(view.targetValue('controller')).toBe('entry-1');
 
     await view.selectCircuit('2');
 
-    expect(view.circuitSelect.value).toBe('1');
+    expect(view.targetValue('circuit')).toBe('1');
   });
 
   it('locks the editing when the view changes', async () => {
@@ -118,6 +119,15 @@ describe('automatic selection', () => {
 
     expect(view.message).toBe('View changed. Please unlock editing again.');
     expect(view.query('#unlock-editor')).not.toBeNull();
+  });
+
+  it('switches the heating circuit right after the choice, while the menu still has the focus', async () => {
+    const view = await CardView.create({}, twoControllers());
+    view.cardForm('circuit').dispatchEvent(new Event('focusin'));
+
+    await view.selectCircuit('2');
+
+    expect(view.curveTable).toBe('HC2');
   });
 
   it('marks a controller that disappeared', async () => {
@@ -149,29 +159,29 @@ describe('pinned selection', () => {
   it('pins the controller with config_entry', async () => {
     const view = await CardView.create({ config_entry: 'entry-2' }, twoControllers());
 
-    expect(view.badge).toBe('HC3');
-    expect(view.controllerSelect.disabled).toBe(true);
+    expect(view.curveTable).toBe('HC3');
+    expect(view.targetDisabled('controller')).toBe(true);
 
     await view.selectController('entry-1');
 
-    expect(view.badge).toBe('HC3');
+    expect(view.curveTable).toBe('HC3');
   });
 
   it('pins the controller with the serial number', async () => {
     const view = await CardView.create({ serial: '222' }, twoControllers());
 
-    expect(view.badge).toBe('HC3');
+    expect(view.curveTable).toBe('HC3');
   });
 
   it('pins the heating circuit', async () => {
     const view = await CardView.create({ circuit: '2' }, twoControllers());
 
-    expect(view.badge).toBe('HC2');
-    expect(view.circuitSelect.disabled).toBe(true);
+    expect(view.curveTable).toBe('HC2');
+    expect(view.targetDisabled('circuit')).toBe(true);
 
     await view.selectCircuit('1');
 
-    expect(view.badge).toBe('HC2');
+    expect(view.curveTable).toBe('HC2');
   });
 
   it('pins controller and heating circuit with the entities', async () => {
@@ -179,9 +189,9 @@ describe('pinned selection', () => {
 
     const view = await CardView.create(config, twoControllers());
 
-    expect(view.badge).toBe('HC2');
-    expect(view.controllerSelect.disabled).toBe(true);
-    expect(view.circuitSelect.disabled).toBe(true);
+    expect(view.curveTable).toBe('HC2');
+    expect(view.targetDisabled('controller')).toBe(true);
+    expect(view.targetDisabled('circuit')).toBe(true);
   });
 
   it('accepts a heating circuit that matches the entities', async () => {
@@ -197,7 +207,7 @@ describe('pinned selection', () => {
 
     const view = await CardView.create(config, twoControllers());
 
-    expect(view.badge).toBe('HC1');
+    expect(view.curveTable).toBe('HC1');
     expect(view.mappingError).toBeUndefined();
   });
 });
@@ -261,7 +271,7 @@ describe('mapping errors', () => {
     const hass = createHass();
     const view = await CardView.create({ serial: '999' }, hass);
 
-    expect(view.saveLimitsButton.disabled).toBe(true);
+    expect(view.saveLimitsDisabled).toBe(true);
 
     await view.forceClick(view.saveLimitsButton);
 
@@ -272,7 +282,7 @@ describe('mapping errors', () => {
   it('shows that no heating circuit was found', async () => {
     const view = await CardView.create({}, createHass({ registry: [] }));
 
-    expect(view.mappingError).toBe('No KeEnergy heating circuit with a heating curve table found.');
+    expect(view.mappingError).toBe('No KEBA KeEnergy heating circuit with a heating curve table found.');
     expect(view.controllerOptions).toEqual([{ value: 'No controller found', label: 'No controller found', selected: true }]);
     expect(view.circuitOptions)
       .toEqual([{ value: 'No heating circuit found', label: 'No heating circuit found', selected: true }]);
@@ -294,7 +304,7 @@ describe('registry access', () => {
     const view = await CardView.create({}, hass);
 
     expect(view.mappingError)
-      .toBe('Cannot read the KeEnergy mapping. Open as an administrator or set entities and config_entry manually.');
+      .toBe('Cannot read the KEBA KeEnergy mapping. Open as an administrator or set entities and config_entry manually.');
     expect(view.registryHint).toBe('Registry: Unauthorized');
   });
 
@@ -320,7 +330,7 @@ describe('registry access', () => {
     const view = await CardView.create({ config_entry: 'entry-1', entities: manualMapping }, hass);
 
     expect(view.mappingError).toBeUndefined();
-    expect(view.badge).toBe('HC1');
+    expect(view.curveTable).toBe('HC1');
   });
 
   it('needs config_entry for a manual mapping', async () => {
@@ -329,7 +339,7 @@ describe('registry access', () => {
 
     const view = await CardView.create({ entities: { curve_sensor: entityId('111', 1, 'curve') } }, hass);
 
-    expect(view.mappingError).toContain('Cannot read the KeEnergy mapping.');
+    expect(view.mappingError).toContain('Cannot read the KEBA KeEnergy mapping.');
   });
 
   it('reads the registry again', async () => {
@@ -401,7 +411,7 @@ describe('registry access', () => {
 
     view.hass = withLanguage(hass, 'de');
 
-    expect(view.title).toBe('Heizkurve KeEnergy');
+    expect(view.title).toBe('Heizkurve KEBA KeEnergy');
   });
 
   it('does not read the registry without config', () => {
@@ -423,5 +433,34 @@ describe('registry access', () => {
     await settle();
 
     expect(hass.callWS).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe('forms of Home Assistant', () => {
+  it('labels the selections', async () => {
+    const view = await CardView.create({}, twoControllers());
+
+    expect([view.targetLabel('controller'), view.targetLabel('circuit')]).toEqual(['Controller', 'Heating circuit']);
+  });
+
+  it('loads the forms of Home Assistant when the dashboard has not', async () => {
+    withoutHaForm();
+    const getConfigElement = vi.fn();
+    vi.stubGlobal('loadCardHelpers', async () => ({ createCardElement: () => ({ constructor: { getConfigElement } }) }));
+
+    await CardView.create({}, twoControllers());
+    vi.unstubAllGlobals();
+
+    expect(getConfigElement).toHaveBeenCalled();
+  });
+
+  it('shows the card when Home Assistant can not load its forms', async () => {
+    withoutHaForm();
+    vi.stubGlobal('loadCardHelpers', () => Promise.reject(Error('No card helpers')));
+
+    const view = await CardView.create({}, twoControllers());
+    vi.unstubAllGlobals();
+
+    expect(view.targetValue('controller')).toBe('entry-1');
   });
 });

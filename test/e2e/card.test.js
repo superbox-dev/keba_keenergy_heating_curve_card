@@ -52,8 +52,8 @@ describe('layout', () => {
     expect(columns(view)).toBe(2);
   });
 
-  it('shows the chart above the settings in a narrow card', async () => {
-    const view = await cardWithWidth(400);
+  it.each([800, 400])('shows the chart above the settings in a card of %i px', async (width) => {
+    const view = await cardWithWidth(width);
 
     expect(columns(view)).toBe(1);
   });
@@ -95,7 +95,8 @@ describe('editing', () => {
     await userEvent.fill(field, '44');
     view.hass = withStates(hass, { [entityId('111', 1, 'outdoor')]: temperature(-3) });
 
-    expect(view.root.activeElement).toBe(field);
+    expect(view.root.activeElement).toBe(view.pointForm(0));
+    expect(view.pointForm(0).shadowRoot?.activeElement).toBe(field);
     expect(view.pointInput(0, 'flow').value).toBe('44');
     expect(view.message).toBe('Points changed · not saved yet');
   });

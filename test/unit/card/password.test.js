@@ -45,10 +45,10 @@ describe('locked card', () => {
     expect(view.lockStatus).toBe('Editing locked');
     expect(view.lockHint).toBe('Unlock to change the curve table, points and heating limits.');
     expect(view.savePointsButton.disabled).toBe(true);
-    expect(view.saveLimitsButton.disabled).toBe(true);
-    expect(view.curveSelect.disabled).toBe(true);
+    expect(view.saveLimitsDisabled).toBe(true);
+    expect(view.curveDisabled).toBe(true);
     expect(view.discardButton.disabled).toBe(true);
-    expect(view.limitInput('limitDay').disabled).toBe(true);
+    expect(view.limitField('limitDay').disabled).toBe(true);
   });
 
   it('rejects changes', async () => {
@@ -64,8 +64,8 @@ describe('locked card', () => {
     ]) {
       await view.forceClick(button);
     }
-    await view.dispatch(view.limitInput('limitDay'), new Event('input'));
-    await view.dispatch(view.pointInput(0, 'outdoor'), new Event('input'));
+    await view.setLimit('limitDay', 20);
+    await view.setPoint(0, 'outdoor', 5);
     await view.selectCurve('HC2');
 
     expect(view.message).toBe('Editing is locked. Please enter the password to unlock.');
@@ -203,7 +203,7 @@ describe('locking', () => {
 
     expect(view.lockStatus).toBe('Editing locked');
     expect(view.message).toBe('Editing locked. Unsaved changes discarded.');
-    expect(view.limitInput('limitDay').value).toBe('18');
+    expect(view.limitValue('limitDay')).toBe(18);
   });
 
   it('locks after the inactivity time', async () => {

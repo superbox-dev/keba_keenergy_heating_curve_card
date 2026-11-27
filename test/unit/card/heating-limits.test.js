@@ -23,10 +23,10 @@ describe('heating limits', () => {
   it('shows the limits with the range of the entities', async () => {
     const view = await CardView.create({}, createHass());
 
-    const day = view.limitInput('limitDay');
-    expect([day.value, day.min, day.max, day.step]).toEqual(['18', '0', '30', '0.5']);
-    expect(view.limitInput('limitNight').value).toBe('15');
-    expect(day.closest('label')?.textContent).toBe('Day heating limit (°C)');
+    expect(view.limitValue('limitDay')).toBe(18);
+    expect(view.limitField('limitDay').selector?.number).toEqual({ mode: 'slider', min: 0, max: 30, step: 0.5 });
+    expect(view.limitValue('limitNight')).toBe(15);
+    expect(view.limitField('limitDay').label).toBe('Day heating limit (°C)');
   });
 
   it('accepts any value without range', async () => {
@@ -34,8 +34,7 @@ describe('heating limits', () => {
 
     const view = await CardView.create({}, createHass({ states }));
 
-    expect(view.limitInput('limitDay').step).toBe('any');
-    expect(view.limitInput('limitDay').hasAttribute('min')).toBe(false);
+    expect(view.limitField('limitDay').selector?.number).toEqual({ mode: 'slider', step: 'any' });
   });
 
   it('disables unavailable limits', async () => {
@@ -43,8 +42,8 @@ describe('heating limits', () => {
 
     const view = await CardView.create({}, createHass({ states }));
 
-    expect(view.limitInput('limitDay').disabled).toBe(true);
-    expect(view.limitInput('limitDay').value).toBe('');
+    expect(view.limitField('limitDay').disabled).toBe(true);
+    expect(view.limitValue('limitDay')).toBeUndefined();
   });
 
   it('saves the changed limits', async () => {
@@ -55,12 +54,28 @@ describe('heating limits', () => {
 
     expect(view.message).toBe('Settings changed · not saved yet');
 
+    // A limit changed back to the value of the controller is not sent.
+    await view.setLimit('limitNight', 16);
     await view.setLimit('limitNight', 15);
     await view.saveLimits();
 
     expect(numbers(hass)).toEqual([['set_value', { entity_id: id('limitDay'), value: 20 }]]);
-    expect(view.message).toBe('1 settings sent. The next update will show the controller values.');
-    expect(view.limitInput('limitDay').value).toBe('18');
+    expect(view.message).toBe('');
+    expect(view.limitValue('limitDay')).toBe(20);
+  });
+
+  it.each([
+    ['the sent value', 20, 20],
+    ['its own value', 19.5, 19.5],
+  ])('shows the sent limit until the controller reports %s', async (_, reported, shown) => {
+    const hass = createHass();
+    const view = await CardView.create({}, hass);
+    await view.setLimit('limitDay', 20);
+    await view.saveLimits();
+
+    view.hass = withStates(hass, { [id('limitDay')]: heatingLimit(reported, '°C', { min: 0, max: 30, step: 0.5 }) });
+
+    expect(view.limitValue('limitDay')).toBe(shown);
   });
 
   it('saves in the unit of the entity', async () => {
@@ -145,9 +160,7 @@ describe('heating limits', () => {
 
     expect(view.message).toBe('Saving settings …');
 
-    const night = view.limitInput('limitNight');
-    night.disabled = false;
-    await view.input(night, 16);
+    await view.setLimit('limitNight', 16);
 
     expect(view.message).toBe('Saving settings …');
 

@@ -33,10 +33,10 @@ import { inLimits, interpolate, sortByOutdoor } from './points.js';
 export const CHART_WIDTH = 700;
 
 /** Height of the chart in SVG units at the text scale 1. */
-const CHART_HEIGHT = 400;
+const CHART_HEIGHT = 500;
 
 /** Minimum rendered height of the chart in pixels, a narrow chart gets taller. */
-const MIN_HEIGHT = 260;
+const MIN_HEIGHT = 320;
 
 /** Margins of the plot area in pixels, for the axis labels and titles. */
 const MARGIN = { left: 58, top: 24, right: 62, bottom: 56 };
@@ -110,7 +110,9 @@ export function renderChart(input) {
   for (const { value, showLabel } of outdoorTicks) {
     const tickX = x(value);
     grid += `<line x1="${tickX}" y1="${plotTop}" x2="${tickX}" y2="${plotBottom}" class="grid"/>`;
-    if (showLabel) grid += `<text x="${tickX}" y="${plotBottom + units(21)}" text-anchor="middle">${tickLabel(value)}</text>`;
+    if (showLabel) {
+      grid += `<text x="${tickX}" y="${plotBottom + units(21)}" text-anchor="middle" class="x-tick">${tickLabel(value)}</text>`;
+    }
   }
   const flowTicks = axisTicks(flowRange, config.y_step ?? DEFAULT_AXIS_STEP, {
     fixedMin: config.y_min !== null,
@@ -126,15 +128,15 @@ export function renderChart(input) {
 
   let limits = '';
   for (const { value, cls, label, labelY } of [
-    { value: input.limitDay, cls: 'day', label: t('Day'), labelY: units(16) },
-    { value: input.limitNight, cls: 'night', label: t('Night'), labelY: units(34) },
+    { value: input.limitDay, cls: 'day', label: t('Day heating limit'), labelY: units(16) },
+    { value: input.limitNight, cls: 'night', label: t('Night heating limit'), labelY: units(34) },
   ]) {
     if (!Number.isFinite(value) || value < lo || value > hi) continue;
     const px = x(value);
     limits += html`<line x1="${px}" y1="${plotTop}" x2="${px}" y2="${plotBottom}" class="limit ${cls}"/>
       <text x="${Math.max(plotLeft + units(52), Math.min(plotRight - units(53), px))}" y="${labelY}"
         text-anchor="middle" class="limit-label">
-        ${esc(t('HL'))} ${esc(label)} ${esc(temperature(value))}
+        ${esc(label)} ${esc(temperature(value))}
       </text>`;
   }
   for (const { value, cls, label } of [
@@ -276,7 +278,6 @@ function curvePath(points, lo, hi, minimum, maximum, coordinates) {
 function palette(dark, textScale) {
   return [
     `--chart-scale:${textScale}`,
-    `--curve-point-label:${dark ? '#D8AE8B' : '#9A6138'}`,
     `--curve-sample-label:${dark ? '#9BACB8' : '#657B89'}`,
     `--curve-line:${dark ? '#65B4B0' : '#278F89'}`,
   ].join(';');
