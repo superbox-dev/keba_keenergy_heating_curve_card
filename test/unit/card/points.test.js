@@ -111,6 +111,15 @@ describe('editing points', () => {
     expect(hass.callService).not.toHaveBeenCalled();
   });
 
+  it('marks the draft in the legend while the field has the focus', async () => {
+    const view = await CardView.create({}, createHass());
+    view.pointForm(1).dispatchEvent(new Event('focusin'));
+
+    await view.setPoint(1, 'flow', 38);
+
+    expect(view.curveLabel).toBe('Point table · Draft');
+  });
+
   it('changes several points of the draft', async () => {
     const view = await CardView.create({}, createHass());
 

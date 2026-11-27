@@ -810,6 +810,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
         this._draft.saved = false;
         this._draft.points[index] = { outdoor: numeric(data.outdoor ?? ''), flow: numeric(data.flow ?? '') };
         Object.assign(element, { data });
+        this._get('#curve-label').textContent = curveLabel(true, (text, params) => this._t(text, params));
         this._notice(this._t('Points changed · not saved yet'));
         this._preview();
       });
