@@ -37,8 +37,8 @@ jobs:
       - name: Check files against .editorconfig
         run: npx prek run editorconfig-checker --all-files
 
-  build:
-    name: Build
+  test:
+    name: Test
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     permissions:
@@ -52,8 +52,61 @@ jobs:
           persist-credentials: False
       - name: Set up project
         uses: ./.github/actions/setup-project
-      - name: Build card and run smoke tests of the bundle
-        run: npm run test:dist
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5  # v7.1.1
+        with:
+          files: test/coverage/lcov.info
+          disable_search: true
+          # Pull requests from forks and Dependabot get no OIDC token and upload without one.
+          use_oidc: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
+          fail_ci_if_error: true
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs:
+      - test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: False
+      - name: Set up project
+        uses: ./.github/actions/setup-project
+      - name: Build card
+        run: npm run build
+      - name: Upload card
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: card
+          path: dist
+          if-no-files-found: error
+
+  test-build:
+    name: Test build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    needs:
+      - build
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: False
+      - name: Set up project
+        uses: ./.github/actions/setup-project
+      - name: Download card
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+        with:
+          name: card
+          path: dist
       - name: Check HACS file name
         run: |
           # HACS looks for the file named after the repository.
@@ -65,38 +118,8 @@ jobs:
           fi
 
           echo "Found $FILE"
-      - name: Run tests with coverage
-        run: npm run test:coverage
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5  # v7.1.1
-        with:
-          files: test/coverage/lcov.info
-          disable_search: true
-          # Pull requests from forks and Dependabot get no OIDC token and upload without one.
-          use_oidc: ${{ !github.event.pull_request.head.repo.fork && github.actor != 'dependabot[bot]' }}
-          fail_ci_if_error: true
-      - name: Upload card
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
-        with:
-          name: card
-          path: dist
-          if-no-files-found: error
-
-  e2e:
-    name: End-to-end tests
-    runs-on: ubuntu-latest
-    if: github.event_name != 'schedule'
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          persist-credentials: False
-      - name: Set up project
-        uses: ./.github/actions/setup-project
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Run end-to-end tests
-        run: npm run test:e2e
+      - name: Run smoke tests of the card
+        run: npx vitest run --config test/vitest.dist.config.js
 
   security:
     name: Audit packages
@@ -124,13 +147,12 @@ jobs:
           category: plugin
 
   release:
-    name: Release on GitHub
+    name: Release
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
     needs:
       - code-analysis
-      - build
-      - e2e
+      - test-build
     permissions:
       contents: write
     steps:
@@ -206,8 +228,8 @@ jobs:
               fi
             done
 
-  release-check:
-    name: Check the release file
+  test-release:
+    name: Test release
     runs-on: ubuntu-latest
     if: github.ref_type == 'tag'
     needs:
