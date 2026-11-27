@@ -111,6 +111,18 @@ jobs:
       - name: Audit npm packages
         run: npm audit --omit=dev --audit-level=high
 
+  hacs-validation:
+    name: HACS validation
+    runs-on: ubuntu-latest
+    # HACS checks the repository on GitHub and the asset of the latest release, not a build of this run.
+    # It runs nightly like the audit, a new release is checked in the next night.
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Run HACS validation
+        uses: hacs/action@d556e736723344f83838d08488c983a15381059a  # 22.5.0
+        with:
+          category: plugin
+
   release:
     name: Release on GitHub
     runs-on: ubuntu-latest
