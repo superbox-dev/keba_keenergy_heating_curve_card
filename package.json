@@ -11,6 +11,7 @@
     "test:coverage": "vitest run --config test/vitest.config.js --coverage",
     "test:dist": "npm run build && vitest run --config test/vitest.dist.config.js",
     "test:e2e": "vitest run --config test/vitest.e2e.config.js",
+    "test:ha": "npm run build && vitest run --config test/vitest.ha.config.js",
     "typecheck": "tsc",
     "prepare": "prek install && node scripts/install-hooks.mjs"
   },

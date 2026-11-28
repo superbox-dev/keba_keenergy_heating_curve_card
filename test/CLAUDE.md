@@ -16,19 +16,27 @@
   - `hass.js`: fake Home Assistant (`createHass()`, `withStates()`, `serviceCalls()`, `holdServiceCalls()`)
   - `password.js`: `PASSWORD` and `PASSWORD_HASH`
 - Page objects in `test/test_helper/`: `card-view.js` (the card with its chart, `createCard()`), `editor-view.js`
-  (the editor, `createEditor()`), `shadow-view.js` (their base and `settle()`)
+  (the editor, `createEditor()`), `shadow-view.js` (their base and `settle()`), `dashboard-view.js` (the card in
+  Home Assistant, with Playwright)
 - Test the card and the editor only through the page objects: `CardView.create()`, `EditorView.create()`
   - elements and texts by name (`view.savePointsButton`, `view.message`), actions as methods (`view.savePoints()`)
   - a new selector belongs in the page object, not in the test
   - never read or set `_`-prefixed members
   - assert the shown texts, the elements and the calls (`serviceCalls()`, `hass.callWS`)
 - Objects instead of tuples (`{ value, label, selected }`), constants for repeated texts
-- Three suites with their own config, all with the page objects:
+- Four suites with their own config, all with the page objects:
   - unit tests in `test/unit/` (`vitest.config.js`): jsdom against `src/`, 100% coverage, everything that jsdom can test
   - smoke tests in `test/dist/` (`vitest.dist.config.js`): the built bundle loads, registers and renders, no details
   - end-to-end tests in `test/e2e/` (`vitest.e2e.config.js`): Chromium for what jsdom can't (layout, focus,
     keyboard, the real PBKDF2), only through `userEvent` of `vitest/browser`
-  - every test file imports what it tests (`import '../../src/card'`), the page objects import nothing of `src/`
+  - Home Assistant tests in `test/ha/` (`vitest.ha.config.js`): the built bundle in a dashboard of Home Assistant
+    in Docker, the real frontend and `ha-form`, `test/ha-docker.mjs` starts and onboards it, only what the fakes
+    can't show
+    - the real integration `keba_keenergy` of the release `INTEGRATION` in `test/ha-docker.mjs`, its control units
+      are the fakes of `test/ha/controller.py` in the container with the test data of the integration, never a real
+      device or a real Home Assistant
+  - every test file imports what it tests (`import '../../src/card'`), except `test/ha/` with the bundle in Home
+    Assistant, the page objects import nothing of `src/`
 - `test/unit/setup.js` computes PBKDF2 with Web Crypto, the JavaScript version is too slow with coverage
   - a failing check with `vi.mock` of `@noble/hashes/pbkdf2.js` in its own file
 - Time with `vi.useFakeTimers()`, never wait in real time
