@@ -255,6 +255,8 @@ async function addDashboard(token) {
  * @returns {Promise<void>}
  */
 export async function stop(config) {
+  // Home Assistant runs as root and writes into the config directory, the container removes these files itself.
+  if (config) await run('docker', ['exec', CONTAINER, 'sh', '-c', 'rm -rf /config/* /config/.[!.]*']).catch(() => undefined);
   await run('docker', ['rm', '--force', CONTAINER]).catch(() => undefined);
   if (config) await rm(config, { recursive: true, force: true });
 }
