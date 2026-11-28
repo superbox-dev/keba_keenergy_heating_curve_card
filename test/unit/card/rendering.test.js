@@ -115,6 +115,13 @@ describe('readings', () => {
     expect(view.missingEntities).toEqual([]);
   });
 
+  it('shows the name of the integration as the header of the card and the chart title below it', async () => {
+    const view = await CardView.create({ title: 'Basement' }, createHass());
+
+    expect(view.cardHeader).toBe('KEBA KeEnergy');
+    expect(view.title).toBe('Basement');
+  });
+
   it('shows no setup hints when everything is there', async () => {
     const view = await CardView.create({}, createHass());
 
@@ -124,7 +131,7 @@ describe('readings', () => {
   it('shows the card in German', async () => {
     const view = await CardView.create({ language: 'de' }, createHass());
 
-    expect(view.title).toBe('Heizkurve KEBA KeEnergy');
+    expect(view.title).toBe('Heizkurve');
     expect(view.text('#save-points')).toBe('Punkte speichern');
     expect(view.reading('target')).toBe('32 °C');
   });
@@ -248,11 +255,5 @@ describe('updates', () => {
 
     expect(view.get('ha-card')).toBe(shell);
     expect(view.limitValue('limitDay')).toBeUndefined();
-  });
-
-  it('draws the chart in the dark theme', async () => {
-    const view = await CardView.create({}, { ...createHass(), themes: { darkMode: true } });
-
-    expect(view.chart.svg.getAttribute('style')).toContain('--curve-line:#65B4B0');
   });
 });

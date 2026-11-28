@@ -34,7 +34,7 @@ describe('bundle', () => {
 
     const view = await CardView.create({}, createHass());
 
-    expect(view.title).toBe('KEBA KeEnergy heating curve');
+    expect(view.title).toBe('Heating curve');
     expect(view.reading('outdoor')).toBe('5 °C');
     expect(view.chart.points).toHaveLength(3);
     expect(view.mappingError).toBeUndefined();

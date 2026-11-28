@@ -7,12 +7,18 @@ import { verifyPassword } from '../password.js';
  */
 
 /**
+ * The `ha-form` with the password field, the card writes its values back.
+ *
+ * @typedef {HTMLElement & { data: Record<string, unknown> }} PasswordForm
+ */
+
+/**
  * The card that uses the lock.
  *
  * @typedef {object} LockHost
  * @property {Translate} t Translates the messages.
  * @property {(force: boolean) => void} render Redraws the card, `force` also while the user edits.
- * @property {() => HTMLInputElement | null} passwordInput The password field of the unlock form.
+ * @property {() => PasswordForm | null} passwordForm The `ha-form` with the password of the unlock form.
  * @property {(message: string) => void} onLocked Discards the unsaved changes and shows the message.
  * @property {(message: string) => void} onUnlocked Shows the message.
  */
@@ -113,14 +119,15 @@ export class EditLock {
     event?.preventDefault?.();
     event?.stopPropagation?.();
     if (this.verifying) return;
-    const input = this._host.passwordInput(), password = input?.value || '';
+    // The form is shown, only its buttons and its field submit.
+    const form = /** @type {PasswordForm} */ (this._host.passwordForm()), password = String(form.data.password ?? '');
     if (!password) {
       this.error = this._host.t('Please enter the password.');
       this._host.render(true);
       this._focusPassword();
       return;
     }
-    /** @type {HTMLInputElement} */ (input).value = '';
+    form.data = {};
     return this.unlock(password);
   }
 
@@ -173,6 +180,6 @@ export class EditLock {
 
   /** Focuses the password field after the redraw. */
   _focusPassword() {
-    queueMicrotask(() => this._host.passwordInput()?.focus());
+    queueMicrotask(() => this._host.passwordForm()?.focus());
   }
 }

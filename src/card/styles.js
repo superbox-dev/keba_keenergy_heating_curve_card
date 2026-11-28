@@ -1,6 +1,6 @@
 // Styles of the card, in the shadow root.
 
-/** CSS of the card, the later rules override the earlier ones. */
+/** CSS of the card, with the fonts, spacings, radii and colors of Home Assistant. */
 export const STYLE = `
   :host {
     display: block;
@@ -9,9 +9,16 @@ export const STYLE = `
     font-size: var(--ha-font-size-m);
     line-height: var(--ha-line-height-normal);
     color: var(--primary-text-color);
-    --muted: var(--secondary-text-color);
-    --panel: var(--card-background-color);
-    --border: var(--divider-color);
+    /* The colors of the chart from the palette of the charts of Home Assistant, a theme can change them. */
+    --chart-curve: var(--graph-color-1,var(--color-1));
+    --chart-target: var(--graph-color-9,var(--color-9));
+    --chart-actual: var(--graph-color-2,var(--color-2));
+    --chart-flow-max: var(--graph-color-3,var(--color-3));
+    --chart-day: var(--graph-color-4,var(--color-4));
+    --chart-night: var(--graph-color-5,var(--color-5));
+    --chart-flow-min: var(--graph-color-8,var(--color-8));
+    /* Texts in the chart get an outline in the color of the card, so lines behind them do not cross them. */
+    --chart-halo: var(--ha-card-background,var(--card-background-color));
   }
   * {
     box-sizing: border-box;
@@ -19,19 +26,72 @@ export const STYLE = `
   ha-card {
     overflow: hidden;
   }
+  [hidden] {
+    display: none !important;
+  }
   /* Buttons of Home Assistant have one line, the texts around them wrap instead. */
   ha-button {
     flex-shrink: 0;
     white-space: nowrap;
   }
+  ha-alert {
+    display: block;
+  }
+  ha-alert:empty {
+    display: none;
+  }
+
+  /* Controller and heating circuit. */
+  .target-panel {
+    display: grid;
+    grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) auto;
+    align-items: center;
+    gap: var(--ha-space-3);
+    margin-bottom: var(--ha-space-4);
+    padding: 0 var(--ha-space-4) var(--ha-space-4);
+    border-bottom: var(--ha-border-width-sm) solid var(--divider-color);
+  }
+  .target-panel ha-alert {
+    grid-column: 1/-1;
+  }
+
+  /* Notices above the chart. */
+  #setup-details,#enable-panel,.edit-lock {
+    margin: 0 var(--ha-space-4) var(--ha-space-4);
+  }
+  #setup-details p,#setup-details ul {
+    margin: var(--ha-space-1) 0;
+  }
+  #setup-details li {
+    overflow-wrap: anywhere;
+  }
+  /*
+   * The password and its buttons in one row, below 600 px the buttons below the field. The field of Home Assistant
+   * keeps room for a hint below it, so the rows need no gap and the buttons center on the 56 px of the field.
+   */
+  .unlock-form {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: start;
+    column-gap: var(--ha-space-3);
+    margin-top: var(--ha-space-3);
+  }
+  .unlock-form .buttons {
+    align-items: center;
+    min-height: var(--ha-space-14);
+  }
+  .unlock-form ha-alert {
+    grid-column: 1/-1;
+  }
+
+  /* Chart and settings, 8:4 like the 12 columns of the sections view of Home Assistant. */
   .layout {
     display: grid;
-    /* 8:4 like the 12 columns of the sections view of Home Assistant. */
     grid-template-columns: minmax(0,2fr) minmax(300px,1fr);
     gap: var(--ha-space-6);
     padding: 0 var(--ha-space-4) var(--ha-space-4);
   }
-  .chart-panel,.editor {
+  .chart-panel,aside,.editor {
     min-width: 0;
   }
   header {
@@ -41,6 +101,16 @@ export const STYLE = `
     gap: var(--ha-space-3);
     padding: var(--ha-space-1) 0 var(--ha-space-3);
   }
+  h2 {
+    margin: 0;
+    font-size: var(--ha-font-size-l);
+    font-weight: var(--ha-font-weight-medium);
+    line-height: var(--ha-line-height-condensed);
+  }
+  header p,.editor-head p {
+    margin: var(--ha-space-1) 0 0;
+    color: var(--secondary-text-color);
+  }
   .curve-table {
     flex-shrink: 0;
     padding: var(--ha-space-1) var(--ha-space-3);
@@ -49,185 +119,181 @@ export const STYLE = `
     color: var(--ha-color-on-primary-normal);
     font-size: var(--ha-font-size-s);
     font-weight: var(--ha-font-weight-medium);
-    line-height: var(--ha-line-height-normal);
   }
-  .editor-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 0 0 var(--ha-space-3);
-  }
-  /* The text takes the space next to the buttons, without room the buttons move below it as one row. */
-  .editor-head > div:first-child {
-    flex: 1 1 280px;
-  }
-  h2 {
-    margin: 0;
-    font-size: var(--ha-card-header-font-size,var(--ha-font-size-2xl));
-    line-height: var(--ha-line-height-condensed);
-  }
-  header p,.editor-head p {
-    margin: var(--ha-space-1) 0 0;
-    font-size: var(--ha-font-size-m);
-    color: var(--muted);
-  }
+
+  /* The chart, sizes in pixels times --chart-scale, so they keep their size when the chart scales. */
   svg {
     display: block;
     width: 100%;
     height: auto;
   }
-  svg line,svg path,svg circle,svg rect {
+  svg line,svg path,svg circle {
     vector-effect: non-scaling-stroke;
   }
-  .plot {
-    fill: var(--panel);
-    stroke: var(--border);
+  svg text {
+    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
   }
+  .axes {
+    fill: var(--secondary-text-color);
+  }
+  /*
+   * Grid lines without a frame around the plot, like the charts of Home Assistant. They use the border color of
+   * Home Assistant, the divider color of some themes is nearly the color of the card.
+   */
   .grid {
-    stroke: var(--border);
-    stroke-width: .7;
-    opacity: .65;
+    stroke: var(--ha-color-border-neutral-normal);
+    stroke-width: 1;
+    opacity: .35;
   }
   .curve {
     fill: none;
-    stroke: #138e90;
-    stroke-width: 3;
+    stroke: var(--chart-curve);
+    stroke-width: 2;
     stroke-linejoin: round;
     stroke-linecap: round;
   }
-  .axes {
-    fill: var(--muted);
-    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
-  }
-  .axis-title {
-    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
-    font-weight: var(--ha-font-weight-medium);
-  }
   .point {
-    fill: #138e90;
-    stroke: var(--panel);
-    stroke-width: 2;
+    fill: var(--chart-curve);
+    stroke: var(--chart-halo);
+    stroke-width: 1;
+  }
+  .sample-point {
+    fill: var(--chart-curve);
+    opacity: .6;
+  }
+  .point-label,.sample-label,.limit-label,.flow-limit-label {
+    paint-order: stroke;
+    stroke: var(--chart-halo);
+    stroke-width: 2px;
+    stroke-linejoin: round;
   }
   .point-label {
-    fill: #087f82;
-    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
+    fill: var(--chart-curve);
     font-weight: var(--ha-font-weight-bold);
-    paint-order: stroke;
-    stroke: var(--panel);
-    stroke-width: 3px;
   }
-  .limit {
-    stroke-width: 1.4;
-    stroke-dasharray: 5 4;
-    opacity: .85;
+  .sample-label,.limit-label,.flow-limit-label {
+    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
   }
-  .limit.day {
-    stroke: #72934b;
+  .sample-label {
+    fill: var(--secondary-text-color);
   }
-  .limit.night {
-    stroke: #7885b0;
+  .limit-label,.flow-limit-label {
+    font-weight: var(--ha-font-weight-medium);
   }
   .limit-label {
-    fill: var(--muted);
-    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
-    font-weight: var(--ha-font-weight-medium);
-    paint-order: stroke;
-    stroke: var(--panel);
-    stroke-width: 3px;
+    fill: var(--secondary-text-color);
   }
-  .target {
-    fill: var(--panel);
-    stroke: #3b82f6;
-    stroke-width: 2.5;
+  .limit {
+    stroke-width: 1;
+    stroke-dasharray: 4 5;
   }
-  .actual {
-    fill: #e99a4a;
-    stroke: var(--panel);
-    stroke-width: 1.5;
+  .limit.day {
+    stroke: var(--chart-day);
   }
+  .limit.night {
+    stroke: var(--chart-night);
+  }
+  .limit.flow-min,.limit.flow-max {
+    stroke-dasharray: 6 5;
+  }
+  .limit.flow-min {
+    stroke: var(--chart-flow-min);
+  }
+  .limit.flow-max {
+    stroke: var(--chart-flow-max);
+  }
+  .flow-limit-label.flow-min {
+    fill: var(--chart-flow-min);
+  }
+  .flow-limit-label.flow-max {
+    fill: var(--chart-flow-max);
+  }
+  circle.target {
+    fill: var(--chart-halo);
+    stroke: var(--chart-target);
+    stroke-width: 2;
+  }
+  circle.actual {
+    fill: var(--chart-actual);
+    stroke: var(--chart-halo);
+    stroke-width: 1;
+  }
+
+  /* Legend below the chart. */
   .legend {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
-    padding: 12px 4px 0;
+    gap: var(--ha-space-3);
+    padding: var(--ha-space-3) var(--ha-space-1) 0;
     font-size: var(--ha-font-size-s);
-    color: var(--muted);
+    color: var(--secondary-text-color);
   }
-  .legend span {
+  .legend > span {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: var(--ha-space-1);
   }
   .line {
-    width: 16px;
-    height: 3px;
-    border-radius: 3px;
-    background: #138e90;
+    width: var(--ha-space-4);
+    height: var(--ha-border-width-md);
+    border-radius: var(--ha-border-radius-pill);
+    background: var(--chart-curve);
   }
-  .line.pale {
-    background: #92a5b5;
+  .line.flow-range {
+    background: linear-gradient(to right,var(--chart-flow-min) 50%,var(--chart-flow-max) 50%);
   }
   .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+    width: var(--ha-space-2);
+    height: var(--ha-space-2);
+    border-radius: var(--ha-border-radius-circle);
   }
   .dot.target {
-    border: 2px solid #3b82f6;
+    border: var(--ha-border-width-md) solid var(--chart-target);
   }
   .dot.actual {
-    background: #e99a4a;
+    background: var(--chart-actual);
   }
-  aside {
-    min-width: 0;
+  .dot.interpolated {
+    width: var(--ha-space-1);
+    height: var(--ha-space-1);
+    background: var(--chart-curve);
+    opacity: .6;
   }
-  h3 {
-    margin: 5px 2px 10px;
-    font-size: var(--ha-font-size-l);
+  .notice,#message {
+    margin-top: var(--ha-space-3);
+  }
+  .notice {
+    overflow-wrap: anywhere;
+  }
+
+  /* Settings on the right. */
+  aside h3 {
+    margin: 0 0 var(--ha-space-2);
+    font-size: var(--ha-font-size-m);
     font-weight: var(--ha-font-weight-medium);
+    line-height: var(--ha-line-height-condensed);
   }
-  .field {
-    display: grid;
-    gap: 5px;
-    font-size: var(--ha-font-size-s);
-    color: var(--muted);
-  }
-  select,input {
-    min-width: 0;
-    width: 100%;
-    padding: 9px 10px;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    background: var(--panel);
-    color: var(--primary-text-color);
-    font: inherit;
-  }
-  .curve-status {
-    min-height: 20px;
-    margin: 5px 2px 12px;
-    font-size: var(--ha-font-size-s);
-    color: var(--muted);
+  aside ha-form {
+    display: block;
+    margin-bottom: var(--ha-space-4);
   }
   .metrics {
     display: grid;
     grid-template-columns: repeat(2,minmax(0,1fr));
-    gap: 8px;
-    margin-bottom: 14px;
+    gap: var(--ha-space-2);
+    margin-bottom: var(--ha-space-4);
   }
   .metric {
     display: grid;
     gap: var(--ha-space-2);
-    min-height: 75px;
     padding: var(--ha-space-3);
     border-radius: var(--ha-border-radius-lg);
     background: var(--ha-color-fill-neutral-quiet-resting);
   }
   .metric span {
     font-size: var(--ha-font-size-s);
-    color: var(--muted);
+    color: var(--secondary-text-color);
   }
   .metric b {
     font-size: var(--ha-font-size-xl);
@@ -235,73 +301,50 @@ export const STYLE = `
     font-variant-numeric: tabular-nums;
   }
   .metric.target b {
-    color: var(--ha-color-on-primary-normal);
+    color: var(--ha-color-on-success-normal);
   }
   .metric.actual b {
     color: var(--ha-color-on-warning-normal);
   }
   .metric.missing b {
-    color: var(--muted);
+    color: var(--secondary-text-color);
     font-size: var(--ha-font-size-l);
     font-weight: var(--ha-font-weight-normal);
   }
-  aside ha-form {
+  #save-settings {
     display: block;
-    margin-bottom: var(--ha-space-4);
+    width: fit-content;
+    margin-left: auto;
   }
-  button {
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 9px 12px;
-    background: var(--panel);
-    color: var(--primary-text-color);
-    font: inherit;
-    font-size: var(--ha-font-size-m);
-    font-weight: var(--ha-font-weight-medium);
-    cursor: pointer;
-  }
-  button:hover:not(:disabled) {
-    border-color: var(--ha-color-border-primary-normal);
-    color: var(--ha-color-on-primary-normal);
-  }
-  button:disabled {
-    opacity: .45;
-    cursor: not-allowed;
-  }
-  .primary {
-    background: var(--ha-color-fill-primary-loud-resting);
-    border-color: var(--ha-color-fill-primary-loud-resting);
-    color: var(--ha-color-on-primary-loud);
-  }
-  .primary:hover:not(:disabled) {
-    background: var(--ha-color-fill-primary-loud-hover);
-    color: var(--ha-color-on-primary-loud);
-  }
-  #save-limits {
-    width: 100%;
-    margin-top: 9px;
-  }
-  .notice {
-    margin: var(--ha-space-3) 0 0;
-    color: var(--muted);
-    font-size: var(--ha-font-size-s);
-    text-align: center;
-    overflow-wrap: anywhere;
-  }
+
+  /* Editor of the points. */
   .editor {
     padding: var(--ha-space-4);
-    border-top: 1px solid var(--border);
+    border-top: var(--ha-border-width-sm) solid var(--divider-color);
+  }
+  .editor-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ha-space-3);
+    padding-bottom: var(--ha-space-3);
+  }
+  /* The text takes the space next to the buttons, without room the buttons move below it as one row. */
+  .editor-head > div:first-child {
+    flex: 1 1 280px;
   }
   .editor-head h3 {
-    margin: 0 0 5px;
-    color: var(--primary-text-color);
+    margin: 0 0 var(--ha-space-1);
+    font-size: var(--ha-card-header-font-size,var(--ha-font-size-2xl));
+    font-weight: var(--ha-font-weight-normal);
+    line-height: var(--ha-line-height-condensed);
   }
   .buttons {
     display: flex;
-    flex: 0 0 auto;
-    justify-content: flex-end;
-    gap: 8px;
     flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--ha-space-2);
     margin-left: auto;
   }
   .point-row {
@@ -312,9 +355,14 @@ export const STYLE = `
     padding: var(--ha-space-1) 0;
   }
   .point-number {
-    color: var(--muted);
+    color: var(--secondary-text-color);
     text-align: right;
   }
+  .hint {
+    font-size: var(--ha-font-size-s);
+    color: var(--secondary-text-color);
+  }
+
   /* Below 900 px the chart takes the whole width, the readings stand in one row below it. */
   @container(max-width:900px) {
     .layout {
@@ -328,256 +376,32 @@ export const STYLE = `
     .metrics {
       grid-template-columns: repeat(2,minmax(0,1fr));
     }
-  }
-  @container(max-width:440px) {
-    .layout {
-      padding: 0 var(--ha-space-3) var(--ha-space-3);
-      gap: var(--ha-space-4);
-    }
-    .editor {
-      padding: var(--ha-space-3);
-    }
-    .metric {
-      padding: 9px;
-    }
-    .metric b {
-      font-size: var(--ha-font-size-l);
-    }
-  }
-  .target-panel {
-    display: grid;
-    grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) auto;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: var(--ha-space-4);
-    padding: var(--ha-space-4);
-    border-bottom: 1px solid var(--border);
-  }
-  .target-error {
-    grid-column: 1/-1;
-    margin: 0;
-    font-size: var(--ha-font-size-s);
-    color: var(--error-color);
-  }
-  .target-panel .hint {
-    grid-column: 1/-1;
-    margin: 0;
-  }
-  @container(max-width:600px) {
     .target-panel {
       grid-template-columns: 1fr;
     }
     .target-panel ha-button {
       justify-self: start;
     }
-  }
-  :host {
-    pointer-events: auto;
-  }
-  input,select,button {
-    pointer-events: auto;
-  }
-  .edit-lock {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: 16px;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--panel);
-  }
-  .edit-lock-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-  }
-  .edit-lock-info ha-icon {
-    color: var(--ha-color-on-primary-normal);
-    --mdc-icon-size: 21px;
-    flex-shrink: 0;
-  }
-  .edit-lock-info b {
-    display: block;
-    font-size: var(--ha-font-size-m);
-    font-weight: var(--ha-font-weight-medium);
-  }
-  .edit-lock-info span {
-    display: block;
-    margin-top: 4px;
-    color: var(--muted);
-    font-size: var(--ha-font-size-s);
-    line-height: 1.5;
-  }
-  .unlock-form {
-    display: grid;
-    grid-template-columns: minmax(160px,1fr) auto;
-    align-items: end;
-    gap: 10px;
-    width: 100%;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-  }
-  .unlock-error {
-    grid-column: 1/-1;
-    color: var(--error-color);
-    font-size: var(--ha-font-size-s);
-    min-height: 1em;
-  }
-  @container(max-width:440px) {
-    .edit-lock {
-      margin: 8px;
-    }
     .unlock-form {
       grid-template-columns: 1fr;
     }
-    .unlock-form .buttons {
-      width: 100%;
+  }
+  @container(max-width:440px) {
+    .layout {
+      gap: var(--ha-space-4);
+      padding: 0 var(--ha-space-3) var(--ha-space-3);
     }
-  }
-  .setup {
-    margin: 16px;
-    padding: 14px;
-    border: 1px solid var(--ha-color-border-primary-normal);
-    border-radius: 12px;
-    background: var(--secondary-background-color);
-    font-size: var(--ha-font-size-m);
-  }
-  .setup p {
-    line-height: 1.5;
-  }
-  .hint {
-    font-size: var(--ha-font-size-s);
-    color: var(--muted);
-    line-height: 1.5;
-  }
-  #setup-details {
-    display: block;
-    margin: 0 var(--ha-space-4) var(--ha-space-4);
-  }
-  #setup-details p,#setup-details ul {
-    margin: var(--ha-space-1) 0;
-  }
-  #setup-details li {
-    overflow-wrap: anywhere;
-  }
-  #save-settings {
-    display: block;
-    width: fit-content;
-    margin-left: auto;
-  }
-  .chart-panel h2 {
-    font-size: var(--ha-card-header-font-size,var(--ha-font-size-2xl));
-    font-weight: var(--ha-font-weight-normal);
-  }
-  .plot {
-    stroke-width: .7;
-  }
-  .grid {
-    stroke-width: .5;
-    opacity: .3;
-  }
-  .axes {
-    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
-    font-weight: var(--ha-font-weight-normal);
-  }
-  .curve {
-    stroke: var(--curve-line,#278F89);
-    stroke-width: 1.7;
-  }
-  .point {
-    fill: var(--curve-line,#278F89);
-    stroke-width: 1.1;
-  }
-  .point-label {
-    fill: var(--curve-line,#278F89);
-    font-size: calc(var(--ha-font-size-s) * var(--chart-scale));
-    font-weight: var(--ha-font-weight-bold);
-    stroke: var(--panel);
-    stroke-width: 2.5px;
-    stroke-linejoin: round;
-    paint-order: stroke;
-  }
-  .sample-point {
-    fill: var(--curve-line,#278F89);
-    opacity: .6;
-  }
-  .sample-label {
-    fill: var(--curve-sample-label,#657B89);
-    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
-    font-weight: var(--ha-font-weight-normal);
-    stroke: var(--panel);
-    stroke-width: 2px;
-    stroke-linejoin: round;
-    paint-order: stroke;
-  }
-  .limit.day,.limit.night {
-    stroke-width: .9;
-    opacity: .55;
-    stroke-dasharray: 4 5;
-  }
-  .limit-label {
-    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
-    font-weight: var(--ha-font-weight-medium);
-    stroke-width: 2px;
-  }
-  .limit.flow-min {
-    stroke: #4D8DC6;
-    stroke-width: 1;
-    stroke-dasharray: 6 5;
-    opacity: .75;
-  }
-  .limit.flow-max {
-    stroke: #CE7373;
-    stroke-width: 1;
-    stroke-dasharray: 6 5;
-    opacity: .75;
-  }
-  .flow-limit-label {
-    font-size: calc(var(--ha-font-size-xs) * var(--chart-scale));
-    font-weight: var(--ha-font-weight-medium);
-    paint-order: stroke;
-    stroke: var(--panel);
-    stroke-width: 2px;
-  }
-  .flow-limit-label.flow-min {
-    fill: #4D8DC6;
-  }
-  .flow-limit-label.flow-max {
-    fill: #CE7373;
-  }
-  .target {
-    stroke-width: 1.5;
-  }
-  .actual {
-    stroke-width: 1;
-  }
-  .legend {
-    font-size: var(--ha-font-size-s);
-    gap: 12px;
-  }
-  .legend .line {
-    height: 2px;
-  }
-  .dot.interpolated {
-    width: 5px;
-    height: 5px;
-    background: #8CA1A4;
-  }
-  .line.flow-range {
-    background: linear-gradient(to right,#4D8DC6 50%,#CE7373 50%);
-  }
-  .metric b {
-    font-size: var(--ha-font-size-xl);
-  }
-  #message {
-    display: block;
-    margin-top: var(--ha-space-3);
-  }
-  #message:empty {
-    display: none;
+    .editor {
+      padding: var(--ha-space-3);
+    }
+    #setup-details,#enable-panel,.edit-lock {
+      margin: 0 var(--ha-space-3) var(--ha-space-3);
+    }
+    .metric {
+      padding: var(--ha-space-2);
+    }
+    .metric b {
+      font-size: var(--ha-font-size-l);
+    }
   }
 `;

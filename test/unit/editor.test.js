@@ -45,7 +45,10 @@ describe('fields', () => {
     expect(editor.label('title')).toBe('Titel');
     expect(editor.label('x_step')).toBe('Rasterweite (°C)');
     expect(editor.sectionTitles).toEqual(['X-Achse · Außentemperatur', 'Y-Achse · Vorlauftemperatur', 'Zwischenwerte']);
-    expect(editor.sectionLabels).toEqual(['', '', '', '', '', '']);
+    expect(editor.label('new_password')).toBe('Neues Kennwort');
+    expect(editor.helper('circuit')).toBe('Ohne feste Zuordnung werden Regler und Heizkreis direkt in der Karte gewählt. Das Umschalten der Ansicht sendet keine Befehle.');
+    expect(editor.helper('title')).toBeUndefined();
+    expect(editor.sectionLabels).toEqual(['', '', '', '', '', '', '']);
   });
 
   it('shows texts of Home Assistant as text', async () => {
@@ -279,7 +282,7 @@ describe('password', () => {
 
     expect(configs).toHaveLength(1);
     expect(configs[0].edit_password_hash).toMatch(/^pbkdf2-sha256\$120000\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
-    expect(editor.passwordSummary).toBe('Password protection · configured');
+    expect(editor.passwordSummary).toEqual({ header: 'Password protection', status: 'Configured' });
     expect(editor.newPasswordInput.value).toBe('');
   });
 
@@ -333,13 +336,13 @@ describe('password', () => {
   it('removes the password', async () => {
     const editor = await EditorView.create({ edit_password_hash: 'pbkdf2-sha256$...' });
 
-    expect(editor.passwordSummary).toBe('Password protection · configured');
+    expect(editor.passwordSummary).toEqual({ header: 'Password protection', status: 'Configured' });
 
     const configs = editor.collectConfigs();
     editor.removePasswordButton?.click();
 
     expect(configs).toEqual([{}]);
     expect(editor.removePasswordButton).toBeNull();
-    expect(editor.passwordSummary).toBe('Password protection · optional');
+    expect(editor.passwordSummary).toEqual({ header: 'Password protection', status: 'Optional' });
   });
 });

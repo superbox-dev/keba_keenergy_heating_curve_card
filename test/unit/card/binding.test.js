@@ -411,7 +411,7 @@ describe('registry access', () => {
 
     view.hass = withLanguage(hass, 'de');
 
-    expect(view.title).toBe('Heizkurve KEBA KeEnergy');
+    expect(view.title).toBe('Heizkurve');
   });
 
   it('does not read the registry without config', () => {

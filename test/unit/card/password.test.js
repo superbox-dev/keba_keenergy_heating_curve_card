@@ -135,18 +135,25 @@ describe('unlocking', () => {
     expect(view.lockStatus).toBe('Editing unlocked');
   });
 
-  it('unlocks by submitting the form', async () => {
+  it('checks the password once while the check runs', async () => {
     const view = await lockedCard();
     await view.enterPassword(PASSWORD);
-    const form = /** @type {HTMLFormElement} */ (view.get('#unlock-form'));
+    await view.click(view.confirmUnlockButton);
+    const checks = vi.mocked(pbkdf2Async).mock.calls.length;
 
-    const submit = new Event('submit', { cancelable: true });
-    form.dispatchEvent(submit);
-    form.dispatchEvent(new Event('submit'));
+    await pressKey(view, 'Enter');
     await view.waitForPasswordCheck();
 
-    expect(submit.defaultPrevented).toBe(true);
+    expect(vi.mocked(pbkdf2Async).mock.calls.length).toBe(checks);
     expect(view.lockStatus).toBe('Editing unlocked');
+  });
+
+  it('empties the password field after the check', async () => {
+    const view = await lockedCard();
+
+    await view.unlock('wrong');
+
+    expect(view.passwordField.value).toBe('');
   });
 
   it('closes the form with the Escape key', async () => {
@@ -184,6 +191,17 @@ describe('unlocking', () => {
 
     expect(view.lockStatus).toBe('Editing locked');
     expect(view.message).toBe('Editing locked.');
+  });
+
+  it('titles the password panel once Home Assistant has loaded its notices', async () => {
+    const get = customElements.get.bind(customElements);
+    const hidden = vi.spyOn(customElements, 'get').mockImplementation(name => name === 'ha-alert' ? undefined : get(name));
+    const view = await lockedCard();
+    hidden.mockRestore();
+
+    await settle();
+
+    expect(view.lockStatus).toBe('Editing locked');
   });
 
   it('shows the translated password panel', async () => {

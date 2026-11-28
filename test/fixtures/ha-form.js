@@ -13,7 +13,8 @@ const fields = schema => schema.flatMap(item => item.schema ? fields(item.schema
 /**
  * Keeps the properties that the card and the editor set, the page objects read them and send `value-changed`.
  *
- * Number fields are real inputs, like `ha-selector-number`, so the browser tests can type into them.
+ * Number and password fields are real inputs, like `ha-selector-number` and `ha-selector-text`, so the browser tests
+ * can type into them.
  */
 export class FakeHaForm extends HTMLElement {
   /** @type {Partial<FakeHass> | undefined} */
@@ -37,15 +38,42 @@ export class FakeHaForm extends HTMLElement {
   set schema(schema) {
     this.#schema = schema;
     const root = this.shadowRoot ?? this.attachShadow({ mode: 'open' });
-    root.replaceChildren(...fields(schema).filter(item => item.selector?.number).map((item) => {
-      const input = document.createElement('input');
-      Object.assign(input, { type: 'number', name: item.name, disabled: !!item.disabled });
-      input.addEventListener('input', () => this.dispatchEvent(new CustomEvent('value-changed', {
-        detail: { value: { ...this.#data, [item.name]: input.value === '' ? undefined : Number(input.value) } },
-      })));
-      return input;
-    }));
+    root.replaceChildren(...fields(schema).filter(item => item.selector?.number || item.selector?.text?.type === 'password')
+      .map((item) => {
+        const number = !!item.selector?.number;
+        const input = document.createElement('input');
+        Object.assign(input, { type: number ? 'number' : 'password', name: item.name, disabled: !!item.disabled });
+        input.addEventListener('input', () => {
+          const value = input.value === '' ? undefined : number ? Number(input.value) : input.value;
+          this.dispatchEvent(new CustomEvent('value-changed', { detail: { value: { ...this.#data, [item.name]: value } } }));
+        });
+        return input;
+      }));
     this.#showData();
+  }
+
+  /** @returns {boolean} */
+  get disabled() {
+    return this.hasAttribute('disabled');
+  }
+
+  /**
+   * Disables all fields, like `ha-form` while the card checks the password.
+   *
+   * @param {boolean} disabled
+   */
+  set disabled(disabled) {
+    this.toggleAttribute('disabled', disabled);
+    for (const input of this.shadowRoot?.querySelectorAll('input') ?? []) input.disabled = disabled;
+  }
+
+  /**
+   * Focuses the first field, like `ha-form`.
+   *
+   * @returns {void}
+   */
+  focus() {
+    this.shadowRoot?.querySelector('input')?.focus();
   }
 
   /** @returns {Record<string, unknown>} */
@@ -80,8 +108,14 @@ export class FakeHaButton extends HTMLElement {
   }
 }
 
+/** A notice of Home Assistant with the `title` property of `ha-alert`, without the tooltip of the attribute. */
+export class FakeHaAlert extends HTMLElement {
+  title = '';
+}
+
 /**
- * Defines the fakes as `ha-form`, `ha-button` and `ha-icon-button`, like Home Assistant after loading the forms.
+ * Defines the fakes as `ha-form`, `ha-button`, `ha-icon-button` and `ha-alert`, like Home Assistant after loading the
+ * forms.
  *
  * @returns {void}
  */
@@ -89,6 +123,7 @@ export function defineHaForm() {
   if (!customElements.get('ha-form')) customElements.define('ha-form', FakeHaForm);
   if (!customElements.get('ha-button')) customElements.define('ha-button', FakeHaButton);
   if (!customElements.get('ha-icon-button')) customElements.define('ha-icon-button', class extends FakeHaButton {});
+  if (!customElements.get('ha-alert')) customElements.define('ha-alert', FakeHaAlert);
 }
 
 /**

@@ -95,7 +95,7 @@ import { STYLE } from './styles.js';
  */
 export function cardTemplate(model, t) {
   return html`<style>${STYLE}</style>
-    <ha-card>
+    <ha-card header="KEBA KeEnergy">
       ${targetPanel(model.target, t)}
       ${setupAlert(model, t)}
       ${model.lock ? lockPanel(model.lock, t) : ''}
@@ -192,8 +192,8 @@ function targetPanel(model, t) {
     <ha-form id="controller-form" class="target-form"></ha-form>
     <ha-form id="circuit-form" class="target-form"></ha-form>
     <ha-button id="reload-registry" appearance="outlined" ${disabledIf(model.busy)}>${esc(t('Rediscover'))}</ha-button>
-    ${model.bindingError ? html`<p class="target-error" role="alert">${esc(model.bindingError)}</p>` : ''}
-    ${model.registryError ? html`<p class="hint">${esc(t('Registry: '))}${esc(model.registryError)}</p>` : ''}
+    ${model.bindingError ? html`<ha-alert class="target-error" alert-type="error">${esc(model.bindingError)}</ha-alert>` : ''}
+    ${model.registryError ? html`<ha-alert class="registry-error" alert-type="warning">${esc(t('Registry: '))}${esc(model.registryError)}</ha-alert>` : ''}
   </section>`;
 }
 
@@ -291,29 +291,45 @@ function lockPanel(model, t) {
     ? t('Locks automatically after {minutes} minutes without editing.', { minutes: model.minutes })
     : t('Unlock to change the curve table, points and heating limits.');
   const form = model.formOpen && !unlocked
-    ? html`<form id="unlock-form" class="unlock-form">
-        <label class="field">${esc(t('Password'))}
-          <input id="edit-password" type="password" autocomplete="current-password" required ${disabledIf(verifying)}>
-        </label>
+    ? html`<div id="unlock-form" class="unlock-form">
+        <ha-form id="edit-password"></ha-form>
         <div class="buttons">
-          <button type="button" id="confirm-unlock" class="primary" ${disabledIf(verifying)}>
+          <ha-button id="cancel-unlock" appearance="plain">${esc(t('Cancel'))}</ha-button>
+          <ha-button id="confirm-unlock" ${disabledIf(verifying)}>
             ${esc(verifying ? t('Verifying …') : t('Unlock editing'))}
-          </button>
-          <button type="button" id="cancel-unlock">${esc(t('Cancel'))}</button>
+          </ha-button>
         </div>
-        <span class="unlock-error" role="alert">${esc(model.error)}</span>
-      </form>`
+        <ha-alert class="unlock-error" alert-type="error">${esc(model.error)}</ha-alert>
+      </div>`
     : '';
   return html`<section class="edit-lock" aria-label="${esc(t('Password protection'))}">
-    <div class="edit-lock-info">
-      <ha-icon icon="mdi:${unlocked ? 'lock-open-outline' : 'lock-outline'}" aria-hidden="true"></ha-icon>
-      <div><b>${esc(status)}</b><span>${esc(hint)}</span></div>
-    </div>
-    <button type="button" id="${unlocked ? 'lock-editor' : 'unlock-editor'}">
-      ${esc(unlocked ? t('Lock') : t('Unlock'))}
-    </button>
+    <ha-alert id="lock-status" alert-type="info" data-title="${esc(status)}">
+      <ha-icon slot="icon" icon="mdi:${unlocked ? 'lock-open-outline' : 'lock-outline'}" aria-hidden="true"></ha-icon>
+      <span class="lock-hint">${esc(hint)}</span>
+      <ha-button slot="action" id="${unlocked ? 'lock-editor' : 'unlock-editor'}" appearance="plain">
+        ${esc(unlocked ? t('Lock') : t('Unlock'))}
+      </ha-button>
+    </ha-alert>
     ${form}
   </section>`;
+}
+
+/**
+ * The password field of the unlock form as `ha-form`, empty after every check.
+ *
+ * @param {Translate} t Translates the texts.
+ * @returns {CardForm} The schema and no value.
+ */
+export function passwordForm(t) {
+  return {
+    schema: [{
+      name: 'password',
+      label: t('Password'),
+      required: true,
+      selector: { text: { type: 'password', autocomplete: 'current-password' } },
+    }],
+    data: {},
+  };
 }
 
 /**
@@ -326,11 +342,12 @@ function lockPanel(model, t) {
  */
 function setupNotice(count, canEnable, t) {
   const text = t('{count} required KEBA KeEnergy entities are disabled. An administrator can enable the required entities for this heating circuit.', { count });
-  return html`<div class="setup">
-    <b>${esc(t('Enable editing'))}</b>
-    <p>${esc(text)}</p>
-    <ha-button id="enable-editors" ${disabledIf(!canEnable)}>${esc(t('Enable required entities'))}</ha-button>
-  </div>`;
+  return html`<ha-alert id="enable-panel" alert-type="warning" data-title="${esc(t('Enable editing'))}">
+    <span class="enable-hint">${esc(text)}</span>
+    <ha-button slot="action" id="enable-editors" appearance="plain" ${disabledIf(!canEnable)}>
+      ${esc(t('Enable required entities'))}
+    </ha-button>
+  </ha-alert>`;
 }
 
 /**
@@ -358,7 +375,7 @@ function chartPanel(model, t) {
       ${limitsLegend}
       <span><i class="dot interpolated"></i>${esc(t('Interpolated values'))}</span>
     </div>
-    <p class="notice">${esc(notice)}${esc(t('The controller target is read separately from KEBA KeEnergy.'))}</p>
+    <ha-alert class="notice" alert-type="info">${esc(notice)}${esc(t('The controller target is read separately from KEBA KeEnergy.'))}</ha-alert>
     <ha-alert id="message" alert-type="info" role="status">${esc(model.message)}</ha-alert>
   </section>`;
 }
@@ -372,6 +389,7 @@ function chartPanel(model, t) {
  */
 function sidePanel(model, t) {
   return html`<aside>
+    <h3>${esc(t('Select curve table'))}</h3>
     <ha-form id="curve-form"></ha-form>
     <h3>${esc(t('Current readings'))}</h3>
     <div class="metrics">
@@ -380,6 +398,7 @@ function sidePanel(model, t) {
       ${metric(t('Actual flow'), model.readings.actual, 'actual', 'actual')}
       ${metric(t('Points'), { text: String(model.points.length), missing: false }, '', 'points')}
     </div>
+    <h3>${esc(t('Heating limits'))}</h3>
     <ha-form id="limits-form"></ha-form>
     <ha-button id="save-settings" ${disabledIf(model.limitsDisabled)}>${esc(t('Save heating limits'))}</ha-button>
   </aside>`;
@@ -519,7 +538,7 @@ function setupAlert(model, t) {
   const missingText = t('These entities are missing or do not yet provide values:');
   const entryText = t('Integration entry not found yet. Optionally set config_entry in the card.');
   const serviceText = t('The keba_keenergy.set_heating_curve_points action is unavailable. The integration must support editing curve points.');
-  return html`<ha-alert id="setup-details" alert-type="warning" title="${esc(t('Check entities / setup'))}">
+  return html`<ha-alert id="setup-details" alert-type="warning" data-title="${esc(t('Check entities / setup'))}">
     ${missing.length ? html`<p>${esc(missingText)}</p>` : ''}
     <ul>${missing.map(item => html`<li>${esc(item)}</li>`).join('')}</ul>
     ${model.entryMissing ? html`<p>${esc(entryText)}</p>` : ''}

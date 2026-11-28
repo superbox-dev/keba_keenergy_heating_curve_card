@@ -1,6 +1,6 @@
 // The card in a real Chromium: layout, focus, keyboard and the PBKDF2 of the browser, which jsdom can't test.
 import { describe, expect, it, vi } from 'vitest';
-import { page, userEvent } from 'vitest/browser';
+import { userEvent } from 'vitest/browser';
 import '../../src/card';
 import { createHass, withStates } from '../fixtures/hass';
 import { PASSWORD, PASSWORD_HASH } from '../fixtures/password';
@@ -69,23 +69,6 @@ describe('layout', () => {
   });
 });
 
-describe('editor layout', () => {
-  it.each([
-    { width: 600, columns: 2 },
-    { width: 360, columns: 1 },
-  ])('shows $columns column(s) in an editor of $width px in a wide window', async ({ width, columns }) => {
-    await page.viewport(1200, 800);
-    const column = document.createElement('div');
-    column.style.width = `${width}px`;
-    document.body.append(column);
-
-    const editor = await EditorView.create({});
-    column.append(editor.element);
-
-    expect(editor.passwordColumns).toBe(columns);
-  });
-});
-
 describe('editing', () => {
   it('keeps the focus in a point field while the readings update', async () => {
     const hass = createHass();
@@ -107,7 +90,7 @@ describe('password', () => {
     const view = await cardWithWidth(1000, { edit_password_hash: PASSWORD_HASH });
     await userEvent.click(view.unlockButton);
 
-    await userEvent.fill(view.get('#edit-password'), PASSWORD);
+    await userEvent.fill(view.passwordField, PASSWORD);
     await userEvent.keyboard('{Enter}');
     await view.waitForPasswordCheck();
 

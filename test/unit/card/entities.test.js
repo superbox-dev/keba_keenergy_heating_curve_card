@@ -55,7 +55,7 @@ describe('disabled entities', () => {
   it('asks to enable the disabled entities', async () => {
     const view = await CardView.create({}, createHass({ registry: disabled('limitDay', 'limitNight') }));
 
-    expect(view.text('.setup p')).toBe('2 required KEBA KeEnergy entities are disabled. '
+    expect(view.enableHint).toBe('2 required KEBA KeEnergy entities are disabled. '
       + 'An administrator can enable the required entities for this heating circuit.');
     expect(view.enableButton.disabled).toBe(false);
   });

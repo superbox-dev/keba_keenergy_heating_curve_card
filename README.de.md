@@ -208,7 +208,7 @@ Fehlende Messwerte zeigt die Karte als `—`.
 
 | Option | Standard | Bedeutung |
 | --- | --- | --- |
-| `title` | Heizkurve KEBA KeEnergy | Titel der Karte |
+| `title` | Heizkurve | Titel der Karte |
 | `language` | `auto` | `auto`, `de` oder `en` |
 | `config_entry` | automatisch | Fester Regler, über die ID seines Integrationseintrags |
 | `serial` | automatisch | Fester Regler, über seine Seriennummer |

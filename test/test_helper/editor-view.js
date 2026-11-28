@@ -5,10 +5,11 @@ import { settle, ShadowView } from './shadow-view';
 /** @import { CardConfig, FakeHass, FormSchema, HeatingCurveCardEditor } from '../fixtures/types' */
 
 /**
- * An option of the editor, a field of one of its forms.
+ * An option of the editor or a password field, a field of one of its forms.
  *
  * @typedef {'title' | 'language' | 'config_entry' | 'circuit' | 'flow_min' | 'flow_max' | 'x_min' | 'x_max'
- *   | 'x_step' | 'y_min' | 'y_max' | 'y_step' | 'intermediate_step' | 'auto_lock_minutes'} ConfigField
+ *   | 'x_step' | 'y_min' | 'y_max' | 'y_step' | 'intermediate_step' | 'auto_lock_minutes' | 'new_password'
+ *   | 'repeat_password'} ConfigField
  */
 
 /**
@@ -19,13 +20,14 @@ import { settle, ShadowView } from './shadow-view';
  *   data: Record<string, unknown>,
  *   schema: FormSchema[],
  *   computeLabel: (schema: FormSchema) => string,
+ *   computeHelper: (schema: FormSchema) => string | undefined,
  * }} Form
  */
 
 /**
  * The `ha-expansion-panel` with its header.
  *
- * @typedef {HTMLElement & { header: string }} Panel
+ * @typedef {HTMLElement & { header: string, secondary: string }} Panel
  */
 
 /**
@@ -144,6 +146,16 @@ export class EditorView extends ShadowView {
   }
 
   /**
+   * The help text below the field, `undefined` without help text.
+   *
+   * @param {ConfigField} name
+   * @returns {string | undefined}
+   */
+  helper(name) {
+    return this.form(name).computeHelper(this.field(name));
+  }
+
+  /**
    * The bounds of a number field.
    *
    * @param {ConfigField} name
@@ -258,32 +270,32 @@ export class EditorView extends ShadowView {
   // Password protection.
 
   /**
-   * `Password protection · configured` or `Password protection · optional`.
+   * The header of the password section and its second line, `Configured` or `Optional`.
    *
-   * @returns {string}
+   * @returns {{ header: string, status: string }}
    */
   get passwordSummary() {
-    return /** @type {Panel} */ (this.get('#password')).header;
+    const panel = /** @type {Panel} */ (this.get('#password'));
+    return { header: panel.header, status: panel.secondary };
+  }
+
+  /**
+   * The inputs of the password form, in the shadow root of its `ha-form`.
+   *
+   * @returns {HTMLInputElement[]}
+   */
+  get passwordInputs() {
+    return [...this.get('#new-password').shadowRoot?.querySelectorAll('input') ?? []];
   }
 
   /** @returns {HTMLInputElement} */
   get newPasswordInput() {
-    return this.get('#new-password');
-  }
-
-  /**
-   * Number of the columns of the password fields, the grid layout of the editor.
-   *
-   * @returns {number}
-   */
-  get passwordColumns() {
-    const grid = /** @type {HTMLElement} */ (this.newPasswordInput.closest('.grid'));
-    return getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+    return this.passwordInputs[0];
   }
 
   /** @returns {HTMLInputElement} */
   get repeatPasswordInput() {
-    return this.get('#repeat-password');
+    return this.passwordInputs[1];
   }
 
   /** @returns {HTMLButtonElement} */
@@ -313,8 +325,13 @@ export class EditorView extends ShadowView {
    * @returns {void}
    */
   startPassword(password, repeated = password) {
-    this.newPasswordInput.value = password;
-    this.repeatPasswordInput.value = repeated;
+    for (const [input, value] of /** @type {[HTMLInputElement, string][]} */ ([
+      [this.newPasswordInput, password],
+      [this.repeatPasswordInput, repeated],
+    ])) {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    }
     this.createPasswordButton.click();
   }
 

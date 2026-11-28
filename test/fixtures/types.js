@@ -127,7 +127,7 @@
  * Selector of a field of `ha-form`.
  *
  * @typedef {object} FormSelector
- * @property {{}} [text]
+ * @property {{ type?: string, autocomplete?: string }} [text]
  * @property {{ mode: string, options: { value: string, label: string }[] }} [select]
  * @property {{ min?: number, max?: number, step: number | 'any', mode: string }} [number]
  */

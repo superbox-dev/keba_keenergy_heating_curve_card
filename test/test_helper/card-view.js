@@ -75,6 +75,11 @@ export class CardView extends ShadowView {
   // Header and status.
 
   /** @returns {string | undefined} */
+  get cardHeader() {
+    return this.get('ha-card').getAttribute('header') ?? undefined;
+  }
+
+  /** @returns {string | undefined} */
   get title() {
     return this.text('h2');
   }
@@ -104,7 +109,7 @@ export class CardView extends ShadowView {
 
   /** @returns {string | undefined} */
   get notice() {
-    return this.text('.chart-panel p.notice');
+    return this.text('.chart-panel .notice');
   }
 
   /** @returns {string | undefined} */
@@ -286,7 +291,7 @@ export class CardView extends ShadowView {
    * @returns {string | undefined}
    */
   get registryHint() {
-    return this.text('.target-panel .hint');
+    return this.text('.registry-error');
   }
 
   /** @returns {HTMLElement} */
@@ -520,7 +525,12 @@ export class CardView extends ShadowView {
    * @returns {HTMLElement | null}
    */
   get enablePanel() {
-    return this.query('.setup');
+    return this.query('#enable-panel');
+  }
+
+  /** @returns {string | undefined} */
+  get enableHint() {
+    return this.text('.enable-hint');
   }
 
   /** @returns {HTMLButtonElement} */
@@ -550,12 +560,12 @@ export class CardView extends ShadowView {
    * @returns {string | undefined}
    */
   get lockStatus() {
-    return this.text('.edit-lock-info b');
+    return this.query('#lock-status')?.title;
   }
 
   /** @returns {string | undefined} */
   get lockHint() {
-    return this.text('.edit-lock-info span');
+    return this.text('.lock-hint');
   }
 
   /** @returns {HTMLButtonElement} */
@@ -571,19 +581,28 @@ export class CardView extends ShadowView {
   /**
    * The unlock form, `null` while it is closed.
    *
-   * @returns {HTMLFormElement | null}
+   * @returns {HTMLElement | null}
    */
   get unlockForm() {
     return this.query('#unlock-form');
   }
 
   /**
-   * The password field of the unlock form, `null` while it is closed.
+   * The `ha-form` with the password of the unlock form, `null` while it is closed.
    *
-   * @returns {HTMLInputElement | null}
+   * @returns {(HTMLElement & { disabled: boolean }) | null}
    */
   get passwordInput() {
     return this.query('#edit-password');
+  }
+
+  /**
+   * The input of the password, in the shadow root of its `ha-form`.
+   *
+   * @returns {HTMLInputElement}
+   */
+  get passwordField() {
+    return /** @type {HTMLInputElement} */ (this.get('#edit-password').shadowRoot?.querySelector('input'));
   }
 
   /** @returns {HTMLButtonElement} */
@@ -609,7 +628,8 @@ export class CardView extends ShadowView {
    */
   async enterPassword(password) {
     await this.click(this.unlockButton);
-    /** @type {HTMLInputElement} */ (this.get('#edit-password')).value = password;
+    this.passwordField.value = password;
+    this.passwordField.dispatchEvent(new Event('input'));
   }
 
   /**
@@ -787,7 +807,7 @@ export class ChartView {
 
   /** @returns {string[]} */
   get yAxisLabels() {
-    return this.view.texts('g.axes text[text-anchor="end"]');
+    return this.view.texts('g.axes text.y-tick');
   }
 
   /**
@@ -818,7 +838,7 @@ export class ChartView {
   }
 
   /**
-   * The rendered height of the title of the outdoor axis in pixels, the flow title is rotated.
+   * The rendered height of the title of the outdoor axis in pixels.
    *
    * @returns {number}
    */

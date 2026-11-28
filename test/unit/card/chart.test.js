@@ -27,7 +27,7 @@ describe('points', () => {
     expect(view.points).toHaveLength(3);
     expect(view.pointLabels).toEqual(['45.0', '35.0', '25.0']);
     expect(view.pointTitles[0]).toBe('P1: outdoor -20.0 °C · table 45.0 °C · limited display 45.0 °C');
-    expect(view.curvePath).toMatch(/^M638,/);
+    expect(view.curvePath).toMatch(/^M682,/);
   });
 
   it('anchors the labels at the edges', async () => {
@@ -58,8 +58,8 @@ describe('points', () => {
 
     const xs = view.curveSteps.map(step => step.split(',')[0]);
     const ys = view.curveSteps.map(step => step.split(',')[1]);
-    expect(xs).toEqual(['M638', 'L406', 'L58']);
-    expect(new Set(ys.map(y => Number(y).toFixed(2)))).toEqual(new Set(['257.33']));
+    expect(xs).toEqual(['M682', 'L426.8', 'L44']);
+    expect(new Set(ys.map(y => Number(y).toFixed(2)))).toEqual(new Set(['263.56']));
     expect(view.samplePoints).toHaveLength(0);
   });
 
@@ -141,8 +141,8 @@ describe('heating limits and readings', () => {
   it('marks the target and the actual flow', async () => {
     const view = await chart();
 
-    // Target 32 °C on the default flow axis from 15 to 60 °C, 420 units high with the bottom at 444.
-    expect(view.target?.getAttribute('cy')).toBe(String(444 - (32 - 15) / 45 * 420));
+    // Target 32 °C on the default flow axis from 15 to 60 °C, 424 units high with the bottom at 452.
+    expect(view.target?.getAttribute('cy')).toBe(String(452 - (32 - 15) / 45 * 424));
     expect(view.actual).not.toBeNull();
   });
 
@@ -187,7 +187,7 @@ describe('axes', () => {
   it('names the axes', async () => {
     const view = await chart();
 
-    expect(view.axisTexts.slice(-2)).toEqual(['Outdoor temperature °C', 'Flow °C']);
+    expect(view.axisTexts.slice(-2)).toEqual(['Outdoor temperature °C', '°C']);
     expect(view.svg.getAttribute('aria-label'))
       .toBe('Saved heating curve points, interpolated values and current flow temperatures');
     expect(view.curveClipPathId).toBe(view.clipPathId);

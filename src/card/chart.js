@@ -21,7 +21,6 @@ import { inLimits, interpolate, sortByOutdoor } from './points.js';
  * @property {number} limitDay Day heating limit.
  * @property {number} limitNight Night heating limit.
  * @property {CardConfig} config Card config with the display limits and the axis options.
- * @property {boolean} dark Whether the dark theme is active.
  * @property {string} plotId Unique ID of the clip path of the card.
  * @property {Translate} t Translates the texts.
  * @property {FormatNumber} number Formats the numbers.
@@ -38,8 +37,8 @@ const CHART_HEIGHT = 500;
 /** Minimum rendered height of the chart in pixels, a narrow chart gets taller. */
 const MIN_HEIGHT = 320;
 
-/** Margins of the plot area in pixels, for the axis labels and titles. */
-const MARGIN = { left: 58, top: 24, right: 62, bottom: 56 };
+/** Margins of the plot area in pixels, for the axis labels, the unit above the flow axis and the outdoor title. */
+const MARGIN = { left: 44, top: 28, right: 18, bottom: 48 };
 
 /** Default range of the axes without fixed bounds, extended by the points. */
 const AUTO_OUTDOOR = { min: -20, max: 30 };
@@ -123,7 +122,7 @@ export function renderChart(input) {
   for (const { value, showLabel } of flowTicks) {
     const py = y(value);
     grid += `<line x1="${plotLeft}" y1="${py}" x2="${plotRight}" y2="${py}" class="grid"/>`;
-    if (showLabel) grid += `<text x="${plotLeft - units(10)}" y="${py + units(4)}" text-anchor="end">${tickLabel(value)}</text>`;
+    if (showLabel) grid += `<text x="${plotLeft - units(10)}" y="${py + units(4)}" text-anchor="end" class="y-tick">${tickLabel(value)}</text>`;
   }
 
   let limits = '';
@@ -134,7 +133,7 @@ export function renderChart(input) {
     if (!Number.isFinite(value) || value < lo || value > hi) continue;
     const px = x(value);
     limits += html`<line x1="${px}" y1="${plotTop}" x2="${px}" y2="${plotBottom}" class="limit ${cls}"/>
-      <text x="${Math.max(plotLeft + units(52), Math.min(plotRight - units(53), px))}" y="${labelY}"
+      <text x="${Math.max(plotLeft + units(60), Math.min(plotRight - units(53), px))}" y="${labelY}"
         text-anchor="middle" class="limit-label">
         ${esc(label)} ${esc(temperature(value))}
       </text>`;
@@ -222,9 +221,8 @@ export function renderChart(input) {
   const path = curvePath(unique, lo, hi, minimum, maximum, (outdoor, flow) => x(outdoor) + ',' + y(clamp(flow)));
   const plot = `x="${plotLeft}" y="${plotTop}" width="${plotWidth}" height="${plotHeight}"`;
   const label = esc(t('Saved heating curve points, interpolated values and current flow temperatures'));
-  return html`<svg viewBox="0 0 ${CHART_WIDTH} ${height}" style="${palette(input.dark, textScale)}" aria-label="${label}" role="img">
+  return html`<svg viewBox="0 0 ${CHART_WIDTH} ${height}" style="--chart-scale:${textScale}" aria-label="${label}" role="img">
     <defs><clipPath id="${input.plotId}" clipPathUnits="userSpaceOnUse"><rect ${plot}/></clipPath></defs>
-    <rect ${plot} rx="${units(8)}" class="plot"/>
     <g class="axes">${grid}</g>
     ${limits}
     <path d="${path}" class="curve" clip-path="url(#${input.plotId})"/>
@@ -233,8 +231,7 @@ export function renderChart(input) {
       <text x="${plotLeft + plotWidth / 2}" y="${height - units(7)}" text-anchor="middle">
         ${esc(t('Outdoor temperature'))} °C
       </text>
-      <text x="${units(15)}" y="${plotTop + plotHeight / 2}" text-anchor="middle"
-        transform="rotate(-90 ${units(15)} ${plotTop + plotHeight / 2})">${esc(t('Flow °C'))}</text>
+      <text x="${plotLeft - units(10)}" y="${plotTop - units(10)}" text-anchor="end">°C</text>
     </g>
   </svg>`;
 }
@@ -266,19 +263,4 @@ function curvePath(points, lo, hi, minimum, maximum, coordinates) {
     .sort((a, b) => a - b)
     .map((outdoor, i) => (i ? 'L' : 'M') + coordinates(outdoor, flow(outdoor)))
     .join(' ');
-}
-
-/**
- * Colors of the curve for the light and the dark theme and the scale of the texts.
- *
- * @param {boolean} dark Whether the dark theme is active.
- * @param {number} textScale SVG units per pixel.
- * @returns {string} CSS custom properties for the `style` attribute.
- */
-function palette(dark, textScale) {
-  return [
-    `--chart-scale:${textScale}`,
-    `--curve-sample-label:${dark ? '#9BACB8' : '#657B89'}`,
-    `--curve-line:${dark ? '#65B4B0' : '#278F89'}`,
-  ].join(';');
 }

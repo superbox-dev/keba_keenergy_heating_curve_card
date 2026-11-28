@@ -21,6 +21,7 @@ import {
   curveLabel,
   limitsData,
   limitsForm,
+  passwordForm,
   pointData,
   pointForm,
   pointRows,
@@ -94,7 +95,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     this._lock = new EditLock({
       t: (text, params) => this._t(text, params),
       render: force => this._render(force),
-      passwordInput: () => this._root.querySelector('#edit-password'),
+      passwordForm: () => this._root.querySelector('#edit-password'),
       onLocked: message => this._discardChanges(message),
       onUnlocked: (message) => {
         this._message = message;
@@ -360,10 +361,9 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     return temperature(this._state(id));
   }
 
-  /** @returns {boolean} Whether the user is in an input, a select or the unlock form. */
+  /** @returns {boolean} Whether the user is in a form of the card or the unlock form is open. */
   _editing() {
-    return this._lock.formOpen || this._selectInteracting
-      || !!this._root.activeElement?.matches('input, select');
+    return this._lock.formOpen || this._selectInteracting;
   }
 
   /** Loads the registry and discovers the controllers, once per config. */
@@ -519,7 +519,6 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       limitDay: this._fieldValue('limitDay'),
       limitNight: this._fieldValue('limitNight'),
       config: this._cfg,
-      dark: !!this._hass?.themes?.darkMode,
       plotId: this._plotId,
       t: (text, params) => this._t(text, params),
       number: (value, options) => this._number(value, options),
@@ -616,8 +615,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
    */
   _render(force = false) {
     if (!this._config || !this._hass) return;
-    // Keep the real <select> and inputs in the DOM while the user interacts with them.
-    // In particular, replacing a focused native select dismisses its open menu.
+    // Keep the forms in the DOM while the user is in them, a redraw would close an open menu and drop the focus.
     if (!force && this._editing()) {
       this._pendingRender = true;
       this._refreshLive();
@@ -731,7 +729,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
         : null,
       disabledEntities: disabled.length,
       canEnableEntities: !this._busy && canEdit && !!this._hass?.user?.is_admin,
-      title: config.title || this._t('KEBA KeEnergy heating curve'),
+      title: config.title || this._t('Heating curve'),
       mode: tableState === 'on' || tableState === 'off' ? modes[tableState] : this._t('Curve mode unavailable'),
       selected,
       options,
@@ -900,11 +898,27 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       this._notice(this._t('Settings changed · not saved yet'));
       this._preview();
     });
+    const password = this._root.querySelector('#edit-password');
+    if (password) {
+      this._bindFormElement(/** @type {HTMLElement} */ (password), passwordForm(t), (data, form) => {
+        Object.assign(form, { data });
+      });
+      Object.assign(password, { disabled: this._lock.verifying });
+    }
+  }
+
+  /** Gives the alerts their titles as property, the `title` attribute would also show a tooltip of the browser. */
+  _titleAlerts() {
+    const alerts = /** @type {HTMLElement[]} */ ([...this._root.querySelectorAll('ha-alert[data-title]')]);
+    const setTitles = () => alerts.forEach(alert => Object.assign(alert, { title: alert.dataset.title }));
+    if (customElements.get('ha-alert')) setTitles();
+    else customElements.whenDefined('ha-alert').then(setTitles);
   }
 
   /** Binds the event handlers after a full redraw. */
   _bind() {
     const root = this._root;
+    this._titleAlerts();
     /**
      * @param {string} selector CSS selector.
      * @param {string} event Event type.
@@ -921,7 +935,6 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     on('#lock-editor', 'click', () => this._lock.lock());
     on('#cancel-unlock', 'click', () => this._lock.lock(this._t('Editing locked.')));
     on('#confirm-unlock', 'click', event => this._lock.submit(event));
-    on('#unlock-form', 'submit', event => this._lock.submit(event));
     on('#edit-password', 'keydown', (event) => {
       const { key } = /** @type {KeyboardEvent} */ (event);
       if (key === 'Enter') return this._lock.submit(event);

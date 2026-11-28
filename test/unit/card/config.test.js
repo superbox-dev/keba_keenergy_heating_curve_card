@@ -16,7 +16,7 @@ describe('setConfig', () => {
   it('accepts an empty config', async () => {
     const view = await CardView.create({}, createHass());
 
-    expect(view.title).toBe('KEBA KeEnergy heating curve');
+    expect(view.title).toBe('Heating curve');
   });
 
   it('shows the title', async () => {

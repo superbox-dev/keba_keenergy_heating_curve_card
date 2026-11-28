@@ -53,7 +53,7 @@ const AUTOMATIC = 'auto';
 /**
  * The `ha-expansion-panel` element of the Home Assistant frontend.
  *
- * @typedef {HTMLElement & { header: string }} ExpansionPanel
+ * @typedef {HTMLElement & { header: string, secondary: string }} ExpansionPanel
  */
 
 /**
@@ -97,6 +97,29 @@ const LABELS = {
   flow_min: 'Display minimum (°C)',
   flow_max: 'Display maximum (°C)',
   auto_lock_minutes: 'Auto-lock after minutes',
+  passwords: '',
+  new_password: 'New password',
+  repeat_password: 'Repeat password',
+};
+
+/** The fields of a new password, side by side like the password fields of Home Assistant. */
+const PASSWORD_SCHEMA = [{
+  name: 'passwords',
+  type: 'grid',
+  flatten: true,
+  schema: ['new_password', 'repeat_password'].map(name => ({
+    name,
+    selector: { text: { type: 'password', autocomplete: 'new-password' } },
+  })),
+}];
+
+/**
+ * Help texts below the fields in English, translated by `_t()`.
+ *
+ * @type {Record<string, string>}
+ */
+const HELPERS = {
+  circuit: 'Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands.',
 };
 
 /** Options shown as numbers. */
@@ -153,31 +176,15 @@ const STYLE = `
   .panel {
     padding: 0 var(--ha-space-4) var(--ha-space-4);
   }
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--ha-space-3);
+  [hidden] {
+    display: none !important;
   }
-  label {
-    display: grid;
-    gap: var(--ha-space-1);
-    font-size: var(--ha-font-size-s);
-    color: var(--secondary-text-color);
-  }
-  input,button {
-    font: inherit;
-    font-size: var(--ha-font-size-m);
-    color: var(--primary-text-color);
-    background: var(--card-background-color);
-    padding: var(--ha-space-3);
-    border: 1px solid var(--divider-color);
-    border-radius: var(--ha-border-radius-md);
-    min-width: 0;
-  }
-  button {
-    cursor: pointer;
-    margin: var(--ha-space-3) var(--ha-space-2) 0 0;
-    font-weight: var(--ha-font-weight-medium);
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--ha-space-2);
+    margin: var(--ha-space-3) 0;
   }
   p {
     color: var(--secondary-text-color);
@@ -185,43 +192,39 @@ const STYLE = `
     line-height: var(--ha-line-height-normal);
   }
   #password-message {
-    color: var(--error-color);
+    display: block;
+    margin-bottom: var(--ha-space-3);
   }
   #password-message:empty {
     display: none;
-  }
-  @container(max-width:450px) {
-    .grid {
-      grid-template-columns: 1fr;
-    }
   }
 `;
 
 /** Markup of the editor, the texts are set by `_render()`. */
 const TEMPLATE = html`<style>${STYLE}</style>
   <ha-form id="general"></ha-form>
-  <p id="pinning-hint"></p>
   <p id="registry-error" hidden></p>
   <ha-expansion-panel id="chart-axes" outlined>
+    <ha-icon slot="leading-icon" icon="mdi:chart-line"></ha-icon>
     <div class="panel"><p id="axes-hint"></p><ha-form id="axes"></ha-form></div>
   </ha-expansion-panel>
   <ha-expansion-panel id="flow-limits" outlined>
+    <ha-icon slot="leading-icon" icon="mdi:arrow-collapse-vertical"></ha-icon>
     <div class="panel"><p id="flow-hint"></p><ha-form id="flow"></ha-form></div>
   </ha-expansion-panel>
   <ha-expansion-panel id="password" outlined>
+    <ha-icon slot="leading-icon" icon="mdi:lock-outline"></ha-icon>
     <div class="panel">
       <p id="password-hint"></p>
-      <div class="grid">
-        <label><span id="new-password-label"></span><input id="new-password" type="password" autocomplete="new-password"></label>
-        <label><span id="repeat-password-label"></span><input id="repeat-password" type="password" autocomplete="new-password"></label>
+      <ha-form id="new-password"></ha-form>
+      <div class="buttons">
+        <ha-button id="remove-password" appearance="plain" variant="danger"></ha-button>
+        <ha-button id="create-password"></ha-button>
       </div>
-      <button type="button" id="create-password"></button>
-      <button type="button" id="remove-password"></button>
-      <p id="password-message" role="status"></p>
+      <ha-alert id="password-message" alert-type="error"></ha-alert>
       <ha-form id="lock"></ha-form>
     </div>
-  </ha-expansion-panel>
-  <p id="yaml-hint"></p>`;
+  </ha-expansion-panel>`;
 
 class KeEnergyHeatingCurveEditor extends HTMLElement {
   constructor() {
@@ -243,6 +246,12 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     this._loading = false;
     /** Counter of the config changes, a password of an older config is not set. */
     this._revision = 0;
+    /**
+     * Values of the password fields, emptied when the password is set.
+     *
+     * @type {Record<string, unknown>}
+     */
+    this._passwords = {};
   }
 
   /**
@@ -356,9 +365,9 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
 
   /** Creates the verifier of the new password, the password itself is never stored. */
   async _createPassword() {
-    const one = this._get('#new-password'), two = this._get('#repeat-password');
+    const password = String(this._passwords.new_password ?? '');
     const message = this._get('#password-message');
-    if (!one.value || one.value !== two.value) {
+    if (!password || password !== this._passwords.repeat_password) {
       message.textContent = this._t('Both passwords must be filled in and match.');
       return;
     }
@@ -366,11 +375,11 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
       message.textContent = this._t('The browser cannot generate secure random values.');
       return;
     }
-    const revision = this._revision, password = one.value;
+    const revision = this._revision;
     const button = this._get('#create-password');
     button.disabled = true;
-    one.value = '';
-    two.value = '';
+    this._passwords = {};
+    /** @type {HaForm} */ (this._get('#new-password')).data = this._passwords;
     try {
       const verifier = await createVerifier(password);
       if (revision !== this._revision) {
@@ -525,39 +534,50 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
         data,
         schema: schemas[name],
         computeLabel: (/** @type {FormSchema} */ item) => this._t(LABELS[item.name]),
+        computeHelper: (/** @type {FormSchema} */ item) => HELPERS[item.name] && this._t(HELPERS[item.name]),
       });
     }
     /** @type {[string, string][]} */
     const headers = [
       ['#chart-axes', this._t('Chart axes')],
       ['#flow-limits', this._t('Chart flow limits')],
-      ['#password', `${this._t('Password protection')} ${
-        c.edit_password_hash ? this._t('· configured') : this._t('· optional')}`],
+      ['#password', this._t('Password protection')],
     ];
     for (const [selector, header] of headers) {
       /** @type {ExpansionPanel} */ (this._get(selector)).header = header;
     }
-    this._text('#pinning-hint', this._t('Without a fixed mapping, select the controller and heating circuit in the card. Switching the view sends no commands.'));
+    /** @type {ExpansionPanel} */ (this._get('#password')).secondary = c.edit_password_hash
+      ? this._t('Configured')
+      : this._t('Optional');
     this._text('#registry-error', this._error);
     this._get('#registry-error').hidden = !this._error;
     this._text('#axes-hint', this._t('Empty bounds are set automatically. The default grid interval is 5 °C. These settings only change the visible chart range and grid.'));
     this._text('#flow-hint', this._t('Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.'));
     this._text('#password-hint', this._t('Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply.'));
-    this._text('#new-password-label', this._t('New password'));
-    this._text('#repeat-password-label', this._t('Repeat password'));
+    Object.assign(/** @type {HaForm} */ (this._get('#new-password')), {
+      hass: this._hass,
+      data: this._passwords,
+      schema: PASSWORD_SCHEMA,
+      computeLabel: (/** @type {FormSchema} */ item) => this._t(LABELS[item.name]),
+    });
     this._text('#create-password', this._t('Set password'));
     this._text('#remove-password', this._t('Remove password protection'));
     this._get('#remove-password').hidden = !c.edit_password_hash;
-    this._text('#yaml-hint', this._t('Additional options and manual entity mappings are available in the YAML editor.'));
   }
 
   /** Binds the event handlers once. */
   _bind() {
-    this._root.querySelectorAll('ha-form').forEach((form) => {
+    this._root.querySelectorAll('ha-form:not(#new-password)').forEach((form) => {
       form.addEventListener('value-changed', (event) => {
         event.stopPropagation();
         this._formChanged(/** @type {CustomEvent<{ value: Record<string, unknown> }>} */ (event).detail.value);
       });
+    });
+    const passwords = /** @type {HaForm} */ (this._get('#new-password'));
+    passwords.addEventListener('value-changed', (event) => {
+      event.stopPropagation();
+      this._passwords = /** @type {CustomEvent<{ value: Record<string, unknown> }>} */ (event).detail.value;
+      passwords.data = this._passwords;
     });
     this._get('#create-password').addEventListener('click', () => this._createPassword());
     this._get('#remove-password').addEventListener('click', () => this._change('edit_password_hash', ''));
