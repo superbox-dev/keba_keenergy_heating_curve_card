@@ -1,7 +1,7 @@
 // Page object of the card in a dashboard of Home Assistant in Docker, with Playwright.
 import { chromium } from 'playwright';
 /** @import { Browser, Locator, Page } from 'playwright' */
-/** @import { Tokens } from '../ha/dashboard' */
+/** @import { Tokens } from '../system/dashboard' */
 
 const CARD = 'keba-keenergy-heating-curve-card';
 const EDITOR = `${CARD}-editor`;

@@ -1,5 +1,5 @@
 // Starts Home Assistant in Docker once for all tests of the suite and removes it afterwards.
-import { start, stop } from './ha-docker.mjs';
+import { start, stop } from './system-docker.mjs';
 
 /**
  * Starts Home Assistant, the tests read the tokens of the test user from `HA_TOKENS`.

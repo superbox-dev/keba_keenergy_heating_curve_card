@@ -29,13 +29,13 @@
   - smoke tests in `test/dist/` (`vitest.dist.config.js`): the built bundle loads, registers and renders, no details
   - end-to-end tests in `test/e2e/` (`vitest.e2e.config.js`): Chromium for what jsdom can't (layout, focus,
     keyboard, the real PBKDF2), only through `userEvent` of `vitest/browser`
-  - Home Assistant tests in `test/ha/` (`vitest.ha.config.js`): the built bundle in a dashboard of Home Assistant
-    in Docker, the real frontend and `ha-form`, `test/ha-docker.mjs` starts and onboards it, only what the fakes
+  - system tests in `test/system/` (`vitest.system.config.js`): the built bundle in a dashboard of Home Assistant
+    in Docker, the real frontend and `ha-form`, `test/system-docker.mjs` starts and onboards it, only what the fakes
     can't show
-    - the real integration `keba_keenergy` of the release `INTEGRATION` in `test/ha-docker.mjs`, its control units
-      are the fakes of `test/ha/controller.py` in the container with the test data of the integration, never a real
+    - the real integration `keba_keenergy` of the release `INTEGRATION` in `test/system-docker.mjs`, its control units
+      are the fakes of `test/system/controller.py` in the container with the test data of the integration, never a real
       device or a real Home Assistant
-  - every test file imports what it tests (`import '../../src/card'`), except `test/ha/` with the bundle in Home
+  - every test file imports what it tests (`import '../../src/card'`), except `test/system/` with the bundle in Home
     Assistant, the page objects import nothing of `src/`
 - `test/unit/setup.js` computes PBKDF2 with Web Crypto, the JavaScript version is too slow with coverage
   - a failing check with `vi.mock` of `@noble/hashes/pbkdf2.js` in its own file

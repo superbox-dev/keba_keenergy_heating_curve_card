@@ -1,4 +1,4 @@
-// The Home Assistant of `test/ha-docker.mjs` and the login of its test user.
+// The Home Assistant of `test/system-docker.mjs` and the login of its test user.
 
 /** URL of Home Assistant on the host. */
 export const URL = 'http://localhost:8123';

@@ -121,8 +121,8 @@ jobs:
       - name: Run smoke tests of the card
         run: npx vitest run --config test/vitest.dist.config.js
 
-  test-ha:
-    name: Test HA
+  test-system:
+    name: Test system
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     needs:
@@ -143,7 +143,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       # The card in a dashboard of Home Assistant in Docker, with the real frontend.
       - name: Run tests in Home Assistant
-        run: npx vitest run --config test/vitest.ha.config.js
+        run: npx vitest run --config test/vitest.system.config.js
 
   security:
     name: Audit packages
@@ -177,7 +177,7 @@ jobs:
     needs:
       - code-analysis
       - test-build
-      - test-ha
+      - test-system
     permissions:
       contents: write
     steps:

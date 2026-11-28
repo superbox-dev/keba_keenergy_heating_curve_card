@@ -1,5 +1,5 @@
 // The built card in a dashboard of Home Assistant in Docker: the real frontend, `ha-form`, the theme and the real
-// integration keba_keenergy. Its control units are the fakes of test/ha/controller.py, no device is ever written.
+// integration keba_keenergy. Its control units are the fakes of test/system/controller.py, no device is ever written.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { DASHBOARD, URL, entityState, testUser } from './dashboard';
 import { PASSWORD, PASSWORD_HASH } from '../fixtures/password';

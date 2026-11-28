@@ -1,4 +1,4 @@
-// Home Assistant in Docker for the tests in `test/ha/`, outside of the type check like `build.mjs`.
+// Home Assistant in Docker for the tests in `test/system/`, outside of the type check like `build.mjs`.
 import { execFile } from 'node:child_process';
 import { cp, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -18,7 +18,7 @@ export const INTEGRATION = 'v1.12.2';
 const ARCHIVE = `https://codeload.github.com/superbox-dev/keba_keenergy/tar.gz/refs/tags/${INTEGRATION}`;
 
 /**
- * The fake control units of `test/ha/controller.py` in the container, with the test data of a device of the
+ * The fake control units of `test/system/controller.py` in the container, with the test data of a device of the
  * integration and fake serial numbers.
  */
 const CONTROLLERS = [
@@ -36,14 +36,14 @@ const CONTAINER = 'keba-keenergy-heating-curve-card-test';
 /** Port of Home Assistant on the host. */
 const PORT = 8123;
 
-/** URL of Home Assistant on the host, the same as in `test/ha/dashboard.js`. */
+/** URL of Home Assistant on the host, the same as in `test/system/dashboard.js`. */
 const URL = `http://localhost:${PORT}`;
 
 /** Client ID of the test user, Home Assistant uses the URL of the frontend. */
 const CLIENT_ID = `${URL}/`;
 
 /**
- * Dashboard and view with the card, the same as in `test/ha/dashboard.js`.
+ * Dashboard and view with the card, the same as in `test/system/dashboard.js`.
  *
  * An own dashboard, `/lovelace` opens the overview of Home Assistant.
  */
@@ -141,7 +141,7 @@ async function installIntegration(config) {
     });
     await mkdir(join(config, 'fake_controller'));
     await cp(join(download, 'tests', 'fixtures'), join(config, 'fake_controller', 'fixtures'), { recursive: true });
-    await cp(resolve('test/ha/controller.py'), join(config, 'fake_controller', 'controller.py'));
+    await cp(resolve('test/system/controller.py'), join(config, 'fake_controller', 'controller.py'));
   } finally {
     await rm(download, { recursive: true, force: true });
   }

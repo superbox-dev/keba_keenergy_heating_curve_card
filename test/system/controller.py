@@ -1,7 +1,7 @@
 """Fake Web HMI of a KEBA KeEnergy control unit for the tests of the card in Home Assistant in Docker.
 
 It answers the requests of `keba_keenergy_api` with the test data of the integration (`tests/fixtures/` of the
-release in `test/ha-docker.mjs`) and keeps the written values in memory. It only listens in the container, the real
+release in `test/system-docker.mjs`) and keeps the written values in memory. It only listens in the container, the real
 integration never reaches a real control unit.
 """
 

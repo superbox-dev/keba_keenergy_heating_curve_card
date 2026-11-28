@@ -15,7 +15,7 @@ npm test                # tests
 npm run test:coverage   # tests and coverage
 npm run test:dist       # build and smoke tests of dist/
 npm run test:e2e        # tests in Chromium
-npm run test:ha         # build and tests in Home Assistant in Docker (Docker running)
+npm run test:system     # build and system tests in Home Assistant in Docker (Docker running)
 npm run typecheck       # types of the sources (JSDoc) and the tests
 npm run build           # build dist/keba_keenergy_heating_curve_card.js from src/
 ```
