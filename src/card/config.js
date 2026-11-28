@@ -1,9 +1,10 @@
 // Checks the card config and sets the defaults.
 import { AXIS_LIMITS, INTERMEDIATE_STEP, MIN_AXIS_STEP } from '../chart-axis.js';
 import { FIELDS } from '../discovery.js';
-import { formatNumber, languageCode, translate } from '../i18n.js';
+import { LANGUAGES, formatNumber, languageCode, translate } from '../i18n.js';
 import { parseVerifier } from '../password.js';
 import { numeric } from './entities.js';
+import { POINT_LIMITS } from './points.js';
 
 /**
  * @typedef {import('../types.js').Hass} Hass
@@ -44,9 +45,8 @@ const DEFAULTS = {
   auto_lock_minutes: 5,
 };
 
-const LANGUAGES = ['auto', 'de', 'en'];
-const FLOW_LIMITS = { min: 10, max: 90 };
-const LOCK_MINUTES = { min: 1, max: 60 };
+/** Minutes of the option `auto_lock_minutes`. */
+export const LOCK_MINUTES = { min: 1, max: 60 };
 
 /**
  * Checks the card config and sets the defaults.
@@ -69,7 +69,7 @@ export function normalizeConfig(raw, hass) {
   if (raw.entities && (typeof raw.entities !== 'object' || Array.isArray(raw.entities))) {
     throw Error(t('entities must be a mapping.'));
   }
-  if (!LANGUAGES.includes(config.language)) throw Error(t('language must be auto, de or en.'));
+  if (!LANGUAGES.some(({ value }) => value === config.language)) throw Error(t('language must be auto, de or en.'));
   for (const key of ['serial', 'circuit', 'config_entry']) config[key] = String(config[key] ?? '').trim();
   if (config.circuit && !/^[1-9]\d*$/.test(config.circuit)) {
     throw Error(t('circuit must be a heating circuit number starting at 1.'));
@@ -95,7 +95,7 @@ export function normalizeConfig(raw, hass) {
   for (const key of ['flow_min', 'flow_max']) {
     config[key] = config[key] === null || config[key] === '' ? null : numeric(config[key]);
     if (config[key] !== null && (!Number.isFinite(config[key])
-      || config[key] < FLOW_LIMITS.min || config[key] > FLOW_LIMITS.max)) {
+      || config[key] < POINT_LIMITS.flow.min || config[key] > POINT_LIMITS.flow.max)) {
       throw Error(t('{key} must be between 10 and 90 °C or empty.', { key }));
     }
   }

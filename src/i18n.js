@@ -1,6 +1,13 @@
 // English source messages with a complete German catalog. Entity IDs, table names
 // and user-supplied labels are data and must never be passed through this catalog.
 
+/** Languages of the option `language` with their labels in English, translated by `translate()`. */
+export const LANGUAGES = [
+  { value: 'auto', label: 'Automatic (Home Assistant)' },
+  { value: 'de', label: 'German' },
+  { value: 'en', label: 'English' },
+];
+
 /**
  * German translations of the English source texts.
  *

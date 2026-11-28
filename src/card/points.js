@@ -11,7 +11,7 @@ import { numeric } from './entities.js';
  * @property {number} flow Flow temperature in °C, `NaN` while the input is empty.
  */
 
-/** Limits of the controller for a curve table. */
+/** Limits of the controller for a curve table, the flow range also bounds `flow_min` / `flow_max`. */
 export const POINT_LIMITS = {
   count: { min: 1, max: 16 },
   outdoor: { min: -40, max: 40 },

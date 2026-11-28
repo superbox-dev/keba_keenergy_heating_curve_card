@@ -198,84 +198,75 @@ function targetPanel(model, t) {
 }
 
 /**
- * The selections of a controller and a heating circuit, with the options, the disabled state and a missing value.
+ * A selection as `ha-form`.
  *
- * @param {TargetModel} model The selection.
- * @param {Translate} t Translates the texts.
- * @returns {Record<'controller' | 'circuit', TargetSelection>} The two selections.
+ * @typedef {object} SelectField
+ * @property {string} name Name of the field, the key of its value.
+ * @property {string} label Label.
+ * @property {string} [helper] Help text below the field.
+ * @property {boolean} disabled Whether the selection is disabled.
+ * @property {string} selected Selected value.
+ * @property {string} missingLabel Label of the selected value when the options do not have it, empty when they have.
+ * @property {{ value: string, label: string }[]} options Options.
+ * @property {string} emptyLabel Label and value without options.
  */
-function targetSelections(model, t) {
-  const { controllers, controllerId, circuitId, busy } = model;
-  const controller = controllers.find(c => c.id === controllerId);
-  const circuits = controller?.circuits || [];
+
+/**
+ * A selection as `ha-form`, a missing selected value and an empty list are options of the select field.
+ *
+ * @param {SelectField} field The selection.
+ * @returns {CardForm} The schema and the value.
+ */
+function selectForm({ name, label, helper, disabled, selected, missingLabel, options, emptyLabel }) {
+  const items = [...missingLabel ? [{ value: selected, label: missingLabel }] : [], ...options];
+  const value = items.length ? selected : emptyLabel;
   return {
-    controller: {
-      label: t('Controller'),
-      disabled: busy || model.controllerPinned || controllers.length < 2,
-      selected: controllerId,
-      missing: !!controllerId && !controller,
-      missingLabel: t('Selected controller is missing'),
-      options: controllers,
-      emptyLabel: t('No controller found'),
-    },
-    circuit: {
-      label: t('Heating circuit'),
-      disabled: busy || model.circuitPinned || circuits.length < 2,
-      selected: circuitId,
-      missing: !!circuitId && !circuits.some(c => c.id === circuitId),
-      missingLabel: t('Selected heating circuit is missing'),
-      options: circuits,
-      emptyLabel: t('No heating circuit found'),
-    },
+    schema: [{
+      name,
+      label,
+      ...helper ? { helper } : {},
+      required: true,
+      disabled,
+      selector: { select: { mode: 'dropdown', options: items.length ? items : [{ value, label: emptyLabel }] } },
+    }],
+    data: { [name]: value },
   };
 }
 
 /**
- * The selections as `ha-form`, a missing value and the empty list are options of the select field.
+ * The selections of the controller and the heating circuit as `ha-form`.
  *
  * @param {TargetModel} model The selection.
  * @param {Translate} t Translates the texts.
  * @returns {Record<'controller' | 'circuit', CardForm>} The schema and the value of each form.
  */
 export function targetForms(model, t) {
-  const selections = targetSelections(model, t);
-  /**
-   * @param {'controller' | 'circuit'} name
-   * @returns {CardForm}
-   */
-  const form = (name) => {
-    const { label, disabled, selected, missing, missingLabel, options, emptyLabel } = selections[name];
-    const items = [
-      ...missing ? [{ value: selected, label: missingLabel }] : [],
-      ...options.map(o => ({ value: o.id, label: o.label })),
-    ];
-    const value = items.length ? selected : emptyLabel;
-    return {
-      schema: [{
-        name,
-        label,
-        required: true,
-        disabled,
-        selector: { select: { mode: 'dropdown', options: items.length ? items : [{ value, label: emptyLabel }] } },
-      }],
-      data: { [name]: value },
-    };
+  const { controllers, controllerId, circuitId, busy } = model;
+  const controller = controllers.find(c => c.id === controllerId);
+  const circuits = controller?.circuits || [];
+  /** @param {{ id: string, label: string }[]} entries */
+  const options = entries => entries.map(({ id, label }) => ({ value: id, label }));
+  return {
+    controller: selectForm({
+      name: 'controller',
+      label: t('Controller'),
+      disabled: busy || model.controllerPinned || controllers.length < 2,
+      selected: controllerId,
+      missingLabel: controllerId && !controller ? t('Selected controller is missing') : '',
+      options: options(controllers),
+      emptyLabel: t('No controller found'),
+    }),
+    circuit: selectForm({
+      name: 'circuit',
+      label: t('Heating circuit'),
+      disabled: busy || model.circuitPinned || circuits.length < 2,
+      selected: circuitId,
+      missingLabel: circuitId && !circuits.some(c => c.id === circuitId) ? t('Selected heating circuit is missing') : '',
+      options: options(circuits),
+      emptyLabel: t('No heating circuit found'),
+    }),
   };
-  return { controller: form('controller'), circuit: form('circuit') };
 }
-
-/**
- * A selection of the target panel.
- *
- * @typedef {object} TargetSelection
- * @property {string} label Label.
- * @property {boolean} disabled Whether the selection is disabled.
- * @property {string} selected Selected value.
- * @property {boolean} missing Whether the selected value is not in the options.
- * @property {string} missingLabel Label of a missing selected value.
- * @property {{ id: string, label: string }[]} options Options.
- * @property {string} emptyLabel Label without options.
- */
 
 /**
  * Status of the password lock with the unlock form.
@@ -413,22 +404,16 @@ function sidePanel(model, t) {
  */
 export function curveForm(model, t) {
   const { selected, options } = model;
-  const items = [
-    ...selected && !options.includes(selected) ? [{ value: selected, label: t('Current: {name}', { name: selected }) }] : [],
-    ...options.map(name => ({ value: name, label: name })),
-  ];
-  const empty = selected || t('No curves available');
-  return {
-    schema: [{
-      name: 'curve',
-      label: t('Curve table for this heating circuit'),
-      helper: t('Choose one of the heating tables (HC…) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller.'),
-      required: true,
-      disabled: model.curveSelectDisabled,
-      selector: { select: { mode: 'dropdown', options: items.length ? items : [{ value: empty, label: empty }] } },
-    }],
-    data: { curve: items.length ? selected : empty },
-  };
+  return selectForm({
+    name: 'curve',
+    label: t('Curve table for this heating circuit'),
+    helper: t('Choose one of the heating tables (HC…) offered by the controller. Selecting a table assigns it to this heating circuit. A table can be shared by several circuits on the same controller.'),
+    disabled: model.curveSelectDisabled,
+    selected,
+    missingLabel: selected && !options.includes(selected) ? t('Current: {name}', { name: selected }) : '',
+    options: options.map(name => ({ value: name, label: name })),
+    emptyLabel: selected || t('No curves available'),
+  });
 }
 
 /**

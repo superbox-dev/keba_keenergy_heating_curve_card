@@ -2,8 +2,10 @@
 import { AXIS_LIMITS, INTERMEDIATE_STEP, MIN_AXIS_STEP } from './chart-axis.js';
 import { discoverControllers, loadRegistry } from './discovery.js';
 import { html } from './html.js';
-import { errorText, languageCode, translate } from './i18n.js';
+import { LANGUAGES, errorText, languageCode, translate } from './i18n.js';
 import { createVerifier } from './password.js';
+import { LOCK_MINUTES } from './card/config.js';
+import { POINT_LIMITS } from './card/points.js';
 
 /**
  * @typedef {import('./discovery.js').Controller} Controller
@@ -13,13 +15,6 @@ import { createVerifier } from './password.js';
  */
 
 const EDITOR_TYPE = 'keba-keenergy-heating-curve-card-editor';
-
-/** Languages of the option `language` with their labels. */
-const LANGUAGES = [
-  { value: 'auto', label: 'Automatic (Home Assistant)' },
-  { value: 'de', label: 'German' },
-  { value: 'en', label: 'English' },
-];
 
 /** Value of the controller and heating circuit selection without pinning, not stored in the config. */
 const AUTOMATIC = 'auto';
@@ -102,7 +97,11 @@ const LABELS = {
   repeat_password: 'Repeat password',
 };
 
-/** The fields of a new password, side by side like the password fields of Home Assistant. */
+/**
+ * The fields of a new password, side by side like the password fields of Home Assistant.
+ *
+ * @type {FormSchema[]}
+ */
 const PASSWORD_SCHEMA = [{
   name: 'passwords',
   type: 'grid',
@@ -502,9 +501,9 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
         name: 'flow_grid',
         type: 'grid',
         flatten: true,
-        schema: ['flow_min', 'flow_max'].map(name => ({ name, selector: numberSelector(10, 90, 'any') })),
+        schema: ['flow_min', 'flow_max'].map(name => ({ name, selector: numberSelector(POINT_LIMITS.flow.min, POINT_LIMITS.flow.max, 'any') })),
       }],
-      lock: [{ name: 'auto_lock_minutes', selector: numberSelector(1, 60, 1) }],
+      lock: [{ name: 'auto_lock_minutes', selector: numberSelector(LOCK_MINUTES.min, LOCK_MINUTES.max, 1) }],
     };
   }
 
@@ -527,12 +526,19 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     }
     const c = this._config;
     if (this._registry) this._controllers = discoverControllers(this._registry, this._devices, text => this._t(text));
-    const data = this._data(), schemas = this._schemas();
-    for (const name of /** @type {(keyof typeof schemas)[]} */ (Object.keys(schemas))) {
+    const data = this._data();
+    /** @typedef {[string, FormSchema[], Record<string, unknown>]} EditorForm ID, schema and values of a form. */
+    /** @type {EditorForm[]} */
+    const forms = [
+      ...Object.entries(this._schemas()).map(([name, schema]) => /** @type {EditorForm} */ ([name, schema, data])),
+      // The password fields keep their own values, they never reach the config.
+      ['new-password', PASSWORD_SCHEMA, this._passwords],
+    ];
+    for (const [name, schema, values] of forms) {
       Object.assign(/** @type {HaForm} */ (this._get(`#${name}`)), {
         hass: this._hass,
-        data,
-        schema: schemas[name],
+        data: values,
+        schema,
         computeLabel: (/** @type {FormSchema} */ item) => this._t(LABELS[item.name]),
         computeHelper: (/** @type {FormSchema} */ item) => HELPERS[item.name] && this._t(HELPERS[item.name]),
       });
@@ -554,12 +560,6 @@ class KeEnergyHeatingCurveEditor extends HTMLElement {
     this._text('#axes-hint', this._t('Empty bounds are set automatically. The default grid interval is 5 °C. These settings only change the visible chart range and grid.'));
     this._text('#flow-hint', this._t('Leave empty to show the unmodified table. These values limit the display only and are not sent to the controller.'));
     this._text('#password-hint', this._t('Set your own password. Only the verifier is stored in the card configuration. Protection applies to this card interface; Home Assistant permissions still apply.'));
-    Object.assign(/** @type {HaForm} */ (this._get('#new-password')), {
-      hass: this._hass,
-      data: this._passwords,
-      schema: PASSWORD_SCHEMA,
-      computeLabel: (/** @type {FormSchema} */ item) => this._t(LABELS[item.name]),
-    });
     this._text('#create-password', this._t('Set password'));
     this._text('#remove-password', this._t('Remove password protection'));
     this._get('#remove-password').hidden = !c.edit_password_hash;

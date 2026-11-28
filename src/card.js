@@ -88,12 +88,18 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     super();
     const root = this.attachShadow({ mode: 'open' });
     this._root = root;
+    /**
+     * `_t()` as a function of its own, for the templates and the helpers.
+     *
+     * @type {Translate}
+     */
+    this._translate = (text, params) => this._t(text, params);
     /** @type {CardConfig | undefined} */
     this._config = undefined;
     /** @type {Hass | undefined} */
     this._hass = undefined;
     this._lock = new EditLock({
-      t: (text, params) => this._t(text, params),
+      t: this._translate,
       render: force => this._render(force),
       passwordForm: () => this._root.querySelector('#edit-password'),
       onLocked: message => this._discardChanges(message),
@@ -126,8 +132,8 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     this._devices = [];
     /** Whether a redraw waits until the user stops editing. */
     this._pendingRender = false;
-    /** Whether the user opens or uses a select element. */
-    this._selectInteracting = false;
+    /** Whether the user is in a form of the card, its menu or field stays while the card updates. */
+    this._formFocused = false;
     /** Key of the shown view, a full redraw only when it changes. @type {string | null} */
     this._viewKey = null;
     /** Key of the view without the points, the point table is patched when only they change. */
@@ -144,12 +150,12 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     /** @type {string | null} */
     this._entryId = null;
     this._bindingError = '';
-    /** @type {string | null} */
+    /** Error of loading the registry, empty without error. */
     this._registryError = '';
     /** Curve table that the card assigned and waits for. @type {string | null} */
     this._loadingCurve = null;
     this._visibilityHandler = () => {
-      if (this._lock.enabled && globalThis.document?.hidden) this._lock.lock(this._t('Editing locked.'));
+      if (this._lock.enabled && globalThis.document?.hidden) this._lockEditing();
     };
     const flush = () => queueMicrotask(() => {
       if (this._pendingRender && !this._editing()) this._render();
@@ -189,7 +195,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     this._edits = {};
     this._loadingCurve = null;
     this._pendingRender = false;
-    this._selectInteracting = false;
+    this._formFocused = false;
     this._viewKey = null;
     this._render(true);
     this._discover();
@@ -207,7 +213,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       this._message = '';
       this._lock.error = '';
       if (this._registry.length) {
-        this._controllers = discoverControllers(this._registry, this._devices, text => this._t(text));
+        this._controllers = discoverControllers(this._registry, this._devices, this._translate);
         this._applySelection();
       }
     }
@@ -257,7 +263,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
   disconnectedCallback() {
     globalThis.document?.removeEventListener('visibilitychange', this._visibilityHandler);
     this._resizeObserver?.disconnect();
-    if (this._lock.enabled) this._lock.lock(this._t('Editing locked.'));
+    if (this._lock.enabled) this._lockEditing();
   }
 
   /**
@@ -306,6 +312,11 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     return /** @type {CardConfig} */ (this._config);
   }
 
+  /** Locks the editing, the unsaved changes are discarded. */
+  _lockEditing() {
+    this._lock.lock(this._t('Editing locked.'));
+  }
+
   /**
    * Discards the unsaved changes after locking and shows the message.
    *
@@ -314,7 +325,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
   _discardChanges(message) {
     this._draft = null;
     this._edits = {};
-    this._selectInteracting = false;
+    this._formFocused = false;
     this._message = message;
     this._render(true);
   }
@@ -363,7 +374,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
 
   /** @returns {boolean} Whether the user is in a form of the card or the unlock form is open. */
   _editing() {
-    return this._lock.formOpen || this._selectInteracting;
+    return this._lock.formOpen || this._formFocused;
   }
 
   /** Loads the registry and discovers the controllers, once per config. */
@@ -372,11 +383,11 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     this._discovering = true;
     const revision = this._discoveryRevision;
     try {
-      const { registry, devices } = await loadRegistry(this._hass, text => this._t(text));
+      const { registry, devices } = await loadRegistry(this._hass, this._translate);
       if (revision !== this._discoveryRevision) return;
       this._registry = registry;
       this._devices = devices;
-      this._controllers = discoverControllers(registry, devices, text => this._t(text));
+      this._controllers = discoverControllers(registry, devices, this._translate);
       this._registryError = '';
       this._applySelection();
     } catch (error) {
@@ -398,10 +409,10 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       config: this._cfg,
       registry: this._registry,
       controllers: this._controllers,
-      registryError: this._registryError || '',
+      registryError: this._registryError,
       controllerId: this._controllerId,
       circuitId: this._circuitId,
-      t: (text, params) => this._t(text, params),
+      t: this._translate,
     });
     this._controllerId = binding.controllerId;
     this._circuitId = binding.circuitId;
@@ -427,7 +438,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
    * @param {string} value Config entry ID or heating circuit number.
    */
   _chooseTarget(kind, value) {
-    this._selectInteracting = false;
+    this._formFocused = false;
     if (this._busy || this._draft || Object.keys(this._edits).length) {
       this._notice(this._t('Save changes or discard the draft before switching controller or heating circuit.'));
       // Shows the selection of the card again.
@@ -472,6 +483,17 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
   /** @returns {CurvePoint[]} Copy of the points of the draft or the curve table. */
   _points() {
     return (this._draft?.name === this._selected() ? this._draft.points : this._readPoints()).map(p => ({ ...p }));
+  }
+
+  /**
+   * Starts a draft of the selected curve table.
+   *
+   * @param {CurvePoint[]} points The changed points.
+   * @returns {Draft} The new draft.
+   */
+  _startDraft(points) {
+    this._draft = { name: this._selected(), points };
+    return this._draft;
   }
 
   /** @returns {boolean} Whether the integration has the action to save points. */
@@ -520,7 +542,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       limitNight: this._fieldValue('limitNight'),
       config: this._cfg,
       plotId: this._plotId,
-      t: (text, params) => this._t(text, params),
+      t: this._translate,
       number: (value, options) => this._number(value, options),
       temperature: value => this._fmt(value),
       textScale: this._textScale,
@@ -596,10 +618,10 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
   _patchPoints(points, ready, dirty) {
     // The surrounding ha-card and the editor buttons stay connected.
     // Replacing the entire card here can reset the dashboard's outer scroll area.
-    this._get('.points').innerHTML = pointRows(points, ready, (text, params) => this._t(text, params));
+    this._get('.points').innerHTML = pointRows(points, ready, this._translate);
     this._get('#add-point').toggleAttribute('disabled', !ready || points.length >= POINT_LIMITS.count.max);
     this._get('#save-points').toggleAttribute('disabled', !ready);
-    this._get('#curve-label').textContent = curveLabel(dirty, (text, params) => this._t(text, params));
+    this._get('#curve-label').textContent = curveLabel(dirty, this._translate);
     const limits = LIMIT_KEYS.map(key => ({ key, value: this._fieldValue(key) }));
     Object.assign(this._get('#limits-form'), { data: limitsData(limits) });
     this._bindPointRows();
@@ -632,9 +654,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     // Sent points stay until the controller has them, they are no draft any more.
     const dirty = !!this._draft && !this._draft.saved;
     const disabled = this._disabledEditors();
-    // Readings change frequently; keep the actual controls and scroll container
-    // when the editor structure/data is unchanged. Scrollbar dragging and touch
-    // scrolling must not depend on an input already having keyboard focus.
+    // Readings change often, the forms stay as long as the view and the editor values are the same.
     const viewState = {
       language: languageCode(this._config, this._hass),
       ids,
@@ -678,7 +698,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       return;
     }
     const model = this._model({ selected, options, points, ready, canEdit, tableState, missing, dirty, disabled });
-    this._root.innerHTML = cardTemplate(model, (text, params) => this._t(text, params));
+    this._root.innerHTML = cardTemplate(model, this._translate);
     this._viewKey = viewKey;
     this._shellKey = shellKey;
     this._bind();
@@ -716,7 +736,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
         circuitPinned: this._circuitPinned(),
         busy: this._busy,
         bindingError: this._bindingError,
-        registryError: this._registryError || '',
+        registryError: this._registryError,
       },
       lock: this._lock.enabled
         ? {
@@ -794,21 +814,15 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
   /** Binds the inputs and the remove buttons of the point table. */
   _bindPointRows() {
     const points = this._points(), ready = this._ready() && this._lock.canEdit() && !this._bindingError;
-    this._root.querySelectorAll('ha-form[data-point]').forEach((element) => {
-      const index = Number(/** @type {HTMLElement} */ (element).dataset.point);
-      const form = pointForm(points[index], ready, (text, params) => this._t(text, params));
-      this._bindFormElement(/** @type {HTMLElement} */ (element), form, (data) => {
-        // Like in Home Assistant, the card gives the form its values, the form does not keep them itself.
-        if (!this._lock.canEdit() || this._busy) {
-          Object.assign(element, { data: pointData(this._points()[index]) });
-          return;
-        }
-        this._lock.touch();
-        if (!this._draft) this._draft = { name: this._selected(), points: this._readPoints() };
-        this._draft.saved = false;
-        this._draft.points[index] = { outdoor: numeric(data.outdoor ?? ''), flow: numeric(data.flow ?? '') };
+    /** @type {NodeListOf<HTMLElement>} */ (this._root.querySelectorAll('ha-form[data-point]')).forEach((element) => {
+      const index = Number(element.dataset.point);
+      this._bindForm(element, pointForm(points[index], ready, this._translate), (data) => {
+        if (!this._acceptsInput(element, pointData(this._points()[index]))) return;
+        const draft = this._draft ?? this._startDraft(this._readPoints());
+        draft.saved = false;
+        draft.points[index] = { outdoor: numeric(data.outdoor ?? ''), flow: numeric(data.flow ?? '') };
         Object.assign(element, { data });
-        this._get('#curve-label').textContent = curveLabel(true, (text, params) => this._t(text, params));
+        this._get('#curve-label').textContent = curveLabel(true, this._translate);
         this._notice(this._t('Points changed · not saved yet'));
         this._preview();
       });
@@ -820,21 +834,28 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
         if (!this._lock.canEdit() || !this._ready() || current.length <= POINT_LIMITS.count.min) return;
         this._lock.touch();
         current.splice(Number(/** @type {HTMLElement} */ (element).dataset.remove), 1);
-        this._draft = { name: this._selected(), points: current };
+        this._startDraft(current);
         this._render();
       });
     });
   }
 
   /**
-   * Sets a form of Home Assistant and its handler, the card keeps the form while it has the focus.
+   * Whether the user can change values now, else the form shows the values of the card again.
    *
-   * @param {string} selector CSS selector of the `ha-form`.
-   * @param {CardForm} form Schema and values.
-   * @param {(data: Record<string, unknown>, form: HTMLElement) => unknown} onChange Called with the values.
+   * Like in Home Assistant, the card gives the form its values, the form does not keep them itself.
+   *
+   * @param {HTMLElement} form The `ha-form`.
+   * @param {Record<string, unknown>} values The values that the card shows.
+   * @returns {boolean} `true` when the card takes the input, it extends the unlocked time.
    */
-  _bindForm(selector, form, onChange) {
-    this._bindFormElement(this._get(selector), form, onChange);
+  _acceptsInput(form, values) {
+    if (this._lock.canEdit() && !this._busy) {
+      this._lock.touch();
+      return true;
+    }
+    Object.assign(form, { data: values });
+    return false;
   }
 
   /**
@@ -844,7 +865,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
    * @param {CardForm} form Schema and values.
    * @param {(data: Record<string, unknown>, form: HTMLElement) => unknown} onChange Called with the values.
    */
-  _bindFormElement(element, form, onChange) {
+  _bindForm(element, form, onChange) {
     Object.assign(element, {
       hass: this._hass,
       ...form,
@@ -852,10 +873,10 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       computeHelper: (/** @type {{ helper?: string }} */ item) => item.helper,
     });
     element.addEventListener('focusin', () => {
-      this._selectInteracting = true;
+      this._formFocused = true;
     });
     element.addEventListener('focusout', () => {
-      this._selectInteracting = false;
+      this._formFocused = false;
     });
     element.addEventListener('value-changed', (event) => {
       event.stopPropagation();
@@ -869,28 +890,22 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
    * @param {CardModel} model What the card shows.
    */
   _bindForms(model) {
-    /** @type {Translate} */
-    const t = (text, params) => this._t(text, params);
+    const t = this._translate;
     const targets = targetForms(model.target, t);
     for (const kind of /** @type {('controller' | 'circuit')[]} */ (['controller', 'circuit'])) {
-      this._bindForm(`#${kind}-form`, targets[kind], data => this._chooseTarget(kind, String(data[kind])));
+      this._bindForm(this._get(`#${kind}-form`), targets[kind], data => this._chooseTarget(kind, String(data[kind])));
     }
     const curve = curveForm(model, t);
-    this._bindForm('#curve-form', curve, (data, form) => {
+    this._bindForm(this._get('#curve-form'), curve, (data, form) => {
       // The choice closes the menu, the card draws the assignment right away although the form keeps the focus.
-      this._selectInteracting = false;
+      this._formFocused = false;
       // The form shows the table of the controller until the controller has switched it.
       Object.assign(form, { data: curve.data });
       return selectCurve(this, String(data.curve));
     });
-    this._bindForm('#limits-form', limitsForm(model.limits, t), (data, form) => {
+    this._bindForm(this._get('#limits-form'), limitsForm(model.limits, t), (data, form) => {
       const shown = limitsData(LIMIT_KEYS.map(key => ({ key, value: this._fieldValue(key) })));
-      // Like in Home Assistant, the card gives the form its values, the form does not keep them itself.
-      if (!this._lock.canEdit() || this._busy) {
-        Object.assign(form, { data: shown });
-        return;
-      }
-      this._lock.touch();
+      if (!this._acceptsInput(form, shown)) return;
       for (const key of LIMIT_KEYS.filter(name => data[name] !== shown[name])) {
         this._edits[key] = numeric(data[key] ?? '');
       }
@@ -900,7 +915,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     });
     const password = this._root.querySelector('#edit-password');
     if (password) {
-      this._bindFormElement(/** @type {HTMLElement} */ (password), passwordForm(t), (data, form) => {
+      this._bindForm(/** @type {HTMLElement} */ (password), passwordForm(t), (data, form) => {
         Object.assign(form, { data });
       });
       Object.assign(password, { disabled: this._lock.verifying });
@@ -933,7 +948,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     });
     on('#unlock-editor', 'click', () => this._lock.openForm());
     on('#lock-editor', 'click', () => this._lock.lock());
-    on('#cancel-unlock', 'click', () => this._lock.lock(this._t('Editing locked.')));
+    on('#cancel-unlock', 'click', () => this._lockEditing());
     on('#confirm-unlock', 'click', event => this._lock.submit(event));
     on('#edit-password', 'keydown', (event) => {
       const { key } = /** @type {KeyboardEvent} */ (event);
@@ -941,7 +956,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       if (key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        this._lock.lock(this._t('Editing locked.'));
+        this._lockEditing();
       }
     });
     on('#reset', 'click', () => {
@@ -954,7 +969,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
     });
     on('#retry', 'click', () => {
       this._discovered = false;
-      this._registryError = null;
+      this._registryError = '';
       this._discover();
     });
     on('#enable-editors', 'click', () => enableEntities(this));
@@ -963,7 +978,7 @@ export class KeEnergyHeatingCurveCard extends HTMLElement {
       if (!this._lock.canEdit() || !this._ready() || points.length >= POINT_LIMITS.count.max) return;
       this._lock.touch();
       points.push(newPoint(points));
-      this._draft = { name: this._selected(), points };
+      this._startDraft(points);
       this._message = this._t('Point added · not saved yet');
       this._render();
     });
